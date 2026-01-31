@@ -13,41 +13,41 @@ public class Interface
 
     public Interface PopulateNeighbour(ICollection<As> asses)
     {
-        string[] neighbourPath = Neighbour?.Name.Split(':') ?? [];
-        int asNumber;
-        string routerName = neighbourPath.Last();
+        var neighbourPath = Neighbour?.Name.Split(':') ?? [];
+        var routerName = neighbourPath.Last();
+
+        string errorEnd =
+            $" in interface {Name} of router {ParentRouter.Name} (AS number {ParentRouter.ParentAs.Number}).";
         
-        if (neighbourPath.Length > 2)
-            throw new InvalidDataException("Invalid neighbour format in interface");
-        
-        // Try and get AS number. If not in neighbourPath, default to ours
-        if (neighbourPath.Length == 2)
-            asNumber = int.TryParse(neighbourPath.First(), out int index)
+        var asNumber = neighbourPath.Length switch
+        {
+            1 => ParentRouter.ParentAs.Number,
+            2 =>
+                // Try and get AS number. If not in neighbourPath, default to ours
+                int.TryParse(neighbourPath.First(), out var index)
                 ? index
-                : throw new IndexOutOfRangeException("Invalid AS number in interface");
-        else
-            asNumber = ParentRouter.ParentAs.Number;
+                : throw new IndexOutOfRangeException("Invalid AS number" + errorEnd),
+            _ => throw new InvalidDataException("Invalid neighbour formater" + errorEnd)
+        };
 
         Neighbour = GetNeighbour(asNumber, routerName, asses)
-                    ?? throw new InvalidDataException("Invalid neighbour in interface");
+                    ?? throw new InvalidDataException("Invalid neighbour" + errorEnd);
         
         return this;
     }
 
     private Interface? GetNeighbour(int asNumber, string routerName, ICollection<As> asses)
     {
-        Console.WriteLine($"Finding neighbour of {Name}");
-        
+        // Try and get our neighbour
+        return asses.FirstOrDefault(a => a.Number == asNumber)
+            ?.Routers.FirstOrDefault(r => r.Name == routerName)
+            ?.Interfaces.FirstOrDefault(FilterNeighbours);
+
         // Filter in neighbours that don't have neighbours (dummy neighbour with our actual neighbour's name)
         // Or neighbours that do have neighbours, that happen to be ourselves
         bool FilterNeighbours(Interface i) => 
             (i.Neighbour!.Neighbour is null && i.Neighbour.Name.Split(':').Last() == ParentRouter.Name)
             || (i.Neighbour.Neighbour is not null && i.Neighbour == this);
-        
-        // Try and get our neighbour
-        return asses.FirstOrDefault(a => a.Number == asNumber)
-            ?.Routers.FirstOrDefault(r => r.Name == routerName)
-            ?.Interfaces.FirstOrDefault(FilterNeighbours);
     }
 }
 

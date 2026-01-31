@@ -2,8 +2,10 @@
   igp: "ospf"
   loopback_space: "2001:1:1:1::/64"
   networks_space: "2001:db8:1::/48"
+  brand: "cisco"
   routers:
     R1:
+      id: "1.1.1.1"
       ospf_area: 0
       interfaces:
         GigabitEthernet0/0:
@@ -11,12 +13,11 @@
           bgp: "peer"
           
 112:
-  igp: "ibgp"
   loopback_space: "2001:1:1:2::/64"
   networks_space: "2001:db8:2::/48"
   routers:
     R2:
-      ospf_area: 0
+      brand: "cisco"
       interfaces:
         GigabitEthernet0/0:
           neighbour: "111:R1"

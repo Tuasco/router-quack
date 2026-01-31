@@ -1,0 +1,57 @@
+67523:
+  brand: "cisco"
+  loopback_space: "2001:0:0::/48"
+  networks_space: "2001:1:0::/48"
+  routers:
+    Rx1:
+      interfaces:
+        GigabitEthernet0/0:
+          neighbour: "Rx2"
+        GigabitEthernet1/0:
+          neighbour: "Rx3"
+
+    Rx2:
+      interfaces:
+        GigabitEthernet0/0:
+          neighbour: "Rx1"
+        GigabitEthernet1/0:
+          neighbour: "Rx3"
+        GigabitEthernet2/0:
+          neighbour: "Rx4"
+        GigabitEthernet3/0:
+          neighbour: "Rx5"
+
+    Rx3:
+      interfaces:
+        GigabitEthernet0/0:
+          neighbour: "Rx1"
+        GigabitEthernet1/0:
+          neighbour: "Rx2"
+        GigabitEthernet2/0:
+          neighbour: "Rx4"
+        GigabitEthernet3/0:
+          neighbour: "Rx5"
+
+    Rx4:
+      interfaces:
+        GigabitEthernet0/0:
+          neighbour: "Rx2"
+        GigabitEthernet1/0:
+          neighbour: "Rx3"
+        GigabitEthernet2/0:
+          neighbour: "Rx5"
+        GigabitEthernet3/0:
+          neighbour: "15627:Ry4"
+          bgp: "peer"
+
+    Rx5:
+      interfaces:
+        GigabitEthernet0/0:
+          neighbour: "Rx2"
+        GigabitEthernet1/0:
+          neighbour: "Rx3"
+        GigabitEthernet2/0:
+          neighbour: "Rx4"
+        GigabitEthernet3/0:
+          neighbour: "15627:Ry5"
+          bgp: "peer"

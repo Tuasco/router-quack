@@ -4,5 +4,5 @@ public class Interface
 {
     public required string Neighbour { get; set; }
 
-    public string Bgp { get; set; } = "none";
+    public string? Bgp { get; set; }
 }

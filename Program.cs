@@ -2,6 +2,7 @@ using System.CommandLine;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RouterQuack.IntentFileReader;
+using RouterQuack.IntentFileReader.Yaml;
 
 string[] filePaths = null!;
 
