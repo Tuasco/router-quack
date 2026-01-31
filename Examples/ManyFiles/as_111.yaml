@@ -1,0 +1,13 @@
+111:
+  igp: "ospf"
+  loopback_space: "2001:1:1:1::/64"
+  networks_space: "2001:db8:1::/48"
+  routers:
+    R1:
+      ospf_area: 0
+      interfaces:
+        GigabitEthernet0/0:
+          neighbour: "112:R2"
+          bgp: "peer"
+        GigabitEthernet1/0:
+          neighbour: "R4"
