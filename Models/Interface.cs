@@ -6,21 +6,24 @@ public class Interface
 {
     public required string Name { get; init; }
 
+    // Initially, this will point to a dummy interface, with one relevant piece of information
+    // which is Name. It will be used to resolve the actual neighbour interface
+    // Starting from the collection of ASs
     public required Interface? Neighbour { get; set; }
 
     public BgpRelationship Bgp { get; init; } = BgpRelationship.None;
     
-    public ICollection<IPNetwork>? Addresses { get; init; }
+    public ICollection<Tuple<IPNetwork, IPAddress>>? Addresses { get; init; }
     
     public required Router ParentRouter { get; init; }
     
 
-    public Interface PopulateNeighbour(ICollection<As> asses)
+    public Interface ResolveNeighbour(ICollection<As> asses)
     {
         var neighbourPath = Neighbour?.Name.Split(':') ?? [];
         var routerName = neighbourPath.Last();
 
-        string errorEnd =
+        var errorEnd =
             $" in interface {Name} of router {ParentRouter.Name} (AS number {ParentRouter.ParentAs.Number}).";
         
         var asNumber = neighbourPath.Length switch
@@ -53,6 +56,9 @@ public class Interface
             (i.Neighbour!.Neighbour is null && i.Neighbour.Name.Split(':').Last() == ParentRouter.Name)
             || (i.Neighbour.Neighbour is not null && i.Neighbour == this);
     }
+
+
+    public override string ToString() => $"  - Interface {Name}";
 }
 
 public enum BgpRelationship

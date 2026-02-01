@@ -12,7 +12,7 @@
           neighbour: "112:R2"
           bgp: "peer"
           addresses:
-            - "2001:db8:1::1/128"
+            - "2001:db8:1::1/126"
           
 112:
   loopback_space: "2001:1:1:2::/64"
@@ -25,4 +25,4 @@
           neighbour: "111:R1"
           bgp: "peer"
           addresses:
-            - "2001:db8:1::2/128"
+            - "2001:db8:1::2/126"

@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text;
 
 namespace RouterQuack.Models;
 
@@ -13,6 +14,17 @@ public class As
     public required IPNetwork NetworksSpace { get; init; }
 
     public required ICollection<Router> Routers { get; set; }
+
+    public override string ToString()
+    {
+        var str = new StringBuilder();
+        str.AppendLine($"AS number {Number} using {Igp.ToString().ToUpper()}:");
+        
+        foreach (var router in Routers)
+            str.AppendLine(router.ToString());
+        
+        return str.ToString();
+    }
 }
 
 public enum IgpType

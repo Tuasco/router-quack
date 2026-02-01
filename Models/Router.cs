@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text;
 
 namespace RouterQuack.Models;
 
@@ -19,8 +20,7 @@ public class Router
 
     public static IPAddress GetDefaultId(string routerName)
     {
-        using var md5 = System.Security.Cryptography.MD5.Create();
-        var hash = md5.ComputeHash(System.Text.Encoding.UTF8.GetBytes(routerName));
+        var hash = System.Security.Cryptography.MD5.HashData(Encoding.UTF8.GetBytes(routerName));
     
         var bytes = new byte[4];
         Array.Copy(hash, bytes, 4);
@@ -29,6 +29,17 @@ public class Router
         bytes[3] = Math.Max((byte) 1, bytes[3]);
     
         return new IPAddress(bytes);
+    }
+    
+    public override string ToString()
+    {
+        var str = new StringBuilder();
+        str.AppendLine($"* {Brand.ToString()} router {Name}:");
+        
+        foreach (var @interface in Interfaces)
+            str.AppendLine(@interface.ToString());
+        
+        return str.ToString();
     }
 }
 

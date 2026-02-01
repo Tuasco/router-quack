@@ -1,5 +1,3 @@
-using System.Net;
-
 namespace RouterQuack.Models.Yaml;
 
 public class Interface
@@ -8,5 +6,5 @@ public class Interface
 
     public string? Bgp { get; init; }
     
-    public ICollection<IPNetwork>? Addresses { get; init; }
+    public ICollection<string>? Addresses { get; init; }
 }

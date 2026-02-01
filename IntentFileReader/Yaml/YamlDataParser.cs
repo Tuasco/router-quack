@@ -1,3 +1,4 @@
+using System.Net;
 using RouterQuack.Models;
 using YamlAs = RouterQuack.Models.Yaml.As;
 using YamlRouter = RouterQuack.Models.Yaml.Router;
@@ -11,30 +12,30 @@ public partial class YamlReader
     {
         ICollection<As> asses = [];
 
-        foreach (var yamlAs in asDict)
+        foreach (var (key, value) in asDict)
         {
             var @as = new As
             {
-                Number = yamlAs.Key,
-                Igp = Enum.TryParse<IgpType>(yamlAs.Value.Igp, ignoreCase: true, out var igpType) ? igpType : IgpType.Ibgp,
-                LoopbackSpace = yamlAs.Value.LoopbackSpace,
-                NetworksSpace = yamlAs.Value.NetworksSpace,
+                Number = key,
+                Igp = Enum.TryParse<IgpType>(value.Igp, ignoreCase: true, out var igpType) ? igpType : IgpType.Ibgp,
+                LoopbackSpace = value.LoopbackSpace,
+                NetworksSpace = value.NetworksSpace,
                 Routers = []
             };
             
             // Take default router brand
-            var brand = Enum.TryParse<RouterBrand>(yamlAs.Value.Brand, ignoreCase: true, out var routerBrand)
+            var brand = Enum.TryParse<RouterBrand>(value.Brand, ignoreCase: true, out var routerBrand)
                 ? routerBrand
                 : RouterBrand.Unknwon;
             
-            @as.Routers = YamlRouterToRouter(yamlAs.Value.Routers, @as, brand);
+            @as.Routers = YamlRouterToRouter(value.Routers, @as, brand);
             asses.Add(@as);
         }
         
-        foreach (var @as in asses)
-            foreach (var router in @as.Routers)
-                foreach (var @interface in router.Interfaces)
-                    @interface.PopulateNeighbour(asses);
+        // foreach (var @as in asses)
+        //     foreach (var router in @as.Routers)
+        //         foreach (var @interface in router.Interfaces)
+        //             @interface.PopulateNeighbour(asses);
         
         return asses;
     }
@@ -43,24 +44,23 @@ public partial class YamlReader
     {
         ICollection<Router> routers = [];
 
-        foreach (var yamlRouter in routerDict)
+        foreach (var (key, value) in routerDict)
         {
             var router = new Router
             {
-                Name = yamlRouter.Key,
-                Id = yamlRouter.Value.Id ?? Router.GetDefaultId(yamlRouter.Key),
-                OspfArea =  yamlRouter.Value.OspfArea,
+                Name = key,
+                Id = value.Id ?? Router.GetDefaultId(key),
+                OspfArea =  value.OspfArea,
                 Interfaces = [],
                 ParentAs = parentAs,
-                Brand = Enum.TryParse<RouterBrand>(yamlRouter.Value.Brand, ignoreCase: true, out var routerBrand) 
+                Brand = Enum.TryParse<RouterBrand>(value.Brand, ignoreCase: true, out var routerBrand) 
                     ? routerBrand
                     : defaultBrand
             };
             
-            router.Interfaces = YamlInterfaceToInterface(yamlRouter.Value.Interfaces, router);
+            router.Interfaces = YamlInterfaceToInterface(value.Interfaces, router);
             routers.Add(router);
         }
-        
 
         return routers;
     }
@@ -69,27 +69,43 @@ public partial class YamlReader
     {
         ICollection<Interface> interfaces = [];
 
-        foreach (var yamlInterface in interfaceDict)
+        foreach (var (key, value) in interfaceDict)
         {
             var dummyNeighbour = new Interface
             {
-                Name = yamlInterface.Value.Neighbour,
+                Name = value.Neighbour,
                 Neighbour = null,
                 ParentRouter = parentRouter
             };
 
             interfaces.Add(new Interface
             {
-                Name = yamlInterface.Key,
+                Name = key,
                 Neighbour = dummyNeighbour, // Populate it now, will resolve it later in YamlAsToAs
-                Bgp = Enum.TryParse<BgpRelationship>(yamlInterface.Value.Bgp, ignoreCase: true, out var bgpRelationship)
+                ParentRouter = parentRouter,
+                Addresses = value.Addresses?.Select(TranslateIpAddress).ToList(),
+                Bgp = Enum.TryParse<BgpRelationship>(value.Bgp, ignoreCase: true, out var bgpRelationship)
                     ? bgpRelationship
-                    : BgpRelationship.None,
-                Addresses = yamlInterface.Value.Addresses, // Store them raw, will be resolved at a later stage
-                ParentRouter = parentRouter
+                    : BgpRelationship.None
             });
         }
 
         return interfaces;
+    }
+
+    private static Tuple<IPNetwork, IPAddress> TranslateIpAddress(string ip)
+    {
+        var parts = ip.Split('/');
+        
+        if(parts.Length != 2)
+            throw new InvalidCastException("Couldn't translate IP address");
+        
+        if (!int.TryParse(parts[1], out var mask))
+            throw new InvalidCastException("Couldn't translate IP address (invalid mask)");
+            
+        if (!IPAddress.TryParse(parts[0], out var ipAddress))
+            throw new InvalidCastException("Couldn't translate IP address (invalid IP)");
+        
+        return new (new (ipAddress, mask), ipAddress);
     }
 }

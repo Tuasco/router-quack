@@ -1,13 +1,16 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using RouterQuack.Extensions;
 using RouterQuack.IntentFileReader;
 using RouterQuack.IntentFileReader.Yaml;
 using RouterQuack.Startup;
+using RouterQuack.Steps;
 
 // Add DI
 var builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddSingleton<ArgumentParser>();
 builder.Services.AddSingleton<IIntentFileReader, YamlReader>();
+builder.Services.AddKeyedSingleton<IStep, Step1ResolveNeighbours>(nameof(Step1ResolveNeighbours));
 var host = builder.Build();
 using var serviceScope = host.Services.CreateScope();
 
@@ -22,5 +25,10 @@ if (hasParsed.Any())
 
 // Main
 var intentFileReader = serviceScope.ServiceProvider.GetRequiredService<IIntentFileReader>();
-intentFileReader.ReadFiles(parser.FilePaths);
+var step1ResolveNeighbours = serviceScope.ServiceProvider.GetRequiredKeyedService<IStep>(nameof(Step1ResolveNeighbours));
+
+var asses = intentFileReader.ReadFiles(parser.FilePaths);
+asses.ExecuteStep(step1ResolveNeighbours);
+
+Console.Write(asses.ShowASs());
 return 0;
