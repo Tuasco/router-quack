@@ -1,14 +1,18 @@
+using System.Net;
+
 namespace RouterQuack.Models;
 
 public class Interface
 {
-    public required string Name { get; set; }
+    public required string Name { get; init; }
 
     public required Interface? Neighbour { get; set; }
 
-    public BgpRelationship Bgp { get; set; } = BgpRelationship.None;
+    public BgpRelationship Bgp { get; init; } = BgpRelationship.None;
     
-    public required Router ParentRouter { get; set; }
+    public ICollection<IPNetwork>? Addresses { get; init; }
+    
+    public required Router ParentRouter { get; init; }
     
 
     public Interface PopulateNeighbour(ICollection<As> asses)

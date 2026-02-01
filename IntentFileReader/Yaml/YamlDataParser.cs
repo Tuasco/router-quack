@@ -85,6 +85,7 @@ public partial class YamlReader
                 Bgp = Enum.TryParse<BgpRelationship>(yamlInterface.Value.Bgp, ignoreCase: true, out var bgpRelationship)
                     ? bgpRelationship
                     : BgpRelationship.None,
+                Addresses = yamlInterface.Value.Addresses, // Store them raw, will be resolved at a later stage
                 ParentRouter = parentRouter
             });
         }

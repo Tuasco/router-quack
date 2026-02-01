@@ -9,7 +9,7 @@ var builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddSingleton<ArgumentParser>();
 builder.Services.AddSingleton<IIntentFileReader, YamlReader>();
 var host = builder.Build();
-using IServiceScope serviceScope = host.Services.CreateScope();
+using var serviceScope = host.Services.CreateScope();
 
 // Argument parser
 var parser = serviceScope.ServiceProvider.GetRequiredService<ArgumentParser>();

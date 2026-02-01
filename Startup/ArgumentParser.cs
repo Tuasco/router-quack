@@ -7,7 +7,7 @@ public class ArgumentParser
 {
     public required string[] FilePaths  { get; set; }
     
-    private readonly RootCommand rootCommand;
+    private readonly RootCommand _rootCommand;
     
     
     public ArgumentParser()
@@ -21,16 +21,16 @@ public class ArgumentParser
             AllowMultipleArgumentsPerToken = true
         };
 
-        rootCommand = new("Generate router configuration files from user-friendly intent files");
-        rootCommand.Options.Add(fileOption);
-        rootCommand.SetAction(parseResult => 
+        _rootCommand = new("Generate router configuration files from user-friendly intent files");
+        _rootCommand.Options.Add(fileOption);
+        _rootCommand.SetAction(parseResult => 
             FilePaths = (parseResult.GetValue(fileOption) ?? []).Select(f => f.FullName).ToArray());
     }
 
     // Return whether parsing was successful
     public IReadOnlyList<ParseError> Parse(string[] args)
     {
-        var parseResult = rootCommand.Parse(args);
+        var parseResult = _rootCommand.Parse(args);
         parseResult.Invoke();
         
         return parseResult.Errors;
