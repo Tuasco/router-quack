@@ -13,7 +13,7 @@ public class Interface
 
     public BgpRelationship Bgp { get; init; } = BgpRelationship.None;
     
-    public ICollection<Tuple<IPNetwork, IPAddress>>? Addresses { get; init; }
+    public ICollection<Address>? Addresses { get; init; }
     
     public required Router ParentRouter { get; init; }
     
@@ -58,7 +58,14 @@ public class Interface
     }
 
 
-    public override string ToString() => $"  - Interface {Name}";
+    public override string ToString() => $"  - Interface {Name} -> {Neighbour?.ParentRouter.Name}";
+}
+
+public class Address(IPNetwork networkAddress, IPAddress ipAddress)
+{
+    public IPNetwork NetworkAddress { get; } = networkAddress;
+    
+    public IPAddress IpAddress { get; } = ipAddress;
 }
 
 public enum BgpRelationship

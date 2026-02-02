@@ -8,21 +8,21 @@ public static class _
 {
     extension (ICollection<As> source)
     {
-        public IEnumerable<As> ExecuteStep(IStep step)
+        public ICollection<As> ExecuteStep(IStep step)
         {
             step.Execute(source);
             return source;
         }
 
-        // TODO Actually override ToString()
-        public string ShowASs()
+        public void Display()
         {
             var str = new StringBuilder();
+            str.AppendLine("\n========== Parsed ASs ==========");
 
             foreach (var @as in source)
                 str.Append(@as);
             
-            return str.ToString();
+            Console.Write(str.ToString());
         }
     }
 }

@@ -18,6 +18,7 @@ public class Router
     public required RouterBrand Brand { get; init; }
 
 
+    // TODO extract from class, it really doesn't have anything to do here.
     public static IPAddress GetDefaultId(string routerName)
     {
         var hash = System.Security.Cryptography.MD5.HashData(Encoding.UTF8.GetBytes(routerName));

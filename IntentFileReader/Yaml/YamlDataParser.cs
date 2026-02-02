@@ -93,7 +93,7 @@ public partial class YamlReader
         return interfaces;
     }
 
-    private static Tuple<IPNetwork, IPAddress> TranslateIpAddress(string ip)
+    private static Address TranslateIpAddress(string ip)
     {
         var parts = ip.Split('/');
         

@@ -10,6 +10,7 @@ using RouterQuack.Steps;
 var builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddSingleton<ArgumentParser>();
 builder.Services.AddSingleton<IIntentFileReader, YamlReader>();
+builder.Services.AddKeyedSingleton<IStep, Step2RunChecks>(nameof(Step2RunChecks));
 builder.Services.AddKeyedSingleton<IStep, Step1ResolveNeighbours>(nameof(Step1ResolveNeighbours));
 var host = builder.Build();
 using var serviceScope = host.Services.CreateScope();
@@ -26,9 +27,12 @@ if (hasParsed.Any())
 // Main
 var intentFileReader = serviceScope.ServiceProvider.GetRequiredService<IIntentFileReader>();
 var step1ResolveNeighbours = serviceScope.ServiceProvider.GetRequiredKeyedService<IStep>(nameof(Step1ResolveNeighbours));
+var step2RunChecks = serviceScope.ServiceProvider.GetRequiredKeyedService<IStep>(nameof(Step2RunChecks));
 
 var asses = intentFileReader.ReadFiles(parser.FilePaths);
-asses.ExecuteStep(step1ResolveNeighbours);
+asses
+    .ExecuteStep(step1ResolveNeighbours)
+    .ExecuteStep(step2RunChecks);
 
-Console.Write(asses.ShowASs());
+asses.Display();
 return 0;
