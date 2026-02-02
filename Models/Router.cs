@@ -16,21 +16,7 @@ public class Router
     public required As ParentAs { get; init; }
     
     public required RouterBrand Brand { get; init; }
-
-
-    // TODO extract from class, it really doesn't have anything to do here.
-    public static IPAddress GetDefaultId(string routerName)
-    {
-        var hash = System.Security.Cryptography.MD5.HashData(Encoding.UTF8.GetBytes(routerName));
     
-        var bytes = new byte[4];
-        Array.Copy(hash, bytes, 4);
-    
-        bytes[0] = Math.Max((byte) 1, bytes[0]);
-        bytes[3] = Math.Max((byte) 1, bytes[3]);
-    
-        return new IPAddress(bytes);
-    }
     
     public override string ToString()
     {

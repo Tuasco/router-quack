@@ -5,10 +5,12 @@ using RouterQuack.IntentFileReader;
 using RouterQuack.IntentFileReader.Yaml;
 using RouterQuack.Startup;
 using RouterQuack.Steps;
+using RouterQuack.Utils;
 
 // Add DI
 var builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddSingleton<ArgumentParser>();
+builder.Services.AddSingleton<INetworkUtils, NetworkUtils>();
 builder.Services.AddSingleton<IIntentFileReader, YamlReader>();
 builder.Services.AddKeyedSingleton<IStep, Step2RunChecks>(nameof(Step2RunChecks));
 builder.Services.AddKeyedSingleton<IStep, Step1ResolveNeighbours>(nameof(Step1ResolveNeighbours));
@@ -29,8 +31,7 @@ var intentFileReader = serviceScope.ServiceProvider.GetRequiredService<IIntentFi
 var step1ResolveNeighbours = serviceScope.ServiceProvider.GetRequiredKeyedService<IStep>(nameof(Step1ResolveNeighbours));
 var step2RunChecks = serviceScope.ServiceProvider.GetRequiredKeyedService<IStep>(nameof(Step2RunChecks));
 
-var asses = intentFileReader.ReadFiles(parser.FilePaths);
-asses
+var asses = intentFileReader.ReadFiles(parser.FilePaths)
     .ExecuteStep(step1ResolveNeighbours)
     .ExecuteStep(step2RunChecks);
 

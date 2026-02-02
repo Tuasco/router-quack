@@ -1,14 +1,14 @@
-using System.Net;
 using RouterQuack.Models;
+using RouterQuack.Utils;
 using YamlAs = RouterQuack.Models.Yaml.As;
 using YamlRouter = RouterQuack.Models.Yaml.Router;
 using YamlInterface = RouterQuack.Models.Yaml.Interface;
 
 namespace RouterQuack.IntentFileReader.Yaml;
 
-public partial class YamlReader
+public partial class YamlReader(INetworkUtils networkUtils)
 {
-    private static ICollection<As> YamlAsToAs(IDictionary<int, YamlAs> asDict)
+    private ICollection<As> YamlAsToAs(IDictionary<int, YamlAs> asDict)
     {
         ICollection<As> asses = [];
 
@@ -17,30 +17,23 @@ public partial class YamlReader
             var @as = new As
             {
                 Number = key,
-                Igp = Enum.TryParse<IgpType>(value.Igp, ignoreCase: true, out var igpType) ? igpType : IgpType.Ibgp,
+                Igp = networkUtils.ParseIgp(value.Igp),
                 LoopbackSpace = value.LoopbackSpace,
                 NetworksSpace = value.NetworksSpace,
                 Routers = []
             };
             
             // Take default router brand
-            var brand = Enum.TryParse<RouterBrand>(value.Brand, ignoreCase: true, out var routerBrand)
-                ? routerBrand
-                : RouterBrand.Unknwon;
+            var brand = networkUtils.ParseBrand(value.Brand);
             
             @as.Routers = YamlRouterToRouter(value.Routers, @as, brand);
             asses.Add(@as);
         }
         
-        // foreach (var @as in asses)
-        //     foreach (var router in @as.Routers)
-        //         foreach (var @interface in router.Interfaces)
-        //             @interface.PopulateNeighbour(asses);
-        
         return asses;
     }
 
-    private static ICollection<Router> YamlRouterToRouter(IDictionary<string, YamlRouter> routerDict, As parentAs, RouterBrand defaultBrand)
+    private ICollection<Router> YamlRouterToRouter(IDictionary<string, YamlRouter> routerDict, As parentAs, RouterBrand defaultBrand)
     {
         ICollection<Router> routers = [];
 
@@ -49,13 +42,11 @@ public partial class YamlReader
             var router = new Router
             {
                 Name = key,
-                Id = value.Id ?? Router.GetDefaultId(key),
+                Id = value.Id ?? networkUtils.GetDefaultId(key),
                 OspfArea =  value.OspfArea,
                 Interfaces = [],
                 ParentAs = parentAs,
-                Brand = Enum.TryParse<RouterBrand>(value.Brand, ignoreCase: true, out var routerBrand) 
-                    ? routerBrand
-                    : defaultBrand
+                Brand = networkUtils.ParseBrand(value.Brand, defaultBrand)
             };
             
             router.Interfaces = YamlInterfaceToInterface(value.Interfaces, router);
@@ -65,7 +56,7 @@ public partial class YamlReader
         return routers;
     }
 
-    private static ICollection<Interface> YamlInterfaceToInterface(IDictionary<string, YamlInterface> interfaceDict, Router parentRouter)
+    private ICollection<Interface> YamlInterfaceToInterface(IDictionary<string, YamlInterface> interfaceDict, Router parentRouter)
     {
         ICollection<Interface> interfaces = [];
 
@@ -83,29 +74,11 @@ public partial class YamlReader
                 Name = key,
                 Neighbour = dummyNeighbour, // Populate it now, will resolve it later in YamlAsToAs
                 ParentRouter = parentRouter,
-                Addresses = value.Addresses?.Select(TranslateIpAddress).ToList(),
-                Bgp = Enum.TryParse<BgpRelationship>(value.Bgp, ignoreCase: true, out var bgpRelationship)
-                    ? bgpRelationship
-                    : BgpRelationship.None
+                Addresses = value.Addresses?.Select(networkUtils.ParseIpAddress).ToList(),
+                Bgp = networkUtils.ParseBgp(value.Bgp)
             });
         }
 
         return interfaces;
-    }
-
-    private static Address TranslateIpAddress(string ip)
-    {
-        var parts = ip.Split('/');
-        
-        if(parts.Length != 2)
-            throw new InvalidCastException("Couldn't translate IP address");
-        
-        if (!int.TryParse(parts[1], out var mask))
-            throw new InvalidCastException("Couldn't translate IP address (invalid mask)");
-            
-        if (!IPAddress.TryParse(parts[0], out var ipAddress))
-            throw new InvalidCastException("Couldn't translate IP address (invalid IP)");
-        
-        return new (new (ipAddress, mask), ipAddress);
     }
 }
