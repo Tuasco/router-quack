@@ -1,16 +1,22 @@
 using System.CommandLine;
-using System.CommandLine.Parsing;
 
 namespace RouterQuack.Startup;
 
-public class ArgumentParser
+public interface IArgumentsParser
+{
+    public string[] FilePaths  { get; set; }
+
+    public void Parse(string[] args);
+}
+
+public class ArgumentsParser : IArgumentsParser
 {
     public required string[] FilePaths  { get; set; }
     
     private readonly RootCommand _rootCommand;
     
     
-    public ArgumentParser()
+    public ArgumentsParser()
     {
         // Add file option
         Option<IEnumerable<FileInfo>> fileOption = new("--file", "-f")
@@ -28,11 +34,12 @@ public class ArgumentParser
     }
 
     // Return whether parsing was successful
-    public IReadOnlyList<ParseError> Parse(string[] args)
+    public void Parse(string[] args)
     {
         var parseResult = _rootCommand.Parse(args);
         parseResult.Invoke();
-        
-        return parseResult.Errors;
+
+        if (parseResult.Errors.Any())
+            throw new ArgumentException(parseResult.Errors.First().Message);
     }
 }
