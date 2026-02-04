@@ -50,17 +50,32 @@ public class NetworkUtils : INetworkUtils
     }
 
     public IgpType ParseIgp(string? igp)
-        => Enum.TryParse<IgpType>(igp, ignoreCase: true, out var igpType)
+    {
+        if (igp == null)
+            return IgpType.Ibgp;
+        
+        return Enum.TryParse<IgpType>(igp, ignoreCase: true, out var igpType)
             ? igpType
-            : IgpType.Ibgp;
+            : throw new ArgumentException("Couldn't parse IGP");   
+    }
 
     public BgpRelationship ParseBgp(string? bgp)
-        => Enum.TryParse<BgpRelationship>(bgp, ignoreCase: true, out var bgpRelationship)
+    {
+        if (bgp == null)
+            return BgpRelationship.None;
+        
+        return Enum.TryParse<BgpRelationship>(bgp, ignoreCase: true, out var bgpRelationship)
             ? bgpRelationship
-            : BgpRelationship.None;
+            : throw new ArgumentException("Couldn't parse BGP relationship");
+    }
 
     public RouterBrand ParseBrand(string? brand, RouterBrand? defaultBrand = null)
-        => Enum.TryParse<RouterBrand>(brand, ignoreCase: true, out var routerBrand)
+    {
+        if (brand == null)
+            return defaultBrand ?? RouterBrand.Cisco;
+        
+        return Enum.TryParse<RouterBrand>(brand, ignoreCase: true, out var routerBrand)
             ? routerBrand
-            : defaultBrand ?? RouterBrand.Unknwon;
+            : throw new ArgumentException("Couldn't parse router brand");
+    }
 }

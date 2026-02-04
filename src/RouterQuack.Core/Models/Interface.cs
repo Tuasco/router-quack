@@ -1,5 +1,3 @@
-using System.Net;
-
 namespace RouterQuack.Core.Models;
 
 public class Interface
@@ -18,6 +16,7 @@ public class Interface
     public required Router ParentRouter { get; init; }
     
 
+    // TODO extract method to Utils
     public Interface ResolveNeighbour(ICollection<As> asses)
     {
         var neighbourPath = Neighbour?.Name.Split(':') ?? [];
@@ -59,13 +58,6 @@ public class Interface
 
 
     public override string ToString() => $"  - Interface {Name} -> {Neighbour?.ParentRouter.Name}";
-}
-
-public class Address(IPNetwork networkAddress, IPAddress ipAddress)
-{
-    public IPNetwork NetworkAddress { get; } = networkAddress;
-    
-    public IPAddress IpAddress { get; } = ipAddress;
 }
 
 public enum BgpRelationship

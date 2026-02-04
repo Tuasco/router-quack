@@ -12,5 +12,7 @@ public class As
     
     public string? Brand { get; init; }
 
+    public bool External { get; init; } = false;
+
     public required IDictionary<string, Router> Routers { get; init; }
 }

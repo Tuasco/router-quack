@@ -73,8 +73,6 @@ public class ArgumentsParser : IArgumentsParser
                     ? VerbosityLevel.Quiet
                     : VerbosityLevel.Normal;
             
-            Console.WriteLine(verbosityLevel.ToString());
-            
             // Dry run
             var dryRun = parseResult.GetValue(dryRunOption);
             

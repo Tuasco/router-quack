@@ -25,14 +25,17 @@ public partial class YamlReader
             // Take default router brand
             var brand = networkUtils.ParseBrand(value.Brand);
             
-            @as.Routers = YamlRouterToRouter(value.Routers, @as, brand);
+            @as.Routers = YamlRouterToRouter(value.Routers, @as, brand, value.External);
             asses.Add(@as);
         }
         
         return asses;
     }
 
-    private ICollection<Router> YamlRouterToRouter(IDictionary<string, YamlRouter> routerDict, As parentAs, RouterBrand defaultBrand)
+    private ICollection<Router> YamlRouterToRouter(IDictionary<string, YamlRouter> routerDict,
+        As parentAs,
+        RouterBrand defaultBrand,
+        bool externalAs)
     {
         ICollection<Router> routers = [];
 
@@ -45,7 +48,8 @@ public partial class YamlReader
                 OspfArea =  value.OspfArea,
                 Interfaces = [],
                 ParentAs = parentAs,
-                Brand = networkUtils.ParseBrand(value.Brand, defaultBrand)
+                Brand = networkUtils.ParseBrand(value.Brand, defaultBrand),
+                External = value.External ?? externalAs
             };
             
             router.Interfaces = YamlInterfaceToInterface(value.Interfaces, router);

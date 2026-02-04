@@ -17,6 +17,8 @@ public class Router
     
     public required RouterBrand Brand { get; init; }
     
+    public required bool External { get; init; }
+    
     
     public override string ToString()
     {
@@ -32,6 +34,5 @@ public class Router
 
 public enum RouterBrand
 {
-    Unknwon,
     Cisco
 }

@@ -10,5 +10,7 @@ public class Router
     
     public string? Brand { get; init; }
     
+    public bool? External { get; init; }
+    
     public required IDictionary<string, Interface> Interfaces { get; init; }
 }

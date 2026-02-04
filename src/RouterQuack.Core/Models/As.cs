@@ -18,8 +18,13 @@ public class As
     public override string ToString()
     {
         var str = new StringBuilder();
-        str.AppendLine($"AS number {Number} using {Igp.ToString().ToUpper()}:");
-        
+        str.Append($"AS number {Number} ");
+
+        if (Routers.Any(r => r.External))
+            str.AppendLine($"(external):");
+        else
+            str.AppendLine($"using {Igp.ToString().ToUpper()}:");
+
         foreach (var router in Routers)
             str.AppendLine(router.ToString());
         
