@@ -14,15 +14,14 @@ public static class _
             return source;
         }
 
-        public void Display()
+        public string Summary()
         {
             var str = new StringBuilder();
-            str.AppendLine("\n========== Parsed ASs ==========");
 
             foreach (var @as in source)
-                str.Append(@as);
+                str.Append(@as).Append('\n');
             
-            Console.Write(str.ToString());
+            return str.ToString().TrimEnd('\n');
         }
     }
 }

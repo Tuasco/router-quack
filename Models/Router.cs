@@ -26,7 +26,7 @@ public class Router
         foreach (var @interface in Interfaces)
             str.AppendLine(@interface.ToString());
         
-        return str.ToString();
+        return str.ToString().TrimEnd('\n');
     }
 }
 

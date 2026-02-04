@@ -1,6 +1,8 @@
+using RouterQuack.Models;
+
 namespace RouterQuack.IntentFileReader;
 
 public interface IIntentFileReader
 {
-    public ICollection<Models.As> ReadFiles(string[] paths);
+    public ICollection<As> ReadFiles();
 }

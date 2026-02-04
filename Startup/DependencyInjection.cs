@@ -15,6 +15,8 @@ public static class DependencyInjection
         
         builder.Services.AddSingleton<IArgumentsParser, ArgumentsParser>();
         builder.Services.AddSingleton<INetworkUtils, NetworkUtils>();
+        builder.Services.AddSingleton<IDisplayUtils, DisplayUtils>();
+        
         builder.Services.AddSingleton<IIntentFileReader, YamlReader>();
         builder.Services.AddKeyedSingleton<IStep, Step2RunChecks>(nameof(Step2RunChecks));
         builder.Services.AddKeyedSingleton<IStep, Step1ResolveNeighbours>(nameof(Step1ResolveNeighbours));

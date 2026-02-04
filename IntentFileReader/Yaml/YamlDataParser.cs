@@ -1,12 +1,11 @@
 using RouterQuack.Models;
-using RouterQuack.Utils;
 using YamlAs = RouterQuack.Models.Yaml.As;
 using YamlRouter = RouterQuack.Models.Yaml.Router;
 using YamlInterface = RouterQuack.Models.Yaml.Interface;
 
 namespace RouterQuack.IntentFileReader.Yaml;
 
-public partial class YamlReader(INetworkUtils networkUtils)
+public partial class YamlReader
 {
     private ICollection<As> YamlAsToAs(IDictionary<int, YamlAs> asDict)
     {
