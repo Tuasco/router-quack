@@ -1,9 +1,9 @@
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
-using RouterQuack.Models;
+using RouterQuack.Core.Models;
 
-namespace RouterQuack.Utils;
+namespace RouterQuack.Core.Utils;
 
 public interface INetworkUtils
 {

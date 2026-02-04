@@ -1,42 +1,41 @@
 using System.Data;
 using System.Text.RegularExpressions;
-using RouterQuack.Models;
-using RouterQuack.Startup;
-using RouterQuack.Utils;
+using Microsoft.Extensions.Logging;
+using RouterQuack.Core.Models;
+using RouterQuack.Core.Utils;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
-using YamlAs = RouterQuack.Models.Yaml.As;
+using YamlAs = RouterQuack.IO.Yaml.Models.As;
 
-namespace RouterQuack.IntentFileReader.Yaml;
+namespace RouterQuack.IO.Yaml.Utils;
 
-public partial class YamlReader(INetworkUtils networkUtils,
-    IArgumentsParser argumentsParser,
-    IDisplayUtils displayUtils) : IIntentFileReader
+public partial class YamlReader(INetworkUtils networkUtils, ILogger<YamlReader> logger) : IIntentFileReader
 {
     [GeneratedRegex(@"\.ya?ml$")]
     private static partial Regex YamlEnding();
     
     // Throws DuplicateNameException when AS defined multiple times
     // Throws InvalidDataException when interface points to undefined neighbour
-    public ICollection<As> ReadFiles()
+    public ICollection<As> ReadFiles(string[] filePaths)
     {
-        displayUtils.Print("Parsing intent file(s)...", TextStyle.Title);
+        logger.LogInformation("Parsing intent file(s)...");
         var asDict = new Dictionary<int, YamlAs>();
         
-        foreach (var path in argumentsParser.FilePaths)
+        foreach (var path in filePaths)
         {
             if (!File.Exists(path))
-                throw new FileNotFoundException($"File {path} not found, skipping.");
+            {
+                logger.LogWarning("File {Path} not found, skipping.", path);
+                continue;
+            }
 
             if (!YamlEnding().IsMatch(path))
             {
-                displayUtils.Print($"File {path} is not YAML, skipping.",
-                    textStyle: TextStyle.Warning,
-                    verbosity: VerbosityLevel.Detailed);
+                logger.LogWarning("File {Path} is not YAML, skipping.", path);
                 continue;
             }
             
-            displayUtils.Print($"Reading file {path}", verbosity: VerbosityLevel.Detailed);
+            logger.LogDebug("Reading file {Path}", path);
             
             var deserializer = new DeserializerBuilder()
                 .WithNamingConvention(UnderscoredNamingConvention.Instance) 
@@ -52,7 +51,7 @@ public partial class YamlReader(INetworkUtils networkUtils,
             }
         }
         
-        displayUtils.Print($"Found {asDict.Count} ASs", verbosity:  VerbosityLevel.Normal);
+        logger.LogDebug("Found {AsNumber} ASs", asDict.Count);
         var asCollection = YamlAsToAs(asDict);
         return asCollection;
     }

@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace RouterQuack.Models.Yaml;
+namespace RouterQuack.IO.Yaml.Models;
 
 public class As
 {

@@ -1,9 +1,9 @@
-using RouterQuack.Models;
-using YamlAs = RouterQuack.Models.Yaml.As;
-using YamlRouter = RouterQuack.Models.Yaml.Router;
-using YamlInterface = RouterQuack.Models.Yaml.Interface;
+using RouterQuack.Core.Models;
+using YamlAs = RouterQuack.IO.Yaml.Models.As;
+using YamlRouter = RouterQuack.IO.Yaml.Models.Router;
+using YamlInterface = RouterQuack.IO.Yaml.Models.Interface;
 
-namespace RouterQuack.IntentFileReader.Yaml;
+namespace RouterQuack.IO.Yaml.Utils;
 
 public partial class YamlReader
 {

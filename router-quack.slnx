@@ -1,3 +1,5 @@
 <Solution>
-  <Project Path="router-quack.csproj" />
+  <Project Path="src/RouterQuack.Core/RouterQuack.Core.csproj" />
+  <Project Path="src/RouterQuack.IO.Yaml/RouterQuack.IO.Yaml.csproj" />
+  <Project Path="src/RouterQuack.CLI/RouterQuack.CLI.csproj" />
 </Solution>

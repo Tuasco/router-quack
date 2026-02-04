@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace RouterQuack.Models;
+namespace RouterQuack.Core.Models;
 
 public class Interface
 {

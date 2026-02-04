@@ -1,10 +1,10 @@
 using System.Text;
-using RouterQuack.Models;
-using RouterQuack.Steps;
+using RouterQuack.Core.Models;
+using RouterQuack.Core.Steps;
 
-namespace RouterQuack.Extensions;
+namespace RouterQuack.Core.Extensions;
 
-public static class _
+public static class AsCollectionExtensions
 {
     extension (ICollection<As> source)
     {

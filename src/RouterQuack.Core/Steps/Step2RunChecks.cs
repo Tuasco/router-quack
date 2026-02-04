@@ -1,7 +1,7 @@
 using System.Data;
-using RouterQuack.Models;
+using RouterQuack.Core.Models;
 
-namespace RouterQuack.Steps;
+namespace RouterQuack.Core.Steps;
 
 public class Step2RunChecks : IStep
 {
