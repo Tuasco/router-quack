@@ -11,6 +11,8 @@ public interface IArgumentsParser
     public VerbosityLevel Verbosity { get; set; }
     
     public bool DryRun { get; set; }
+    
+    public bool Strict { get; set; }
 }
 
 public class ArgumentsParser : IArgumentsParser
@@ -21,7 +23,9 @@ public class ArgumentsParser : IArgumentsParser
     
     public required VerbosityLevel Verbosity { get; set; }
     
-    public bool DryRun { get; set; }
+    public required bool DryRun { get; set; }
+    
+    public required bool Strict { get; set; }
     
     
     public static ArgumentsParser CreateFromArgs(string[] args)
@@ -48,7 +52,7 @@ public class ArgumentsParser : IArgumentsParser
         // Add verbosity options
         Option<bool> quietOption = new("--quiet", "-q")
         {
-            Description = "Set verbosity to quiet. Still shows warnings and errors",
+            Description = "Set verbosity to quiet. Still shows warnings and errors.",
         };
         Option<bool> verboseOption = new("--verbose", "-v") 
         { 
@@ -61,12 +65,19 @@ public class ArgumentsParser : IArgumentsParser
             Description = "Dry run. When set, nothing will be written to the routers or the filesystem."
         };
         
-        var rootCommand = new RootCommand("Generate router configuration files from user-friendly intent files");
+        // Add strict option
+        Option<bool> strictOption = new("--strict", "-s")
+        {
+            Description = "Strict mode. When set, treat warnings as errors."
+        };
+        
+        var rootCommand = new RootCommand("Generate router configuration files from user-friendly intent files.");
         rootCommand.Options.Add(fileOption);
         rootCommand.Options.Add(outputOption);
         rootCommand.Options.Add(verboseOption);
         rootCommand.Options.Add(quietOption);
         rootCommand.Options.Add(dryRunOption);
+        rootCommand.Options.Add(strictOption);
         
         ArgumentsParser? result = null;
         rootCommand.SetAction(parseResult =>
@@ -87,12 +98,16 @@ public class ArgumentsParser : IArgumentsParser
             // Dry run
             var dryRun = parseResult.GetValue(dryRunOption);
             
+            // Dry run
+            var strict = parseResult.GetValue(strictOption);
+            
             result = new ArgumentsParser
             {
                 FilePaths = filePaths,
                 OutputDirectoryPath = outputDirectoryPath,
                 Verbosity = verbosityLevel,
-                DryRun = dryRun
+                DryRun = dryRun,
+                Strict = strict
             };
         });
 
@@ -109,6 +124,6 @@ public class ArgumentsParser : IArgumentsParser
 public enum VerbosityLevel
 {
     Quiet,      // -q
-    Normal,    // Default
+    Normal,     // Default
     Detailed    // -v
 }
