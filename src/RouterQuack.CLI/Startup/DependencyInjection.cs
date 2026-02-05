@@ -11,6 +11,11 @@ namespace RouterQuack.CLI.Startup;
 
 public static class DependencyInjection
 {
+    /// <summary>
+    /// Register services and build host.
+    /// </summary>
+    /// <param name="args">CLI arguments.</param>
+    /// <returns>A service scope to inject dependencies from.</returns>
     public static IServiceScope CreateServiceScope(string[] args)
     {
         // Parse arguments
@@ -29,17 +34,17 @@ public static class DependencyInjection
             .CreateLogger();
 
         var builder = Host.CreateApplicationBuilder(args);
-        
+
         // Register logger (Serilog)
         builder.Services.AddSerilog();
-        
+
         // Register args parser
         builder.Services.AddSingleton<IArgumentsParser>(options);
-        
+
         // Register utils
         builder.Services.AddSingleton<INetworkUtils, NetworkUtils>();
         builder.Services.AddSingleton<IRouterUtils, RouterUtils>();
-        
+
         // Register steps
         builder.Services.AddSingleton<IIntentFileReader, YamlReader>();
         builder.Services.AddKeyedSingleton<IStep, Step1ResolveNeighbours>(nameof(Step1ResolveNeighbours));

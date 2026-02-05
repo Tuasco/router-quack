@@ -1,3 +1,5 @@
+using System.Diagnostics.Contracts;
+
 namespace RouterQuack.Core.Models;
 
 public class Interface
@@ -9,12 +11,13 @@ public class Interface
     public required Interface? Neighbour { get; set; }
 
     public BgpRelationship Bgp { get; init; } = BgpRelationship.None;
-    
+
     public ICollection<Address>? Addresses { get; init; }
-    
+
     public required Router ParentRouter { get; init; }
 
 
+    [Pure]
     public override string ToString() => $"  - Interface {Name} -> {Neighbour?.ParentRouter.Name}";
 }
 

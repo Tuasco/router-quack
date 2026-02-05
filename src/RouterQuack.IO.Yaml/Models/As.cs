@@ -1,7 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 
 namespace RouterQuack.IO.Yaml.Models;
 
+[SuppressMessage("ReSharper", "ClassNeverInstantiated.Global")]
 public class As
 {
     public string? Igp { get; init; }
@@ -9,7 +11,7 @@ public class As
     public required IPNetwork LoopbackSpace { get; init; }
 
     public required IPNetwork NetworksSpace { get; init; }
-    
+
     public string? Brand { get; init; }
 
     public bool External { get; init; } = false;

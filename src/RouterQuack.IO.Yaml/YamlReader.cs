@@ -9,20 +9,24 @@ using YamlAs = RouterQuack.IO.Yaml.Models.As;
 
 namespace RouterQuack.IO.Yaml;
 
-public partial class YamlReader(INetworkUtils networkUtils, 
+public partial class YamlReader(
+    INetworkUtils networkUtils,
     IRouterUtils routerUtils,
     ILogger<YamlReader> logger) : IIntentFileReader
 {
     [GeneratedRegex(@"\.ya?ml$")]
     private static partial Regex YamlEnding();
-    
-    // Throws DuplicateNameException when AS defined multiple times
-    // Throws InvalidDataException when interface points to undefined neighbour
+
+    /// <summary>
+    /// Parse intent files and return a corresponding collection of As objects.
+    /// </summary>
+    /// <param name="filePaths">Paths of intent files to parse.</param>
+    /// <returns>New collection of As objects.</returns>
     public ICollection<As> ReadFiles(string[] filePaths)
     {
         logger.LogInformation("Parsing intent file(s)...");
         var asDict = new Dictionary<int, YamlAs>();
-        
+
         foreach (var path in filePaths)
         {
             if (!File.Exists(path))
@@ -36,11 +40,11 @@ public partial class YamlReader(INetworkUtils networkUtils,
                 logger.LogWarning("File {Path} is not YAML, skipping.", path);
                 continue;
             }
-            
+
             logger.LogDebug("Reading file {Path}", path);
-            
+
             var deserializer = new DeserializerBuilder()
-                .WithNamingConvention(UnderscoredNamingConvention.Instance) 
+                .WithNamingConvention(UnderscoredNamingConvention.Instance)
                 .Build();
 
             var fileData = deserializer.Deserialize<IDictionary<int, YamlAs>>(File.ReadAllText(path));
@@ -48,11 +52,11 @@ public partial class YamlReader(INetworkUtils networkUtils,
             {
                 if (asDict.ContainsKey(@as.Key))
                     throw new DuplicateNameException($"Duplicate AS number {@as.Key}");
-                
+
                 asDict.Add(@as.Key, @as.Value);
             }
         }
-        
+
         logger.LogDebug("Found {AsNumber} ASs", asDict.Count);
         var asCollection = YamlAsToCoreAs(asDict);
         return asCollection;

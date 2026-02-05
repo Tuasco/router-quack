@@ -4,6 +4,9 @@ using RouterQuack.Core.Models;
 
 namespace RouterQuack.Core.Steps;
 
+/// <summary>
+/// Run various checks.
+/// </summary>
 public class Step2RunChecks(ILogger<Step2RunChecks> logger) : IStep
 {
     public void Execute(ICollection<As> asses)
@@ -14,6 +17,10 @@ public class Step2RunChecks(ILogger<Step2RunChecks> logger) : IStep
         NoExternalWithoutAddress(asses);
     }
 
+    /// <summary>
+    /// Generate an error if there are duplicate router names.
+    /// </summary>
+    /// <param name="asses"></param>
     private static void NoDuplicateRouterNames(ICollection<As> asses)
     {
         if (asses
@@ -23,6 +30,10 @@ public class Step2RunChecks(ILogger<Step2RunChecks> logger) : IStep
             throw new DuplicateNameException("Duplicate routers");
     }
 
+    /// <summary>
+    /// Generate an error if there are duplicate IP Addresses.
+    /// </summary>
+    /// <param name="asses"></param>
     private static void NoDuplicateIpAddress(ICollection<As> asses)
     {
         if (asses
@@ -34,6 +45,11 @@ public class Step2RunChecks(ILogger<Step2RunChecks> logger) : IStep
             throw new DuplicateNameException("Duplicate IP Addresses");
     }
 
+    /// <summary>
+    /// Generate an error if there are uncoherent BGP relationships.
+    /// </summary>
+    /// <param name="asses"></param>
+    /// <remarks>Will generate a warning if there are interfaces with an inter-AS neighbour but no BGP.</remarks>
     private void ValidBgpRelationships(ICollection<As> asses)
     {
         var interfaces = asses
@@ -52,7 +68,7 @@ public class Step2RunChecks(ILogger<Step2RunChecks> logger) : IStep
                 or { Bgp: BgpRelationship.Client, Neighbour.Bgp: BgpRelationship.Provider }
                 or { Bgp: BgpRelationship.Provider, Neighbour.Bgp: BgpRelationship.Client }))
                 throw new InvalidConstraintException("Bgp relationships are not valid");
-            
+
             // Check if BGP is on if our neighbour is in a different AS
             if (@interface.Bgp == BgpRelationship.None
                 && @interface.ParentRouter.ParentAs.Number != @interface.Neighbour.ParentRouter.ParentAs.Number)
@@ -68,6 +84,10 @@ public class Step2RunChecks(ILogger<Step2RunChecks> logger) : IStep
         }
     }
 
+    /// <summary>
+    /// Generate an error if there are external routers with no manual IP Addresses.
+    /// </summary>
+    /// <param name="asses"></param>
     private void NoExternalWithoutAddress(ICollection<As> asses)
     {
         var match = asses
