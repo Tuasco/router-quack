@@ -7,9 +7,11 @@ using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using YamlAs = RouterQuack.IO.Yaml.Models.As;
 
-namespace RouterQuack.IO.Yaml.Utils;
+namespace RouterQuack.IO.Yaml;
 
-public partial class YamlReader(INetworkUtils networkUtils, ILogger<YamlReader> logger) : IIntentFileReader
+public partial class YamlReader(INetworkUtils networkUtils, 
+    IRouterUtils routerUtils,
+    ILogger<YamlReader> logger) : IIntentFileReader
 {
     [GeneratedRegex(@"\.ya?ml$")]
     private static partial Regex YamlEnding();
@@ -52,7 +54,7 @@ public partial class YamlReader(INetworkUtils networkUtils, ILogger<YamlReader> 
         }
         
         logger.LogDebug("Found {AsNumber} ASs", asDict.Count);
-        var asCollection = YamlAsToAs(asDict);
+        var asCollection = YamlAsToCoreAs(asDict);
         return asCollection;
     }
 }

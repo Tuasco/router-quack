@@ -3,11 +3,11 @@ using YamlAs = RouterQuack.IO.Yaml.Models.As;
 using YamlRouter = RouterQuack.IO.Yaml.Models.Router;
 using YamlInterface = RouterQuack.IO.Yaml.Models.Interface;
 
-namespace RouterQuack.IO.Yaml.Utils;
+namespace RouterQuack.IO.Yaml;
 
 public partial class YamlReader
 {
-    private ICollection<As> YamlAsToAs(IDictionary<int, YamlAs> asDict)
+    private ICollection<As> YamlAsToCoreAs(IDictionary<int, YamlAs> asDict)
     {
         ICollection<As> asses = [];
 
@@ -23,16 +23,16 @@ public partial class YamlReader
             };
             
             // Take default router brand
-            var brand = networkUtils.ParseBrand(value.Brand);
+            var brand = routerUtils.ParseBrand(value.Brand);
             
-            @as.Routers = YamlRouterToRouter(value.Routers, @as, brand, value.External);
+            @as.Routers = YamlRouterToCoreRouter(value.Routers, @as, brand, value.External);
             asses.Add(@as);
         }
         
         return asses;
     }
 
-    private ICollection<Router> YamlRouterToRouter(IDictionary<string, YamlRouter> routerDict,
+    private ICollection<Router> YamlRouterToCoreRouter(IDictionary<string, YamlRouter> routerDict,
         As parentAs,
         RouterBrand defaultBrand,
         bool externalAs)
@@ -44,22 +44,23 @@ public partial class YamlReader
             var router = new Router
             {
                 Name = key,
-                Id = value.Id ?? networkUtils.GetDefaultId(key),
+                Id = value.Id ?? routerUtils.GetDefaultId(key),
                 OspfArea =  value.OspfArea,
                 Interfaces = [],
                 ParentAs = parentAs,
-                Brand = networkUtils.ParseBrand(value.Brand, defaultBrand),
+                Brand = routerUtils.ParseBrand(value.Brand, defaultBrand),
                 External = value.External ?? externalAs
             };
             
-            router.Interfaces = YamlInterfaceToInterface(value.Interfaces, router);
+            router.Interfaces = YamlInterfaceToCoreInterface(value.Interfaces, router);
             routers.Add(router);
         }
 
         return routers;
     }
 
-    private ICollection<Interface> YamlInterfaceToInterface(IDictionary<string, YamlInterface> interfaceDict, Router parentRouter)
+    private ICollection<Interface> YamlInterfaceToCoreInterface(IDictionary<string, YamlInterface> interfaceDict,
+        Router parentRouter)
     {
         ICollection<Interface> interfaces = [];
 

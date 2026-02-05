@@ -5,7 +5,7 @@ using RouterQuack.Core.Utils;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
-using YamlReader = RouterQuack.IO.Yaml.Utils.YamlReader;
+using YamlReader = RouterQuack.IO.Yaml.YamlReader;
 
 namespace RouterQuack.CLI.Startup;
 
@@ -38,6 +38,7 @@ public static class DependencyInjection
         
         // Register utils
         builder.Services.AddSingleton<INetworkUtils, NetworkUtils>();
+        builder.Services.AddSingleton<IRouterUtils, RouterUtils>();
         
         // Register steps
         builder.Services.AddSingleton<IIntentFileReader, YamlReader>();
