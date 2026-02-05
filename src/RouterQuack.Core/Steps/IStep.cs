@@ -13,3 +13,10 @@ public interface IStep
     /// <param name="asses">A populated collection of As objects.</param>
     public void Execute(ICollection<As> asses);
 }
+
+/// <summary>
+/// Exception indicating that a step has failed.
+/// </summary>
+public class StepException : Exception
+{
+}

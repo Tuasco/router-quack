@@ -9,5 +9,6 @@ public class Interface
 
     public string? Bgp { get; init; }
 
-    public IReadOnlyCollection<string>? Addresses { get; init; }
+    [SuppressMessage("ReSharper", "CollectionNeverUpdated.Global")]
+    public ICollection<string>? Addresses { get; init; }
 }

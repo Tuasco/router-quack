@@ -1,4 +1,3 @@
-using System.Data;
 using Microsoft.Extensions.Logging;
 using RouterQuack.Core.Models;
 
@@ -7,42 +6,56 @@ namespace RouterQuack.Core.Steps;
 /// <summary>
 /// Run various checks.
 /// </summary>
-public class Step2RunChecks(ILogger<Step2RunChecks> logger) : IStep
+public class Step2RunChecks(ILogger<Step2RunChecks> logger) : BaseStep
 {
-    public void Execute(ICollection<As> asses)
+    public override void Execute(ICollection<As> asses)
     {
         NoDuplicateRouterNames(asses);
         NoDuplicateIpAddress(asses);
         ValidBgpRelationships(asses);
         NoExternalWithoutAddress(asses);
+
+        base.Execute(asses);
     }
 
     /// <summary>
     /// Generate an error if there are duplicate router names.
     /// </summary>
     /// <param name="asses"></param>
-    private static void NoDuplicateRouterNames(ICollection<As> asses)
+    private void NoDuplicateRouterNames(ICollection<As> asses)
     {
-        if (asses
+        var routers = asses
             .SelectMany(a => a.Routers)
             .CountBy(n => n.Name)
-            .Any(c => c.Value > 1))
-            throw new DuplicateNameException("Duplicate routers");
+            .Where(c => c.Value > 1)
+            .Select(i => i.Key);
+
+        foreach (var router in routers)
+        {
+            logger.LogError("Duplicate routers with same name \"{RouterName}\"", router);
+            ErrorsOccured = true;
+        }
     }
 
     /// <summary>
     /// Generate an error if there are duplicate IP Addresses.
     /// </summary>
     /// <param name="asses"></param>
-    private static void NoDuplicateIpAddress(ICollection<As> asses)
+    private void NoDuplicateIpAddress(ICollection<As> asses)
     {
-        if (asses
+        var addresses = asses
             .SelectMany(a => a.Routers)
             .SelectMany(r => r.Interfaces)
             .SelectMany(i => i.Addresses ?? [])
             .CountBy(a => a.IpAddress)
-            .Any(c => c.Value > 1))
-            throw new DuplicateNameException("Duplicate IP Addresses");
+            .Where(c => c.Value > 1)
+            .Select(i => i.Key);
+
+        foreach (var address in addresses)
+        {
+            logger.LogError("Duplicate addresses \"{IpAddress}\"", address);
+            ErrorsOccured = true;
+        }
     }
 
     /// <summary>
@@ -67,20 +80,26 @@ public class Step2RunChecks(ILogger<Step2RunChecks> logger) : IStep
                 or { Bgp: BgpRelationship.Peer, Neighbour.Bgp: BgpRelationship.Peer }
                 or { Bgp: BgpRelationship.Client, Neighbour.Bgp: BgpRelationship.Provider }
                 or { Bgp: BgpRelationship.Provider, Neighbour.Bgp: BgpRelationship.Client }))
-                throw new InvalidConstraintException("Bgp relationships are not valid");
+            {
+                logger.LogError("Invalid BGP relationship between interface {InterfaceName} of router {RouterName}" +
+                                "in AS number {AsNumber}",
+                    @interface.Name,
+                    @interface.ParentRouter.Name,
+                    @interface.ParentRouter.ParentAs.Number);
+            }
 
             // Check if BGP is on if our neighbour is in a different AS
             if (@interface.Bgp == BgpRelationship.None
-                && @interface.ParentRouter.ParentAs.Number != @interface.Neighbour.ParentRouter.ParentAs.Number)
+                && @interface.ParentRouter.ParentAs.Number != @interface.Neighbour!.ParentRouter.ParentAs.Number)
                 logger.LogWarning(
-                    "Interface {InterfaceName} of router {RouterName} of AS number {AsNumber} " +
+                    "Interface {InterfaceName} of router {RouterName} in AS number {AsNumber} " +
                     "has a neighbour in another interface, yet doesn't use BGP",
                     @interface.Name,
                     @interface.ParentRouter.Name,
                     @interface.ParentRouter.ParentAs.Number);
 
             interfaces.Remove(@interface);
-            interfaces.Remove(@interface.Neighbour);
+            interfaces.Remove(@interface.Neighbour!);
         }
     }
 

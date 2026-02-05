@@ -13,12 +13,29 @@ var argumentsParser = serviceScope.ServiceProvider.GetRequiredService<IArguments
 
 // Pipeline
 var intentFileReader = serviceScope.ServiceProvider.GetRequiredService<IIntentFileReader>();
-var step1ResolveNeighbours = serviceScope.ServiceProvider.GetRequiredKeyedService<IStep>(nameof(Step1ResolveNeighbours));
+var step1ResolveNeighbours =
+    serviceScope.ServiceProvider.GetRequiredKeyedService<IStep>(nameof(Step1ResolveNeighbours));
 var step2RunChecks = serviceScope.ServiceProvider.GetRequiredKeyedService<IStep>(nameof(Step2RunChecks));
 
-var asses = intentFileReader.ReadFiles(argumentsParser.FilePaths)
-    .ExecuteStep(step1ResolveNeighbours)
-    .ExecuteStep(step2RunChecks);
+var asses = intentFileReader.ReadFiles(argumentsParser.FilePaths);
+
+try
+{
+    asses.ExecuteStep(step1ResolveNeighbours)
+        .ExecuteStep(step2RunChecks);
+}
+catch (StepException)
+{
+    Log.Information("Exited with errors. Nothing changed.");
+    Log.Debug("ASs summary:\n{Summary}", asses.Summary());
+    Environment.Exit(1);
+}
+catch (Exception e)
+{
+    Log.Error("Unhandled exception occured.");
+    Log.Debug("Exception:\n{Exception}", e);
+    Log.Debug("ASs summary:\n{Summary}", asses.Summary());
+    Environment.Exit(2);
+}
 
 Log.Information("Processing complete.");
-Log.Debug("ASs summary:\n{Summary}",asses.Summary());

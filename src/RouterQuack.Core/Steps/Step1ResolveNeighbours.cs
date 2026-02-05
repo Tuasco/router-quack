@@ -5,9 +5,9 @@ namespace RouterQuack.Core.Steps;
 /// <summary>
 /// Resolves the neighbours of the interfaces from their initial dummy neighbour.
 /// </summary>
-public class Step1ResolveNeighbours : IStep
+public class Step1ResolveNeighbours : BaseStep
 {
-    public void Execute(ICollection<As> asses)
+    public override void Execute(ICollection<As> asses)
     {
         var interfaces = asses
             .SelectMany(a => a.Routers)
@@ -15,6 +15,8 @@ public class Step1ResolveNeighbours : IStep
 
         foreach (var @interface in interfaces)
             ReplaceNeighbour(asses, @interface);
+
+        base.Execute(asses);
     }
 
     /// <summary>
