@@ -14,9 +14,14 @@ public static class AsCollectionExtensions
         /// </summary>
         /// <param name="step">The step to execute.</param>
         /// <returns>The modified collection of As objects. This is used to make a call chain.</returns>
+        /// <exception cref="StepException">Step executed with errors.</exception>
         public ICollection<As> ExecuteStep(IStep step)
         {
             step.Execute(source);
+
+            if (step.ErrorsOccurred)
+                throw new StepException();
+
             return source;
         }
 

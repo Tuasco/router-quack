@@ -12,7 +12,7 @@ public class Interface
 
     public BgpRelationship Bgp { get; init; } = BgpRelationship.None;
 
-    public ICollection<Address>? Addresses { get; init; }
+    public required ICollection<Address> Addresses { get; init; }
 
     public required Router ParentRouter { get; init; }
 

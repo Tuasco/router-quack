@@ -1,13 +1,18 @@
+using System.Diagnostics.Contracts;
+using Microsoft.Extensions.Logging;
 using RouterQuack.Core.Models;
 
 namespace RouterQuack.Core.Steps;
 
 /// <summary>
-/// Resolves the neighbours of the interfaces from their initial dummy neighbour.
+/// Resolve the neighbours of the interfaces from their initial dummy neighbour.
 /// </summary>
-public class Step1ResolveNeighbours : BaseStep
+public class Step1ResolveNeighbours(ILogger<Step2RunChecks> logger) : IStep
 {
-    public override void Execute(ICollection<As> asses)
+    public bool ErrorsOccurred { get; set; }
+
+
+    public void Execute(ICollection<As> asses)
     {
         var interfaces = asses
             .SelectMany(a => a.Routers)
@@ -15,8 +20,6 @@ public class Step1ResolveNeighbours : BaseStep
 
         foreach (var @interface in interfaces)
             ReplaceNeighbour(asses, @interface);
-
-        base.Execute(asses);
     }
 
     /// <summary>
@@ -32,23 +35,21 @@ public class Step1ResolveNeighbours : BaseStep
     {
         var neighbourPath = @interface.Neighbour?.Name.Split(':') ?? [];
         var routerName = neighbourPath.Last();
+        var asNumber = AsNumberFromNeighbourPath(neighbourPath, @interface);
 
-        var errorEnd =
-            $" in interface {@interface.Name} of router {@interface.ParentRouter.Name} (AS number {@interface.ParentRouter.ParentAs.Number}).";
-
-        var asNumber = neighbourPath.Length switch
+        var neighbour = ResolveNeighbour(asses, @interface, asNumber, routerName);
+        if (neighbour is null)
         {
-            1 => @interface.ParentRouter.ParentAs.Number,
-            2 =>
-                // Try and get AS number. If not in neighbourPath, default to ours
-                int.TryParse(neighbourPath.First(), out var index)
-                    ? index
-                    : throw new IndexOutOfRangeException("Invalid AS number" + errorEnd),
-            _ => throw new InvalidDataException("Invalid neighbour formater" + errorEnd)
-        };
+            logger.LogError("Couldn't resolve neighbour of interface {InterfaceName} in router {RouterName} " +
+                            "of AS number {AsNumber}.",
+                @interface.Name,
+                @interface.ParentRouter.Name,
+                @interface.ParentRouter.ParentAs.Number);
+            ErrorsOccurred = true;
+            return;
+        }
 
-        @interface.Neighbour = ResolveNeighbour(asses, @interface, asNumber, routerName)
-                               ?? throw new InvalidDataException("Invalid neighbour" + errorEnd);
+        @interface.Neighbour = neighbour;
     }
 
     /// <summary>
@@ -60,6 +61,7 @@ public class Step1ResolveNeighbours : BaseStep
     /// <param name="routerName">The router's name of <paramref name="interface"/>'s neighbour.</param>
     /// <returns>The resolved interface, or <c>null</c>.</returns>
     /// <remarks><paramref name="interface"/> must be an indirect child of an As in <paramref name="asses"/>.</remarks>
+    [Pure]
     private Interface? ResolveNeighbour(ICollection<As> asses, Interface @interface, int asNumber, string routerName)
     {
         // Try and get our neighbour
@@ -73,4 +75,19 @@ public class Step1ResolveNeighbours : BaseStep
             (i.Neighbour!.Neighbour is null && i.Neighbour.Name.Split(':').Last() == @interface.ParentRouter.Name)
             || (i.Neighbour.Neighbour is not null && i.Neighbour == @interface);
     }
+
+    /// <summary>
+    /// Get AS number from split neighbour path (separator is ':')
+    /// </summary>
+    /// <param name="neighbourPath">Array representing the path</param>
+    /// <param name="interface">The current interface</param>
+    /// <returns>AS number if success, else 0</returns>
+    [Pure]
+    private int AsNumberFromNeighbourPath(string[] neighbourPath, Interface @interface)
+        => neighbourPath.Length switch
+        {
+            1 => @interface.ParentRouter.ParentAs.Number,
+            2 => int.TryParse(neighbourPath.First(), out var asNumber) ? asNumber : 0,
+            _ => 0
+        };
 }

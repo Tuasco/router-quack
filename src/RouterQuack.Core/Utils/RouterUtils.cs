@@ -18,9 +18,9 @@ public interface IRouterUtils
 
 
     /// <param name="brand">A router's brand (string format).</param>
-    /// <param name="defaultBrand">The default brand, if none was given.</param>
+    /// <param name="defaultBrand">The default brand, if <paramref name="brand"/> is <c>null</c>.</param>
     /// <returns>The corresponding router brand (Enum format).</returns>
-    /// <remarks>Will generate an error if <paramref name="brand" /> couldn't be parsed.</remarks>
+    /// <exception cref="ArgumentException">Non <c>null</c> and unknown router brand.</exception>
     [Pure]
     public RouterBrand ParseBrand(string? brand, RouterBrand? defaultBrand = null);
 }

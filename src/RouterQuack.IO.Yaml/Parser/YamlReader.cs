@@ -1,21 +1,23 @@
-using System.Data;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using RouterQuack.Core.Models;
+using RouterQuack.Core.Steps;
 using RouterQuack.Core.Utils;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using YamlAs = RouterQuack.IO.Yaml.Models.As;
 
-namespace RouterQuack.IO.Yaml;
+namespace RouterQuack.IO.Yaml.Parser;
 
-public partial class YamlReader(
+public partial class YamlParser(
     INetworkUtils networkUtils,
     IRouterUtils routerUtils,
-    ILogger<YamlReader> logger) : IIntentFileReader
+    ILogger<YamlParser> logger) : IIntentFileParser
 {
     [GeneratedRegex(@"\.ya?ml$")]
     private static partial Regex YamlEnding();
+
+    public bool ErrorsOccurred { get; set; }
 
     /// <summary>
     /// Parse intent files and return a corresponding collection of As objects.
@@ -51,7 +53,10 @@ public partial class YamlReader(
             foreach (var @as in fileData)
             {
                 if (asDict.ContainsKey(@as.Key))
-                    throw new DuplicateNameException($"Duplicate AS number {@as.Key}");
+                {
+                    logger.LogError("Duplicate AS number {AsNumber}", @as.Key);
+                    ErrorsOccurred = true;
+                }
 
                 asDict.Add(@as.Key, @as.Value);
             }

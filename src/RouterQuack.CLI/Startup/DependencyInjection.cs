@@ -5,7 +5,7 @@ using RouterQuack.Core.Utils;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
-using YamlReader = RouterQuack.IO.Yaml.YamlReader;
+using YamlParser = RouterQuack.IO.Yaml.Parser.YamlParser;
 
 namespace RouterQuack.CLI.Startup;
 
@@ -30,7 +30,7 @@ public static class DependencyInjection
         // Configure Serilog
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Is(minLevel)
-            .WriteTo.Console(theme: AnsiConsoleTheme.Literate)
+            .WriteTo.Console(theme: AnsiConsoleTheme.Sixteen)
             .CreateLogger();
 
         var builder = Host.CreateApplicationBuilder(args);
@@ -46,7 +46,7 @@ public static class DependencyInjection
         builder.Services.AddSingleton<IRouterUtils, RouterUtils>();
 
         // Register steps
-        builder.Services.AddSingleton<IIntentFileReader, YamlReader>();
+        builder.Services.AddSingleton<IIntentFileParser, YamlParser>();
         builder.Services.AddKeyedSingleton<IStep, Step1ResolveNeighbours>(nameof(Step1ResolveNeighbours));
         builder.Services.AddKeyedSingleton<IStep, Step2RunChecks>(nameof(Step2RunChecks));
 

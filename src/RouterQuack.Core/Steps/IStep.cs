@@ -5,7 +5,7 @@ namespace RouterQuack.Core.Steps;
 /// <summary>
 /// Implemented by each step in the pipeline.
 /// </summary>
-public interface IStep
+public interface IStep : IErrorCollector
 {
     /// <summary>
     /// Execute a step of the pipeline.

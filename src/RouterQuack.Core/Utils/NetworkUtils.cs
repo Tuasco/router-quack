@@ -7,20 +7,21 @@ namespace RouterQuack.Core.Utils;
 public interface INetworkUtils
 {
     /// <param name="ip">An IP address (string format).</param>
-    /// <returns>A formatted IP Address.</returns>
-    /// <remarks>Will generate an error if <paramref name="ip"/> isn't a valid IPv4 or IPv6 address.</remarks>
+    /// <returns>A formatted IP address.</returns>
+    /// <remarks>The IPv4 or IPv6 address is expected to include the prefix length in CIDR format.</remarks>
+    /// <exception cref="ArgumentException">Invalid IP address.</exception>
     [Pure]
     public Address ParseIpAddress(string ip);
 
     /// <param name="igp">An IGP (string format).</param>
     /// <returns>The corresponding IGP (Enum format).</returns>
-    /// <remarks>Will generate an error if <paramref name="igp"/> couldn't be parsed.</remarks>
+    /// <exception cref="ArgumentException">Non <c>null</c> and unknown IGP.</exception>
     [Pure]
     public IgpType ParseIgp(string? igp);
 
     /// <param name="bgp">A BGP relationship (string format).</param>
     /// <returns>The corresponding BGP relationship (Enum format).</returns>
-    /// <remarks>Will generate an error if <paramref name="bgp"/> couldn't be parsed.</remarks>
+    /// <exception cref="ArgumentException">Non <c>null</c> and unknown BGP relationship.</exception>
     [Pure]
     public BgpRelationship ParseBgp(string? bgp);
 }
@@ -32,13 +33,13 @@ public class NetworkUtils : INetworkUtils
         var parts = ip.Split('/');
 
         if (parts.Length != 2)
-            throw new InvalidCastException("Couldn't translate IP address");
+            throw new ArgumentException("Couldn't translate IP address");
 
         if (!int.TryParse(parts[1], out var mask))
-            throw new InvalidCastException("Couldn't translate IP address (invalid mask)");
+            throw new ArgumentException("Couldn't translate IP address (invalid mask)");
 
         if (!IPAddress.TryParse(parts[0], out var ipAddress))
-            throw new InvalidCastException("Couldn't translate IP address (invalid IP)");
+            throw new ArgumentException("Couldn't translate IP address (invalid IP)");
 
         return new(new(ipAddress, mask), ipAddress);
     }

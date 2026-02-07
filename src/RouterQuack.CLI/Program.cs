@@ -2,7 +2,6 @@ using Microsoft.Extensions.DependencyInjection;
 using RouterQuack.CLI.Startup;
 using RouterQuack.Core.Extensions;
 using RouterQuack.Core.Steps;
-using RouterQuack.Core.Utils;
 using Serilog;
 
 // Dependency injection
@@ -12,12 +11,18 @@ using var serviceScope = DependencyInjection.CreateServiceScope(args);
 var argumentsParser = serviceScope.ServiceProvider.GetRequiredService<IArgumentsParser>();
 
 // Pipeline
-var intentFileReader = serviceScope.ServiceProvider.GetRequiredService<IIntentFileReader>();
+var intentFileReader = serviceScope.ServiceProvider.GetRequiredService<IIntentFileParser>();
 var step1ResolveNeighbours =
     serviceScope.ServiceProvider.GetRequiredKeyedService<IStep>(nameof(Step1ResolveNeighbours));
 var step2RunChecks = serviceScope.ServiceProvider.GetRequiredKeyedService<IStep>(nameof(Step2RunChecks));
 
 var asses = intentFileReader.ReadFiles(argumentsParser.FilePaths);
+if (intentFileReader.ErrorsOccurred)
+{
+    Log.Information("Exited with errors. Nothing changed.");
+    Log.Debug("ASs summary:\n{Summary}", asses.Summary());
+    Environment.Exit(1);
+}
 
 try
 {

@@ -6,16 +6,16 @@ namespace RouterQuack.Core.Steps;
 /// <summary>
 /// Run various checks.
 /// </summary>
-public class Step2RunChecks(ILogger<Step2RunChecks> logger) : BaseStep
+public class Step2RunChecks(ILogger<Step2RunChecks> logger) : IStep
 {
-    public override void Execute(ICollection<As> asses)
+    public bool ErrorsOccurred { get; set; }
+
+    public void Execute(ICollection<As> asses)
     {
         NoDuplicateRouterNames(asses);
         NoDuplicateIpAddress(asses);
         ValidBgpRelationships(asses);
         NoExternalWithoutAddress(asses);
-
-        base.Execute(asses);
     }
 
     /// <summary>
@@ -33,7 +33,7 @@ public class Step2RunChecks(ILogger<Step2RunChecks> logger) : BaseStep
         foreach (var router in routers)
         {
             logger.LogError("Duplicate routers with same name \"{RouterName}\"", router);
-            ErrorsOccured = true;
+            ErrorsOccurred = true;
         }
     }
 
@@ -46,7 +46,7 @@ public class Step2RunChecks(ILogger<Step2RunChecks> logger) : BaseStep
         var addresses = asses
             .SelectMany(a => a.Routers)
             .SelectMany(r => r.Interfaces)
-            .SelectMany(i => i.Addresses ?? [])
+            .SelectMany(i => i.Addresses)
             .CountBy(a => a.IpAddress)
             .Where(c => c.Value > 1)
             .Select(i => i.Key);
@@ -54,7 +54,7 @@ public class Step2RunChecks(ILogger<Step2RunChecks> logger) : BaseStep
         foreach (var address in addresses)
         {
             logger.LogError("Duplicate addresses \"{IpAddress}\"", address);
-            ErrorsOccured = true;
+            ErrorsOccurred = true;
         }
     }
 
@@ -81,7 +81,7 @@ public class Step2RunChecks(ILogger<Step2RunChecks> logger) : BaseStep
                 or { Bgp: BgpRelationship.Client, Neighbour.Bgp: BgpRelationship.Provider }
                 or { Bgp: BgpRelationship.Provider, Neighbour.Bgp: BgpRelationship.Client }))
             {
-                logger.LogError("Invalid BGP relationship between interface {InterfaceName} of router {RouterName}" +
+                logger.LogError("Invalid BGP relationship between interface {InterfaceName} of router {RouterName} " +
                                 "in AS number {AsNumber}",
                     @interface.Name,
                     @interface.ParentRouter.Name,
@@ -109,12 +109,19 @@ public class Step2RunChecks(ILogger<Step2RunChecks> logger) : BaseStep
     /// <param name="asses"></param>
     private void NoExternalWithoutAddress(ICollection<As> asses)
     {
-        var match = asses
+        var interfaces = asses
             .SelectMany(a => a.Routers)
             .SelectMany(r => r.Interfaces)
-            .Any(i => i.ParentRouter.External && i.Addresses is null);
+            .Where(i => i.ParentRouter.External && !i.Addresses.Any())
+            .ToArray();
 
-        if (match)
-            throw new ArgumentException("No addresses found on external interface");
+        foreach (var @interface in interfaces)
+            logger.LogError("Interface {InterfaceName} of router {RouterName} in AS number {AsNumber} " +
+                            "is marked external but has no configured IP address",
+                @interface.Name,
+                @interface.ParentRouter.Name,
+                @interface.ParentRouter.ParentAs.Number);
+
+        ErrorsOccurred = interfaces.Any();
     }
 }

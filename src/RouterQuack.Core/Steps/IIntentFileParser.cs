@@ -1,14 +1,14 @@
 using RouterQuack.Core.Models;
 
-namespace RouterQuack.Core.Utils;
+namespace RouterQuack.Core.Steps;
 
 /// <summary>
 /// Describes an intent file reader and parser.
 /// </summary>
-public interface IIntentFileReader
+public interface IIntentFileParser : IErrorCollector
 {
     /// <summary>
-    /// Read and parse an intent file
+    /// Read and parse an intent file.
     /// </summary>
     /// <param name="filePaths">Paths to the files to parse. Can safely include unrelated files like docs.</param>
     /// <returns>Parsed collection of populated As objects.</returns>
