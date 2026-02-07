@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging;
+using RouterQuack.Core.Extensions;
 using RouterQuack.Core.Models;
 using YamlInterface = RouterQuack.IO.Yaml.Models.Interface;
 
@@ -29,14 +29,13 @@ public partial class YamlParser
                 }
                 catch (ArgumentException e)
                 {
-                    logger.LogError("{ErrorMessage}: {IpAddress} of interface {InterfaceName} in router {RouterName} " +
-                                    "of AS number {AsNumber}",
+                    this.LogError("{ErrorMessage}: {IpAddress} of interface {InterfaceName} in router {RouterName} " +
+                                  "of AS number {AsNumber}",
                         e.Message,
                         address,
                         key,
                         parentRouter.Name,
                         parentRouter.ParentAs.Number);
-                    ErrorsOccurred = true;
                 }
 
             interfaces.Add(new()

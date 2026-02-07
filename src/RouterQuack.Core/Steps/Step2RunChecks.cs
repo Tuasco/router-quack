@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using RouterQuack.Core.Extensions;
 using RouterQuack.Core.Models;
 
 namespace RouterQuack.Core.Steps;
@@ -9,6 +10,7 @@ namespace RouterQuack.Core.Steps;
 public class Step2RunChecks(ILogger<Step2RunChecks> logger) : IStep
 {
     public bool ErrorsOccurred { get; set; }
+    public ILogger Logger { get; set; } = logger;
 
     public void Execute(ICollection<As> asses)
     {
@@ -31,10 +33,7 @@ public class Step2RunChecks(ILogger<Step2RunChecks> logger) : IStep
             .Select(i => i.Key);
 
         foreach (var router in routers)
-        {
-            logger.LogError("Duplicate routers with same name \"{RouterName}\"", router);
-            ErrorsOccurred = true;
-        }
+            this.LogError("Duplicate routers with same name \"{RouterName}\"", router);
     }
 
     /// <summary>
@@ -52,10 +51,7 @@ public class Step2RunChecks(ILogger<Step2RunChecks> logger) : IStep
             .Select(i => i.Key);
 
         foreach (var address in addresses)
-        {
-            logger.LogError("Duplicate addresses \"{IpAddress}\"", address);
-            ErrorsOccurred = true;
-        }
+            this.LogError("Duplicate addresses \"{IpAddress}\"", address);
     }
 
     /// <summary>
@@ -80,18 +76,16 @@ public class Step2RunChecks(ILogger<Step2RunChecks> logger) : IStep
                 or { Bgp: BgpRelationship.Peer, Neighbour.Bgp: BgpRelationship.Peer }
                 or { Bgp: BgpRelationship.Client, Neighbour.Bgp: BgpRelationship.Provider }
                 or { Bgp: BgpRelationship.Provider, Neighbour.Bgp: BgpRelationship.Client }))
-            {
-                logger.LogError("Invalid BGP relationship between interface {InterfaceName} of router {RouterName} " +
-                                "in AS number {AsNumber}",
+                this.LogError("Invalid BGP relationship between interface {InterfaceName} of router {RouterName} " +
+                              "in AS number {AsNumber}",
                     @interface.Name,
                     @interface.ParentRouter.Name,
                     @interface.ParentRouter.ParentAs.Number);
-            }
 
             // Check if BGP is on if our neighbour is in a different AS
             if (@interface.Bgp == BgpRelationship.None
                 && @interface.ParentRouter.ParentAs.Number != @interface.Neighbour!.ParentRouter.ParentAs.Number)
-                logger.LogWarning(
+                this.LogWarning(
                     "Interface {InterfaceName} of router {RouterName} in AS number {AsNumber} " +
                     "has a neighbour in another interface, yet doesn't use BGP",
                     @interface.Name,
@@ -116,12 +110,10 @@ public class Step2RunChecks(ILogger<Step2RunChecks> logger) : IStep
             .ToArray();
 
         foreach (var @interface in interfaces)
-            logger.LogError("Interface {InterfaceName} of router {RouterName} in AS number {AsNumber} " +
-                            "is marked external but has no configured IP address",
+            this.LogError("Interface {InterfaceName} of router {RouterName} in AS number {AsNumber} " +
+                          "is marked external but has no configured IP address",
                 @interface.Name,
                 @interface.ParentRouter.Name,
                 @interface.ParentRouter.ParentAs.Number);
-
-        ErrorsOccurred = interfaces.Any();
     }
 }

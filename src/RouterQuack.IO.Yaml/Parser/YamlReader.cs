@@ -18,6 +18,7 @@ public partial class YamlParser(
     private static partial Regex YamlEnding();
 
     public bool ErrorsOccurred { get; set; }
+    public ILogger Logger { get; set; } = logger;
 
     /// <summary>
     /// Parse intent files and return a corresponding collection of As objects.

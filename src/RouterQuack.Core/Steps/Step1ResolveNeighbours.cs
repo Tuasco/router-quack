@@ -1,5 +1,6 @@
 using System.Diagnostics.Contracts;
 using Microsoft.Extensions.Logging;
+using RouterQuack.Core.Extensions;
 using RouterQuack.Core.Models;
 
 namespace RouterQuack.Core.Steps;
@@ -7,9 +8,10 @@ namespace RouterQuack.Core.Steps;
 /// <summary>
 /// Resolve the neighbours of the interfaces from their initial dummy neighbour.
 /// </summary>
-public class Step1ResolveNeighbours(ILogger<Step2RunChecks> logger) : IStep
+public class Step1ResolveNeighbours(ILogger<Step1ResolveNeighbours> logger) : IStep
 {
     public bool ErrorsOccurred { get; set; }
+    public ILogger Logger { get; set; } = logger;
 
 
     public void Execute(ICollection<As> asses)
@@ -40,12 +42,11 @@ public class Step1ResolveNeighbours(ILogger<Step2RunChecks> logger) : IStep
         var neighbour = ResolveNeighbour(asses, @interface, asNumber, routerName);
         if (neighbour is null)
         {
-            logger.LogError("Couldn't resolve neighbour of interface {InterfaceName} in router {RouterName} " +
-                            "of AS number {AsNumber}.",
+            this.LogError("Couldn't resolve neighbour of interface {InterfaceName} in router {RouterName} " +
+                          "of AS number {AsNumber}.",
                 @interface.Name,
                 @interface.ParentRouter.Name,
                 @interface.ParentRouter.ParentAs.Number);
-            ErrorsOccurred = true;
             return;
         }
 
@@ -77,11 +78,11 @@ public class Step1ResolveNeighbours(ILogger<Step2RunChecks> logger) : IStep
     }
 
     /// <summary>
-    /// Get AS number from split neighbour path (separator is ':')
+    /// Get AS number from split neighbour path (separator is ':').
     /// </summary>
-    /// <param name="neighbourPath">Array representing the path</param>
-    /// <param name="interface">The current interface</param>
-    /// <returns>AS number if success, else 0</returns>
+    /// <param name="neighbourPath">Array representing the path.</param>
+    /// <param name="interface">The current interface.</param>
+    /// <returns>AS number if success, else 0.</returns>
     [Pure]
     private int AsNumberFromNeighbourPath(string[] neighbourPath, Interface @interface)
         => neighbourPath.Length switch

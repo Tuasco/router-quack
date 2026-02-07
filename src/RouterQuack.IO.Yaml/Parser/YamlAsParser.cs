@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging;
+using RouterQuack.Core.Extensions;
 using RouterQuack.Core.Models;
 using YamlAs = RouterQuack.IO.Yaml.Models.As;
 
@@ -19,8 +19,7 @@ public partial class YamlParser
             }
             catch (ArgumentException e)
             {
-                logger.LogError("{ErrorMessage} of AS number {AsNumber}", e.Message, key);
-                ErrorsOccurred = true;
+                this.LogError("{ErrorMessage} of AS number {AsNumber}", e.Message, key);
                 igp = 0;
             }
 
@@ -41,8 +40,7 @@ public partial class YamlParser
             }
             catch (ArgumentException e)
             {
-                logger.LogError("{ErrorMessage} (default brand) of AS number {AsNumber}", e.Message, key);
-                ErrorsOccurred = true;
+                this.LogError("{ErrorMessage} (default brand) of AS number {AsNumber}", e.Message, key);
                 brand = 0;
             }
 

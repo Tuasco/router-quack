@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging;
+using RouterQuack.Core.Extensions;
 using RouterQuack.Core.Models;
 using YamlRouter = RouterQuack.IO.Yaml.Models.Router;
 
@@ -22,11 +22,10 @@ public partial class YamlParser
             }
             catch (ArgumentException e)
             {
-                logger.LogError("{ErrorMessage} in router {RouterName} of AS number {AsNumber}",
+                this.LogError("{ErrorMessage} in router {RouterName} of AS number {AsNumber}",
                     e.Message,
                     key,
                     parentAs.Number);
-                ErrorsOccurred = true;
                 routerBrand = routerUtils.ParseBrand(defaultBrand.ToString());
             }
 
