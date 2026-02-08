@@ -16,7 +16,7 @@ public static class ErrorCollectorExtensions
 
         public void LogWarning([StructuredMessageTemplate] string message, params object?[] args)
         {
-            source.Logger.LogError(message, args);
+            source.Logger.LogWarning(message, args);
         }
     }
 }
