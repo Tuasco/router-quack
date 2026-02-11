@@ -30,7 +30,9 @@ public static class DependencyInjection
         // Configure Serilog
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Is(minLevel)
-            .WriteTo.Console(theme: AnsiConsoleTheme.Sixteen)
+            .WriteTo.Console(
+                theme: AnsiConsoleTheme.Sixteen,
+                outputTemplate: "[{Level:u3}] {Message:lj}{NewLine}{Exception}")
             .CreateLogger();
 
         var builder = Host.CreateApplicationBuilder(args);
