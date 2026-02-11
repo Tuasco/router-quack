@@ -10,9 +10,9 @@ public class As
 
     public required IgpType Igp { get; init; }
 
-    public required IPNetwork LoopbackSpace { get; init; }
+    public required IPNetwork? LoopbackSpace { get; init; }
 
-    public required IPNetwork NetworksSpace { get; init; }
+    public required IPNetwork? NetworksSpace { get; init; }
 
     public required ICollection<Router> Routers { get; set; }
 

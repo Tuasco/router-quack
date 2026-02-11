@@ -12,7 +12,13 @@
           neighbour: "112:R2"
           bgp: "peer"
           addresses:
-            - "2001:db8:1::1/126"
+            - "2001:db8:2::0/127"
+        GigabitEthernet1/0:
+          neighbour: "R3"
+    R3:
+      interfaces:
+        GigabitEthernet0/0:
+          neighbour: "R1"
           
 112:
   routers:
@@ -23,4 +29,4 @@
           neighbour: "111:R1"
           bgp: "peer"
           addresses:
-            - "2001:db8:1::2/126"
+            - "2001:db8:2::1/127"
