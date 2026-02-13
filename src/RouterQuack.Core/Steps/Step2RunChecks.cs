@@ -1,3 +1,4 @@
+using System.Net.Sockets;
 using Microsoft.Extensions.Logging;
 using RouterQuack.Core.Extensions;
 using RouterQuack.Core.Models;
@@ -18,6 +19,7 @@ public class Step2RunChecks(ILogger<Step2RunChecks> logger) : IStep
         NoDuplicateIpAddress(asses);
         ValidBgpRelationships(asses);
         NoExternalWithoutAddress(asses);
+        ValidNetworks(asses);
     }
 
     /// <summary>
@@ -105,15 +107,41 @@ public class Step2RunChecks(ILogger<Step2RunChecks> logger) : IStep
     {
         var interfaces = asses
             .SelectMany(a => a.Routers)
+            .Where(r => r.External)
             .SelectMany(r => r.Interfaces)
-            .Where(i => i.ParentRouter.External && !i.Addresses.Any())
+            .Where(i => !i.Addresses.Any() || !i.Neighbour!.Addresses.Any())
             .ToArray();
 
         foreach (var @interface in interfaces)
             this.LogError("Interface {InterfaceName} of router {RouterName} in AS number {AsNumber} " +
-                          "is marked external but has no configured IP address",
+                          "or its neighbour is marked external but has no configured IP address",
                 @interface.Name,
                 @interface.ParentRouter.Name,
                 @interface.ParentRouter.ParentAs.Number);
+    }
+
+    /// <summary>
+    /// Generate an error if there is a mismatch in the configured networks version per AS
+    /// </summary>
+    /// <param name="asses"></param>
+    private void ValidNetworks(ICollection<As> asses)
+    {
+        foreach (var @as in asses)
+        {
+            if (@as.NetworksSpaceV4 is not null
+                && @as.NetworksSpaceV4?.BaseAddress.AddressFamily != AddressFamily.InterNetwork)
+                this.LogError("Invalid networks space v4 address in AS number {AsNumber}", @as.Number);
+
+            if (@as.NetworksSpaceV6 is not null
+                && @as.NetworksSpaceV6?.BaseAddress.AddressFamily != AddressFamily.InterNetworkV6)
+                this.LogError("Invalid networks space v6 address in AS number {AsNumber}", @as.Number);
+
+            if (!@as.FullyExternal
+                && @as
+                    is { NetworksSpaceV4: null, NetworksIpVersion: IpVersion.Ipv4 }
+                    or { NetworksSpaceV6: null, NetworksIpVersion: IpVersion.Ipv6 })
+                this.LogError("The chosen networks version doesn't have a provided space in AS number {AsNumber}",
+                    @as.Number);
+        }
     }
 }

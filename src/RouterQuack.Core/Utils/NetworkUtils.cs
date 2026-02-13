@@ -24,6 +24,12 @@ public interface INetworkUtils
     /// <exception cref="ArgumentException">Non <c>null</c> and unknown BGP relationship.</exception>
     [Pure]
     public BgpRelationship ParseBgp(string? bgp);
+
+    /// <param name="version">An IP version (string format).</param>
+    /// <returns>The corresponding IP version (Enum flags format).</returns>
+    /// /// <exception cref="ArgumentException">Non <c>null</c> and unknown networks IP version.</exception>
+    [Pure]
+    public IpVersion ParseIpVersion(string? version);
 }
 
 public class NetworkUtils : INetworkUtils
@@ -62,5 +68,21 @@ public class NetworkUtils : INetworkUtils
         return Enum.TryParse<BgpRelationship>(bgp, true, out var bgpRelationship)
             ? bgpRelationship
             : throw new ArgumentException("Couldn't parse BGP relationship");
+    }
+
+    public IpVersion ParseIpVersion(string? version)
+    {
+        if (version == null)
+            return IpVersion.Ipv6;
+
+        ReadOnlySpan<string> bothTokens = ["both", "dual", "dual stack", "dual_stack", "dual-stack"];
+        version = version.ToLowerInvariant();
+
+        if (bothTokens.Contains(version))
+            return IpVersion.Ipv4 | IpVersion.Ipv6;
+
+        return Enum.TryParse<IpVersion>(version, true, out var ipVersion)
+            ? ipVersion
+            : throw new ArgumentException("Couldn't parse IP version");
     }
 }

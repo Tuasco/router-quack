@@ -12,9 +12,18 @@ public class As
 
     public required IPNetwork? LoopbackSpace { get; init; }
 
-    public required IPNetwork? NetworksSpace { get; init; }
+    public required IPNetwork? NetworksSpaceV4 { get; init; }
+
+    public required IPNetwork? NetworksSpaceV6 { get; init; }
+
+    public required IpVersion NetworksIpVersion { get; init; }
 
     public required ICollection<Router> Routers { get; set; }
+
+    /// <summary>
+    /// Return true if all the routers in the AS are marked as external.
+    /// </summary>
+    public bool FullyExternal => Routers.All(r => r.External);
 
     [Pure]
     public override string ToString()
@@ -37,4 +46,11 @@ public class As
 public enum IgpType
 {
     Ibgp
+}
+
+[Flags]
+public enum IpVersion
+{
+    Ipv4 = 1,
+    Ipv6 = 2
 }

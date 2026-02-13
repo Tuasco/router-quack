@@ -12,19 +12,13 @@ public class Step3GenerateIpAddresses(ILogger<Step2RunChecks> logger) : IStep
     public ILogger Logger { get; set; } = logger;
 
     private ulong _networkCount;
-    private List<IPAddress> _networkAddresses = null!;
 
     public void Execute(ICollection<As> asses)
     {
-        _networkAddresses = asses.SelectMany(a => a.Routers)
-            .SelectMany(r => r.Interfaces)
-            .SelectMany(i => i.Addresses)
-            .Select(a => a.IpAddress)
-            .ToList();
-
         foreach (var @as in asses)
         {
-            _networkCount = 0;
+            if (@as.FullyExternal)
+                continue;
 
             var links = @as.Routers.SelectMany(r => r.Interfaces)
                 .Where(i => !i.Addresses.Any())
@@ -37,38 +31,52 @@ public class Step3GenerateIpAddresses(ILogger<Step2RunChecks> logger) : IStep
 
                     return string.Compare(i.Name, i.Neighbour.Name, StringComparison.Ordinal) < 0;
                 })
-                .Select(i => new Tuple<Interface, Interface>(i, i.Neighbour!));
+                .Select(i => new Tuple<Interface, Interface>(i, i.Neighbour!))
+                .ToArray();
 
-            foreach (var link in links)
-                AssignIpAddress(link);
+            _networkCount = 0;
+            if ((@as.NetworksIpVersion & IpVersion.Ipv4) == IpVersion.Ipv4)
+                foreach (var link in links)
+                    AssignIpAddress(link, IpVersion.Ipv4);
+
+            _networkCount = 0;
+            // ReSharper disable once InvertIf
+            if ((@as.NetworksIpVersion & IpVersion.Ipv6) == IpVersion.Ipv6)
+                foreach (var link in links)
+                    AssignIpAddress(link, IpVersion.Ipv6);
         }
     }
 
     /// <summary>
-    /// Assign an IP address to the interface and its neighbour.
+    /// Assign an IP address of type <paramref name="ipVersion"/> to the interface and its neighbour.
     /// </summary>
     /// <param name="link">The interface to assign an IP address to.</param>
-    private void AssignIpAddress(Tuple<Interface, Interface> link)
+    /// <param name="ipVersion">The IP version to use.</param>
+    private void AssignIpAddress(Tuple<Interface, Interface> link, IpVersion ipVersion)
     {
-        // No networks space whatsoever
-        if (link is
-            {
-                Item1.ParentRouter.ParentAs.NetworksSpace: null,
-                Item2.ParentRouter.ParentAs.NetworksSpace: null
-            })
+        IPNetwork? space = ipVersion switch
+        {
+            IpVersion.Ipv4 =>
+                link.Item1.ParentRouter.ParentAs.NetworksSpaceV4
+                ?? link.Item2.ParentRouter.ParentAs.NetworksSpaceV4!.Value,
+
+            IpVersion.Ipv6 =>
+                link.Item1.ParentRouter.ParentAs.NetworksSpaceV6
+                ?? link.Item2.ParentRouter.ParentAs.NetworksSpaceV6!.Value,
+
+            _ => null
+        };
+
+        if (space is null)
         {
             this.LogError("Interface {InterfaceName} of router {RouterName} in AS number {AsNumber} and " +
                           "its neighbour need automatic IP address, yet no networks space is defined in their AS(s).",
                 link.Item1.Name, link.Item1.ParentRouter.Name, link.Item1.ParentRouter.ParentAs.Number);
-
             return;
         }
 
-        var space = link.Item1.ParentRouter.ParentAs.NetworksSpace
-                    ?? link.Item2.ParentRouter.ParentAs.NetworksSpace!.Value;
-
         // About to generate a second IPv4 address
-        if (space.BaseAddress.AddressFamily == AddressFamily.InterNetwork
+        if (space.Value.BaseAddress.AddressFamily == AddressFamily.InterNetwork
             && (link.Item1.Addresses.Any(a => a.IpAddress.AddressFamily == AddressFamily.InterNetwork)
                 || link.Item2.Addresses.Any(a => a.IpAddress.AddressFamily == AddressFamily.InterNetwork)))
         {
@@ -82,7 +90,7 @@ public class Step3GenerateIpAddresses(ILogger<Step2RunChecks> logger) : IStep
         Tuple<Address, Address> addresses;
         try
         {
-            addresses = GenerateIpAddresses(space);
+            addresses = GenerateIpAddresses(space.Value);
         }
         catch (InvalidOperationException)
         {

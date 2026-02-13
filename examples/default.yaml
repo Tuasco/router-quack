@@ -1,7 +1,9 @@
 111:
   igp: "ibgp"
   loopback_space: "2001:1:1:1::/64"
-  networks_space: "2001:db8:1::/48"
+  networks_space_v4: "192.168.1.0/24"
+  networks_space_v6: "2001:db8:1::/48"
+  networks: "both"
   brand: "cisco"
   routers:
     R1:

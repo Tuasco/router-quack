@@ -10,7 +10,11 @@ public class As
 
     public IPNetwork? LoopbackSpace { get; init; }
 
-    public IPNetwork? NetworksSpace { get; init; }
+    public IPNetwork? NetworksSpaceV4 { get; init; }
+
+    public IPNetwork? NetworksSpaceV6 { get; init; }
+
+    public string? Networks { get; init; }
 
     public string? Brand { get; init; }
 

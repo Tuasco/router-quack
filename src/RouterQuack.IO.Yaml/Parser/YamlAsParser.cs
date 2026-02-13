@@ -23,12 +23,25 @@ public partial class YamlParser
                 igp = 0;
             }
 
+            IpVersion version;
+            try
+            {
+                version = networkUtils.ParseIpVersion(value.Networks);
+            }
+            catch (Exception e)
+            {
+                this.LogError("{ErrorMessage} of AS number {AsNumber}", e.Message, key);
+                version = 0;
+            }
+
             var @as = new As
             {
                 Number = key,
                 Igp = igp,
                 LoopbackSpace = value.LoopbackSpace,
-                NetworksSpace = value.NetworksSpace,
+                NetworksSpaceV4 = value.NetworksSpaceV4,
+                NetworksSpaceV6 = value.NetworksSpaceV6,
+                NetworksIpVersion = version,
                 Routers = []
             };
 
