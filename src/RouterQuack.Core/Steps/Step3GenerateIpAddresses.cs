@@ -11,10 +11,18 @@ public class Step3GenerateIpAddresses(ILogger<Step2RunChecks> logger) : IStep
     public bool ErrorsOccurred { get; set; }
     public ILogger Logger { get; set; } = logger;
 
-    private ulong _networkCount;
+    private UInt128 _addressCount;
+    private ICollection<IPAddress> _usedAddresses = null!;
 
     public void Execute(ICollection<As> asses)
     {
+        _usedAddresses = asses
+            .SelectMany(a => a.Routers)
+            .SelectMany(r => r.Interfaces)
+            .SelectMany(i => i.Addresses)
+            .Select(a => a.IpAddress)
+            .ToList();
+
         foreach (var @as in asses)
         {
             if (@as.FullyExternal)
@@ -34,12 +42,12 @@ public class Step3GenerateIpAddresses(ILogger<Step2RunChecks> logger) : IStep
                 .Select(i => new Tuple<Interface, Interface>(i, i.Neighbour!))
                 .ToArray();
 
-            _networkCount = 0;
+            _addressCount = 0;
             if ((@as.NetworksIpVersion & IpVersion.Ipv4) == IpVersion.Ipv4)
                 foreach (var link in links)
                     AssignIpAddress(link, IpVersion.Ipv4);
 
-            _networkCount = 0;
+            _addressCount = 0;
             // ReSharper disable once InvertIf
             if ((@as.NetworksIpVersion & IpVersion.Ipv6) == IpVersion.Ipv6)
                 foreach (var link in links)
@@ -87,10 +95,12 @@ public class Step3GenerateIpAddresses(ILogger<Step2RunChecks> logger) : IStep
             return;
         }
 
-        Tuple<Address, Address> addresses;
+        var maxBits = space.Value.BaseAddress.AddressFamily == AddressFamily.InterNetworkV6 ? 128 : 32;
+        IPAddress ip1, ip2;
         try
         {
-            addresses = GenerateIpAddresses(space.Value);
+            ip1 = GenerateAvailableIpAddress(space.Value, maxBits);
+            ip2 = GenerateAvailableIpAddress(space.Value, maxBits);
         }
         catch (InvalidOperationException)
         {
@@ -98,33 +108,36 @@ public class Step3GenerateIpAddresses(ILogger<Step2RunChecks> logger) : IStep
             return;
         }
 
-        link.Item1.Addresses.Add(addresses.Item1);
-        link.Item2.Addresses.Add(addresses.Item2);
-        _networkCount++;
+        var linkNetwork = new IPNetwork(ip1, maxBits - 1);
+        link.Item1.Addresses.Add(new(linkNetwork, ip1));
+        link.Item2.Addresses.Add(new(linkNetwork, ip2));
     }
 
     /// <summary>
-    /// Generate a pair of <see cref="Address"/> in a subspace from a given space.
+    /// Generate a unique IP Address and add it to used addresses.
     /// </summary>
     /// <param name="space">The address space to pick networks from.</param>
-    /// <returns>A pair of <see cref="Address"/> objects representing the addresses of two interfaces.</returns>
+    /// <param name="maxBits">Maximum bits the IP Address can take.</param>
+    /// <returns>A new unique IP address.</returns>
     /// <exception cref="InvalidOperationException">Overflow of <paramref name="space"/>.</exception>
-    private Tuple<Address, Address> GenerateIpAddresses(IPNetwork space)
+    private IPAddress GenerateAvailableIpAddress(IPNetwork space, int maxBits)
     {
-        var maxBits = space.BaseAddress.AddressFamily == AddressFamily.InterNetworkV6 ? 128 : 32;
         var hostBits = maxBits - space.PrefixLength;
-
-        // Ensure the requested offset doesn't exceed the subnet size
-        // If hostBits >= 64, a ulong offset will never overflow the subnet.
-        if (hostBits < 64 && _networkCount * 2 + 1 >= 1UL << hostBits)
-            throw new InvalidOperationException();
-
         var baseBytes = space.BaseAddress.GetAddressBytes();
-        var ip1 = ApplyOffset(baseBytes, _networkCount * 2);
-        var ip2 = ApplyOffset(baseBytes, _networkCount * 2 + 1);
-        var linkNetwork = new IPNetwork(ip1, maxBits - 1);
+        IPAddress ip;
 
-        return new(new(linkNetwork, ip1), new(linkNetwork, ip2));
+        do
+        {
+            // Ensure the requested offset doesn't exceed the subnet size
+            if (_addressCount >= (UInt128)1 << hostBits)
+                throw new InvalidOperationException("Required host bits overflow the subnet bits.");
+
+            ip = ApplyOffset(baseBytes, _addressCount);
+            _addressCount++;
+        } while (_usedAddresses.Contains(ip));
+
+        _usedAddresses.Add(ip);
+        return ip;
     }
 
     /// <summary>
@@ -138,7 +151,7 @@ public class Step3GenerateIpAddresses(ILogger<Step2RunChecks> logger) : IStep
     /// <param name="baseBytes">The network-order byte representation of the starting IP address.</param>
     /// <param name="offset">The number of addresses to increment from the base address.</param>
     /// <returns>A new <see cref="IPAddress"/> representing the incremented value.</returns>
-    private static IPAddress ApplyOffset(byte[] baseBytes, ulong offset)
+    private static IPAddress ApplyOffset(byte[] baseBytes, UInt128 offset)
     {
         var result = (byte[])baseBytes.Clone();
         var carry = offset;

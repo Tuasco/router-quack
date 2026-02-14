@@ -14,7 +14,7 @@
           neighbour: "112:R2"
           bgp: "peer"
           addresses:
-            - "2001:db8:2::0/127"
+            - "2001:db8:1::0/127"
         GigabitEthernet1/0:
           neighbour: "R3"
     R3:
@@ -31,4 +31,4 @@
           neighbour: "111:R1"
           bgp: "peer"
           addresses:
-            - "2001:db8:2::1/127"
+            - "2001:db8:1::1/127"
