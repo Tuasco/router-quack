@@ -13,7 +13,7 @@ public class Step3GenerateIpAddresses(ILogger<Step2RunChecks> logger, INetworkUt
     public ILogger Logger { get; set; } = logger;
 
     private UInt128 _addressCount;
-    private ICollection<IPAddress> _usedAddresses = null!;
+    private List<IPAddress> _usedAddresses = null!;
 
     public void Execute(ICollection<As> asses)
     {
@@ -44,12 +44,6 @@ public class Step3GenerateIpAddresses(ILogger<Step2RunChecks> logger, INetworkUt
 
             if (generateIpv6)
                 AssignIpAddress(link, IpVersion.Ipv6);
-        }
-
-        foreach (var i in asses.SelectMany(a => a.Routers).SelectMany(r => r.Interfaces))
-        {
-            Console.Write($"Interface {i.Name} of router {i.ParentRouter.Name} has {i.Addresses.Count} IPs. ");
-            Console.WriteLine($"First IP is : {(i.Addresses.Count > 1 ? i.Addresses.ElementAt(1) : null)}");
         }
     }
 
@@ -105,8 +99,8 @@ public class Step3GenerateIpAddresses(ILogger<Step2RunChecks> logger, INetworkUt
         IPAddress ip1, ip2;
         try
         {
-            ip1 = GenerateAvailableIpAddress(space.Value, maxBits);
-            ip2 = GenerateAvailableIpAddress(space.Value, maxBits);
+            ip1 = networkUtils.GenerateAvailableIpAddress(space.Value, ref _addressCount, _usedAddresses);
+            ip2 = networkUtils.GenerateAvailableIpAddress(space.Value, ref _addressCount, _usedAddresses);
         }
         catch (InvalidOperationException)
         {
@@ -117,59 +111,5 @@ public class Step3GenerateIpAddresses(ILogger<Step2RunChecks> logger, INetworkUt
         var linkNetwork = new IPNetwork(ip1, maxBits - 1);
         link.Item1.Addresses.Add(new(linkNetwork, ip1));
         link.Item2.Addresses.Add(new(linkNetwork, ip2));
-    }
-
-    /// <summary>
-    /// Generate a unique IP Address and add it to used addresses.
-    /// </summary>
-    /// <param name="space">The address space to pick networks from.</param>
-    /// <param name="maxBits">Maximum bits the IP Address can take.</param>
-    /// <returns>A new unique IP address.</returns>
-    /// <exception cref="InvalidOperationException">Overflow of <paramref name="space"/>.</exception>
-    private IPAddress GenerateAvailableIpAddress(IPNetwork space, int maxBits)
-    {
-        var hostBits = maxBits - space.PrefixLength;
-        var baseBytes = space.BaseAddress.GetAddressBytes();
-        IPAddress ip;
-
-        do
-        {
-            // Ensure the requested offset doesn't exceed the subnet size
-            if (_addressCount >= (UInt128)1 << hostBits)
-                throw new InvalidOperationException("Required host bits overflow the subnet bits.");
-
-            ip = ApplyOffset(baseBytes, _addressCount);
-            _addressCount++;
-        } while (_usedAddresses.Contains(ip));
-
-        _usedAddresses.Add(ip);
-        return ip;
-    }
-
-    /// <summary>
-    /// Creates a new <see cref="IPAddress"/> by adding a numerical offset to a base byte array.
-    /// </summary>
-    /// <remarks>
-    /// This method treats the byte array as a big-endian integer (network byte order). 
-    /// It iterates from the least significant byte (right) to the most significant byte (left),
-    /// applying a carry-over logic similar to how an odometer increments.
-    /// </remarks>
-    /// <param name="baseBytes">The network-order byte representation of the starting IP address.</param>
-    /// <param name="offset">The number of addresses to increment from the base address.</param>
-    /// <returns>A new <see cref="IPAddress"/> representing the incremented value.</returns>
-    private static IPAddress ApplyOffset(byte[] baseBytes, UInt128 offset)
-    {
-        var result = (byte[])baseBytes.Clone();
-        var carry = offset;
-
-        // Apply the offset from right to left (Big-endian)
-        for (var i = result.Length - 1; i >= 0 && carry > 0; i--)
-        {
-            var val = result[i] + carry;
-            result[i] = (byte)(val & 0xFF);
-            carry = val >> 8;
-        }
-
-        return new(result);
     }
 }

@@ -1,5 +1,6 @@
 using System.Diagnostics.Contracts;
 using System.Net;
+using System.Net.Sockets;
 using RouterQuack.Core.Models;
 
 namespace RouterQuack.Core.Utils;
@@ -38,6 +39,18 @@ public interface INetworkUtils
     /// <returns><c>true</c> if the interfaces of the link share a common network.</returns>
     [Pure]
     public bool HasLinkNetwork(Interface @interface);
+
+    /// <summary>
+    /// Generate a unique <see cref="IPAddress"/> and add it to used addresses.
+    /// </summary>
+    /// <param name="space">The address space to pick networks from.</param>
+    /// <param name="addressCount">A reference to a counter, used as an offset.</param>
+    /// <param name="usedAddresses">A collection of unavailable IP addresses.</param>
+    /// <returns>A new unique IP address.</returns>
+    /// <exception cref="InvalidOperationException">Overflow of <paramref name="space"/>.</exception>
+    public IPAddress GenerateAvailableIpAddress(IPNetwork space,
+        ref UInt128 addressCount,
+        ICollection<IPAddress> usedAddresses);
 }
 
 public class NetworkUtils : INetworkUtils
@@ -101,4 +114,47 @@ public class NetworkUtils : INetworkUtils
                       && !address.IpAddress.Equals(neighbourAddress.IpAddress)
                 select true)
             .Any();
+
+    public IPAddress GenerateAvailableIpAddress(IPNetwork space,
+        ref UInt128 addressCount,
+        ICollection<IPAddress> usedAddresses)
+    {
+        var maxBits = space.BaseAddress.AddressFamily == AddressFamily.InterNetworkV6 ? 128 : 32;
+        var hostBits = maxBits - space.PrefixLength;
+        var baseBytes = space.BaseAddress.GetAddressBytes();
+        IPAddress ip;
+
+        do
+        {
+            // Ensure the requested offset doesn't exceed the subnet size
+            if (addressCount >= (UInt128)1 << hostBits)
+                throw new InvalidOperationException("Required host bits overflow the subnet bits.");
+
+            ip = ApplyOffset(baseBytes, addressCount);
+            addressCount++;
+        } while (usedAddresses.Contains(ip));
+
+        usedAddresses.Add(ip);
+        return ip;
+
+        // Fill-in the host bytes of a new IPAddress and return it
+        static IPAddress ApplyOffset(ReadOnlySpan<byte> baseBytes, UInt128 offset)
+        {
+            // Allocating on the stack instead of the heap by copying improves performance
+            Span<byte> result = stackalloc byte[baseBytes.Length];
+            baseBytes.CopyTo(result);
+
+            var carry = offset;
+
+            // Apply the offset from right to left (Big-endian)
+            for (var i = result.Length - 1; i >= 0 && carry > 0; i--)
+            {
+                var val = result[i] + carry;
+                result[i] = (byte)(val & 0xFF);
+                carry = val >> 8;
+            }
+
+            return new(result);
+        }
+    }
 }
