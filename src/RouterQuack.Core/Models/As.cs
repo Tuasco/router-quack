@@ -4,7 +4,7 @@ using System.Text;
 
 namespace RouterQuack.Core.Models;
 
-public class As
+public sealed class As
 {
     public required int Number { get; init; }
 

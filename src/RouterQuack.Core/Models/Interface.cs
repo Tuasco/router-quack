@@ -2,7 +2,7 @@ using System.Diagnostics.Contracts;
 
 namespace RouterQuack.Core.Models;
 
-public class Interface
+public sealed class Interface
 {
     public required string Name { get; init; }
 

@@ -17,7 +17,9 @@ var step1ResolveNeighbours =
 var step2RunChecks =
     serviceScope.ServiceProvider.GetRequiredKeyedService<IStep>(nameof(Step2RunChecks));
 var step3GenerateIpAddresses =
-    serviceScope.ServiceProvider.GetRequiredKeyedService<IStep>(nameof(Step3GenerateIpAddresses));
+    serviceScope.ServiceProvider.GetRequiredKeyedService<IStep>(nameof(Step3GenerateLinkAddresses));
+var step4GenerateLoopbackAddresses =
+    serviceScope.ServiceProvider.GetRequiredKeyedService<IStep>(nameof(Step4GenerateLoopbackAddresses));
 
 var asses = intentFileReader.ReadFiles(argumentsParser.FilePaths);
 if (intentFileReader.ErrorsOccurred)
@@ -31,7 +33,8 @@ try
 {
     asses.ExecuteStep(step1ResolveNeighbours)
         .ExecuteStep(step2RunChecks)
-        .ExecuteStep(step3GenerateIpAddresses);
+        .ExecuteStep(step3GenerateIpAddresses)
+        .ExecuteStep(step4GenerateLoopbackAddresses);
 }
 catch (StepException)
 {

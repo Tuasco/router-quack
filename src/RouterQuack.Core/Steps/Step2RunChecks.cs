@@ -20,6 +20,7 @@ public class Step2RunChecks(ILogger<Step2RunChecks> logger) : IStep
         ValidBgpRelationships(asses);
         NoExternalWithoutAddress(asses);
         ValidNetworkSpaces(asses);
+        ValidLoopbackAddresses(asses);
     }
 
     /// <summary>
@@ -142,6 +143,28 @@ public class Step2RunChecks(ILogger<Step2RunChecks> logger) : IStep
                     or { NetworksSpaceV6: null, NetworksIpVersion: IpVersion.Ipv6 })
                 this.LogError("The chosen networks version doesn't have a provided space in AS number {AsNumber}",
                     @as.Number);
+        }
+    }
+
+    /// <summary>
+    /// Generate an error if a loopback address is not in /128 (or /32 in IPv4)
+    /// </summary>
+    /// <param name="asses"></param>
+    private void ValidLoopbackAddresses(ICollection<As> asses)
+    {
+        var routers = asses
+            .SelectMany(a => a.Routers)
+            .Where(r => r.LoopbackAddress is not null);
+
+        foreach (var router in routers)
+        {
+            var maxBits = router.LoopbackAddress!.IpAddress.AddressFamily == AddressFamily.InterNetworkV6 ? 128 : 32;
+            if (router.LoopbackAddress.NetworkAddress.PrefixLength == maxBits)
+                continue;
+
+            this.LogError("Invalid loopback address in router {RouterName} in AS number {AsNumber}",
+                router.Name,
+                router.ParentAs.Number);
         }
     }
 }

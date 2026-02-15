@@ -8,6 +8,7 @@
   routers:
     R1:
       id: "1.1.1.1"
+      loopback: "2001:1:1:1::0/128"
       ospf_area: 0
       interfaces:
         GigabitEthernet0/0:

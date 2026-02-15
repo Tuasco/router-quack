@@ -3,7 +3,7 @@ using System.Net;
 
 namespace RouterQuack.Core.Models;
 
-public class Address(IPNetwork networkAddress, IPAddress ipAddress)
+public sealed class Address(IPNetwork networkAddress, IPAddress ipAddress)
 {
     public IPNetwork NetworkAddress { get; } = networkAddress;
 

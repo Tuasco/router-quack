@@ -4,21 +4,23 @@ using System.Text;
 
 namespace RouterQuack.Core.Models;
 
-public class Router
+public sealed class Router
 {
     public required string Name { get; init; }
 
     public required IPAddress Id { get; init; }
 
+    public required RouterBrand Brand { get; init; }
+
+    public required Address? LoopbackAddress { get; set; }
+
     public required int OspfArea { get; init; }
+
+    public required bool External { get; init; }
 
     public required ICollection<Interface> Interfaces { get; set; }
 
     public required As ParentAs { get; init; }
-
-    public required RouterBrand Brand { get; init; }
-
-    public required bool External { get; init; }
 
     [Pure]
     public override string ToString()

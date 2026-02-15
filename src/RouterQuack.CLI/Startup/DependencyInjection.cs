@@ -49,9 +49,12 @@ public static class DependencyInjection
 
         // Register steps
         builder.Services.AddSingleton<IIntentFileParser, YamlParser>();
-        builder.Services.AddKeyedSingleton<IStep, Step1ResolveNeighbours>(nameof(Step1ResolveNeighbours));
-        builder.Services.AddKeyedSingleton<IStep, Step2RunChecks>(nameof(Step2RunChecks));
-        builder.Services.AddKeyedSingleton<IStep, Step3GenerateIpAddresses>(nameof(Step3GenerateIpAddresses));
+
+        builder.Services
+            .AddKeyedSingleton<IStep, Step1ResolveNeighbours>(nameof(Step1ResolveNeighbours))
+            .AddKeyedSingleton<IStep, Step2RunChecks>(nameof(Step2RunChecks))
+            .AddKeyedSingleton<IStep, Step3GenerateLinkAddresses>(nameof(Step3GenerateLinkAddresses))
+            .AddKeyedSingleton<IStep, Step4GenerateLoopbackAddresses>(nameof(Step4GenerateLoopbackAddresses));
 
         return builder.Build().Services.CreateScope();
     }

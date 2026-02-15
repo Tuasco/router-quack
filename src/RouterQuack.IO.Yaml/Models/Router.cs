@@ -6,11 +6,13 @@ namespace RouterQuack.IO.Yaml.Models;
 [SuppressMessage("ReSharper", "ClassNeverInstantiated.Global")]
 public class Router
 {
-    public int OspfArea { get; init; } = 0;
-
     public IPAddress? Id { get; init; }
 
     public string? Brand { get; init; }
+
+    public string? Loopback { get; init; }
+
+    public int OspfArea { get; init; } = 0;
 
     public bool? External { get; init; }
 
