@@ -30,6 +30,14 @@ public interface INetworkUtils
     /// /// <exception cref="ArgumentException">Non <c>null</c> and unknown networks IP version.</exception>
     [Pure]
     public IpVersion ParseIpVersion(string? version);
+
+    /// <summary>
+    /// Return whether an interface has a common network with its neighbour.
+    /// </summary>
+    /// <param name="interface"></param>
+    /// <returns><c>true</c> if the interfaces of the link share a common network.</returns>
+    [Pure]
+    public bool HasLinkNetwork(Interface @interface);
 }
 
 public class NetworkUtils : INetworkUtils
@@ -85,4 +93,12 @@ public class NetworkUtils : INetworkUtils
             ? ipVersion
             : throw new ArgumentException("Couldn't parse IP version");
     }
+
+    public bool HasLinkNetwork(Interface @interface)
+        => (from address in @interface.Addresses
+                from neighbourAddress in @interface.Neighbour!.Addresses
+                where address.NetworkAddress.Equals(neighbourAddress.NetworkAddress)
+                      && !address.IpAddress.Equals(neighbourAddress.IpAddress)
+                select true)
+            .Any();
 }

@@ -19,7 +19,7 @@ public class Step2RunChecks(ILogger<Step2RunChecks> logger) : IStep
         NoDuplicateIpAddress(asses);
         ValidBgpRelationships(asses);
         NoExternalWithoutAddress(asses);
-        ValidNetworks(asses);
+        ValidNetworkSpaces(asses);
     }
 
     /// <summary>
@@ -124,7 +124,7 @@ public class Step2RunChecks(ILogger<Step2RunChecks> logger) : IStep
     /// Generate an error if there is a mismatch in the configured networks version per AS
     /// </summary>
     /// <param name="asses"></param>
-    private void ValidNetworks(ICollection<As> asses)
+    private void ValidNetworkSpaces(ICollection<As> asses)
     {
         foreach (var @as in asses)
         {

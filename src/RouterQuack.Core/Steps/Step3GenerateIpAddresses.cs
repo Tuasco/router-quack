@@ -3,10 +3,11 @@ using System.Net.Sockets;
 using Microsoft.Extensions.Logging;
 using RouterQuack.Core.Extensions;
 using RouterQuack.Core.Models;
+using RouterQuack.Core.Utils;
 
 namespace RouterQuack.Core.Steps;
 
-public class Step3GenerateIpAddresses(ILogger<Step2RunChecks> logger) : IStep
+public class Step3GenerateIpAddresses(ILogger<Step2RunChecks> logger, INetworkUtils networkUtils) : IStep
 {
     public bool ErrorsOccurred { get; set; }
     public ILogger Logger { get; set; } = logger;
@@ -23,35 +24,32 @@ public class Step3GenerateIpAddresses(ILogger<Step2RunChecks> logger) : IStep
             .Select(a => a.IpAddress)
             .ToList();
 
-        foreach (var @as in asses)
+        var links = asses.GetAllLinks(i => !networkUtils.HasLinkNetwork(i));
+
+        foreach (var link in links)
         {
-            if (@as.FullyExternal)
+            if (link.Item1.ParentRouter.External || link.Item2.ParentRouter.External)
                 continue;
 
-            var links = @as.Routers.SelectMany(r => r.Interfaces)
-                .Where(i => !i.Addresses.Any())
-                .Where(i =>
-                {
-                    // Enforce a consistent ordering to pick the link only once
-                    // If the neighbour has an address, this interface is the only candidate
-                    if (i.Neighbour!.Addresses.Any())
-                        return true;
+            var generateIpv4 =
+                (link.Item1.ParentRouter.ParentAs.NetworksIpVersion & IpVersion.Ipv4) == IpVersion.Ipv4
+                || (link.Item2.ParentRouter.ParentAs.NetworksIpVersion & IpVersion.Ipv4) == IpVersion.Ipv4;
 
-                    return string.Compare(i.Name, i.Neighbour.Name, StringComparison.Ordinal) < 0;
-                })
-                .Select(i => new Tuple<Interface, Interface>(i, i.Neighbour!))
-                .ToArray();
+            var generateIpv6 =
+                (link.Item1.ParentRouter.ParentAs.NetworksIpVersion & IpVersion.Ipv6) == IpVersion.Ipv6
+                || (link.Item2.ParentRouter.ParentAs.NetworksIpVersion & IpVersion.Ipv6) == IpVersion.Ipv6;
 
-            _addressCount = 0;
-            if ((@as.NetworksIpVersion & IpVersion.Ipv4) == IpVersion.Ipv4)
-                foreach (var link in links)
-                    AssignIpAddress(link, IpVersion.Ipv4);
+            if (generateIpv4)
+                AssignIpAddress(link, IpVersion.Ipv4);
 
-            _addressCount = 0;
-            // ReSharper disable once InvertIf
-            if ((@as.NetworksIpVersion & IpVersion.Ipv6) == IpVersion.Ipv6)
-                foreach (var link in links)
-                    AssignIpAddress(link, IpVersion.Ipv6);
+            if (generateIpv6)
+                AssignIpAddress(link, IpVersion.Ipv6);
+        }
+
+        foreach (var i in asses.SelectMany(a => a.Routers).SelectMany(r => r.Interfaces))
+        {
+            Console.Write($"Interface {i.Name} of router {i.ParentRouter.Name} has {i.Addresses.Count} IPs. ");
+            Console.WriteLine($"First IP is : {(i.Addresses.Count > 1 ? i.Addresses.ElementAt(1) : null)}");
         }
     }
 
@@ -88,9 +86,17 @@ public class Step3GenerateIpAddresses(ILogger<Step2RunChecks> logger) : IStep
             && (link.Item1.Addresses.Any(a => a.IpAddress.AddressFamily == AddressFamily.InterNetwork)
                 || link.Item2.Addresses.Any(a => a.IpAddress.AddressFamily == AddressFamily.InterNetwork)))
         {
-            this.LogError("Interface {InterfaceName} of router {RouterName} in AS number {AsNumber} or " +
-                          "its neighbour already have an IPv4 address.",
-                link.Item1.Name, link.Item1.ParentRouter.Name, link.Item1.ParentRouter.ParentAs.Number);
+            // Generate warning only if an IPv6 address has been or will be generated
+            const IpVersion bothVersions = IpVersion.Ipv6 | IpVersion.Ipv4;
+            if (link.Item1.ParentRouter is { External: false, ParentAs.NetworksIpVersion: bothVersions }
+                || link.Item2.ParentRouter is { External: false, ParentAs.NetworksIpVersion: bothVersions })
+                this.LogWarning("Interface {InterfaceName} of router {RouterName} in AS number {AsNumber} or " +
+                                "its neighbour already have an IPv4 address, skipping.",
+                    link.Item1.Name, link.Item1.ParentRouter.Name, link.Item1.ParentRouter.ParentAs.Number);
+            else
+                this.LogError("Interface {InterfaceName} of router {RouterName} in AS number {AsNumber} or " +
+                              "its neighbour already have an IPv4 address.",
+                    link.Item1.Name, link.Item1.ParentRouter.Name, link.Item1.ParentRouter.ParentAs.Number);
 
             return;
         }
