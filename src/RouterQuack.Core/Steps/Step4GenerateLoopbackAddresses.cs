@@ -9,7 +9,7 @@ namespace RouterQuack.Core.Steps;
 
 public class Step4GenerateLoopbackAddresses(
     ILogger<Step4GenerateLoopbackAddresses> logger,
-    INetworkUtils networkUtils) : IStep
+    NetworkUtils networkUtils) : IStep
 {
     public bool ErrorsOccurred { get; set; }
     public ILogger Logger { get; set; } = logger;

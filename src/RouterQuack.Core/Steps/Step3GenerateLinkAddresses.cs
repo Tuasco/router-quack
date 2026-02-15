@@ -7,7 +7,10 @@ using RouterQuack.Core.Utils;
 
 namespace RouterQuack.Core.Steps;
 
-public class Step3GenerateLinkAddresses(ILogger<Step2RunChecks> logger, INetworkUtils networkUtils) : IStep
+public class Step3GenerateLinkAddresses(
+    ILogger<Step2RunChecks> logger,
+    NetworkUtils networkUtils,
+    InterfaceUtils interfaceUtils) : IStep
 {
     public bool ErrorsOccurred { get; set; }
     public ILogger Logger { get; set; } = logger;
@@ -24,7 +27,7 @@ public class Step3GenerateLinkAddresses(ILogger<Step2RunChecks> logger, INetwork
             .Select(a => a.IpAddress)
             .ToList();
 
-        var links = asses.GetAllLinks(i => !networkUtils.HasLinkNetwork(i));
+        var links = asses.GetAllLinks(i => !interfaceUtils.HasLinkNetwork(i));
 
         foreach (var link in links)
         {

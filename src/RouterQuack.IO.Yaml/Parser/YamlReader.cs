@@ -10,8 +10,10 @@ using YamlAs = RouterQuack.IO.Yaml.Models.As;
 namespace RouterQuack.IO.Yaml.Parser;
 
 public partial class YamlParser(
-    INetworkUtils networkUtils,
-    IRouterUtils routerUtils,
+    NetworkUtils networkUtils,
+    AsUtils asUtils,
+    RouterUtils routerUtils,
+    InterfaceUtils interfaceUtils,
     ILogger<YamlParser> logger) : IIntentFileParser
 {
     [GeneratedRegex(@"\.ya?ml$")]

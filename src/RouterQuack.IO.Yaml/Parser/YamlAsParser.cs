@@ -15,7 +15,7 @@ public partial class YamlParser
             IgpType igp;
             try
             {
-                igp = networkUtils.ParseIgp(value.Igp);
+                igp = asUtils.ParseIgp(value.Igp);
             }
             catch (ArgumentException e)
             {

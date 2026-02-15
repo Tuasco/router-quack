@@ -44,7 +44,7 @@ public partial class YamlParser
                 Neighbour = dummyNeighbour, // Populate it now, will resolve it later in Step 1
                 ParentRouter = parentRouter,
                 Addresses = addresses,
-                Bgp = networkUtils.ParseBgp(value.Bgp)
+                Bgp = interfaceUtils.ParseBgp(value.Bgp)
             });
         }
 

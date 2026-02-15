@@ -44,8 +44,11 @@ public static class DependencyInjection
         builder.Services.AddSingleton<IArgumentsParser>(options);
 
         // Register utils
-        builder.Services.AddSingleton<INetworkUtils, NetworkUtils>();
-        builder.Services.AddSingleton<IRouterUtils, RouterUtils>();
+        builder.Services
+            .AddSingleton<NetworkUtils>()
+            .AddSingleton<AsUtils>()
+            .AddSingleton<RouterUtils>()
+            .AddSingleton<InterfaceUtils>();
 
         // Register steps
         builder.Services.AddSingleton<IIntentFileParser, YamlParser>();

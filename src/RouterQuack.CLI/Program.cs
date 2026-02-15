@@ -22,13 +22,6 @@ var step4GenerateLoopbackAddresses =
     serviceScope.ServiceProvider.GetRequiredKeyedService<IStep>(nameof(Step4GenerateLoopbackAddresses));
 
 var asses = intentFileReader.ReadFiles(argumentsParser.FilePaths);
-if (intentFileReader.ErrorsOccurred)
-{
-    Log.Information("Exited with errors. Nothing changed.");
-    Log.Debug("ASs summary:\n{Summary}", asses.Summary());
-    Environment.Exit(1);
-}
-
 try
 {
     asses.ExecuteStep(step1ResolveNeighbours)
