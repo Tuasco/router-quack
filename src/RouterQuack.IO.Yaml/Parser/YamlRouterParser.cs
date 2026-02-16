@@ -15,6 +15,16 @@ public partial class YamlParser
 
         foreach (var (key, value) in routerDict)
         {
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+            // When only the key is declared (no YAML body), value will be null.
+            if (value is null)
+            {
+                this.LogError("Router {RouterName} of AS number {AsNumber} has no body.",
+                    key,
+                    parentAs.Number);
+                continue;
+            }
+
             RouterBrand routerBrand;
             try
             {
