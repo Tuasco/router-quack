@@ -5,12 +5,12 @@ using RouterQuack.Core.Extensions;
 using RouterQuack.Core.Models;
 using RouterQuack.Core.Utils;
 
-namespace RouterQuack.Core.Steps;
+namespace RouterQuack.Core.Processors;
 
-public class Step3GenerateLinkAddresses(
-    ILogger<Step2RunChecks> logger,
+public class GenerateLinkAddresses(
+    ILogger<GenerateLinkAddresses> logger,
     NetworkUtils networkUtils,
-    InterfaceUtils interfaceUtils) : IStep
+    InterfaceUtils interfaceUtils) : IProcessor
 {
     public bool ErrorsOccurred { get; set; }
     public ILogger Logger { get; set; } = logger;
@@ -18,7 +18,7 @@ public class Step3GenerateLinkAddresses(
     private UInt128 _addressCount;
     private List<IPAddress> _usedAddresses = null!;
 
-    public void Execute(ICollection<As> asses)
+    public void Process(ICollection<As> asses)
     {
         _usedAddresses = asses
             .SelectMany(a => a.Routers)

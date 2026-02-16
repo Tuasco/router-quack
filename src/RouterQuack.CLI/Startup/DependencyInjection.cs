@@ -1,7 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using RouterQuack.Core.Steps;
+using RouterQuack.Core.IntentFileParsers;
+using RouterQuack.Core.Processors;
 using RouterQuack.Core.Utils;
+using RouterQuack.Core.Validators;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
@@ -54,10 +56,17 @@ public static class DependencyInjection
         builder.Services.AddSingleton<IIntentFileParser, YamlParser>();
 
         builder.Services
-            .AddKeyedSingleton<IStep, Step1ResolveNeighbours>(nameof(Step1ResolveNeighbours))
-            .AddKeyedSingleton<IStep, Step2RunChecks>(nameof(Step2RunChecks))
-            .AddKeyedSingleton<IStep, Step3GenerateLinkAddresses>(nameof(Step3GenerateLinkAddresses))
-            .AddKeyedSingleton<IStep, Step4GenerateLoopbackAddresses>(nameof(Step4GenerateLoopbackAddresses));
+            .AddKeyedSingleton<IValidator, NoDuplicateIpAddress>(nameof(NoDuplicateIpAddress))
+            .AddKeyedSingleton<IValidator, NoDuplicateRouterNames>(nameof(NoDuplicateRouterNames))
+            .AddKeyedSingleton<IValidator, NoExternalRouterWithoutAddress>(nameof(NoExternalRouterWithoutAddress))
+            .AddKeyedSingleton<IValidator, ValidBgpRelationships>(nameof(ValidBgpRelationships))
+            .AddKeyedSingleton<IValidator, ValidLoopbackAddresses>(nameof(ValidLoopbackAddresses))
+            .AddKeyedSingleton<IValidator, ValidNetworkSpaces>(nameof(ValidNetworkSpaces));
+
+        builder.Services
+            .AddKeyedSingleton<IProcessor, ResolveNeighbours>(nameof(ResolveNeighbours))
+            .AddKeyedSingleton<IProcessor, GenerateLinkAddresses>(nameof(GenerateLinkAddresses))
+            .AddKeyedSingleton<IProcessor, GenerateLoopbackAddresses>(nameof(GenerateLoopbackAddresses));
 
         return builder.Build().Services.CreateScope();
     }

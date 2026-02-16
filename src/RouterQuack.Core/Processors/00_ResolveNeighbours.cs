@@ -3,18 +3,18 @@ using Microsoft.Extensions.Logging;
 using RouterQuack.Core.Extensions;
 using RouterQuack.Core.Models;
 
-namespace RouterQuack.Core.Steps;
+namespace RouterQuack.Core.Processors;
 
 /// <summary>
 /// Resolve the neighbours of the interfaces from their initial dummy neighbour.
 /// </summary>
-public class Step1ResolveNeighbours(ILogger<Step1ResolveNeighbours> logger) : IStep
+/// <remarks>This step has to be executed first, even before validators.</remarks>
+public class ResolveNeighbours(ILogger<ResolveNeighbours> logger) : IProcessor
 {
     public bool ErrorsOccurred { get; set; }
     public ILogger Logger { get; set; } = logger;
 
-
-    public void Execute(ICollection<As> asses)
+    public void Process(ICollection<As> asses)
     {
         var interfaces = asses
             .SelectMany(a => a.Routers)
@@ -71,19 +71,21 @@ public class Step1ResolveNeighbours(ILogger<Step1ResolveNeighbours> logger) : IS
             ?.Routers.FirstOrDefault(r => r.Name == routerName)
             ?.Interfaces.FirstOrDefault(FilterNeighbours);
 
-        // Filter in interfaces that don't have neighbours (dummy neighbour with our actual neighbour's name)
-        // Or neighbours that do have neighbours, that happen to be ourselves
-        // In both cases, the neighbour is not null per se.
-        // If nothing matches, try to filter in interfaces with null neighbours (that failed to resolve their neighbour)
+        /* Filter in interfaces that don't have neighbours (dummy neighbour with our actual neighbour's name)
+         * Or neighbours that do have neighbours, that happen to be ourselves
+         * In both cases, the neighbour is not null per se.
+         * If nothing matches, try to filter in interfaces with null neighbours (that failed to resolve their neighbour)
+         */
         bool FilterNeighbours(Interface i) =>
             (i.Neighbour is not null && (
                 (i.Neighbour.Neighbour is null && i.Neighbour.Name.Split(':').Last() == @interface.ParentRouter.Name)
                 || (i.Neighbour.Neighbour is not null && i.Neighbour == @interface)))
             || FilterNeighboursWithErrors(i);
 
-        // Filter in interfaces with null neighbours, but their router's name matches (and FilterNeighbours())
-        // This is useful when our neighbour has been parsed first but unsuccessfully.
-        // If a neighbour matched here, log a warning
+        /* Filter in interfaces with null neighbours, but their router's name matches (and FilterNeighbours())
+         * This is useful when our neighbour has been parsed first but unsuccessfully.
+         * If a neighbour matched here, log a warning
+         */
         bool FilterNeighboursWithErrors(Interface i)
         {
             var result = i.Neighbour is null && i.ParentRouter.Name == routerName;

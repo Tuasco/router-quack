@@ -1,6 +1,5 @@
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
-using RouterQuack.Core.Steps;
 
 #pragma warning disable CA2254
 // ReSharper disable ConvertToExtensionBlock
@@ -16,7 +15,7 @@ public static class ErrorCollectorExtensions
     /// <param name="source"></param>
     /// <param name="message">Message as a structured template.</param>
     /// <param name="args">Arguments to fill the message with.</param>
-    public static void LogError(this IErrorCollector source,
+    public static void LogError(this IStep source,
         [StructuredMessageTemplate] string message, params object?[] args)
     {
         source.Logger.LogError(message, args);
@@ -29,7 +28,7 @@ public static class ErrorCollectorExtensions
     /// <param name="source"></param>
     /// <param name="message">Message as a structured template.</param>
     /// <param name="args">Arguments to fill the message with.</param>
-    public static void LogWarning(this IErrorCollector source,
+    public static void LogWarning(this IStep source,
         [StructuredMessageTemplate] string message, params object?[] args)
     {
         source.Logger.LogWarning(message, args);

@@ -1,11 +1,11 @@
 using RouterQuack.Core.Models;
 
-namespace RouterQuack.Core.Steps;
+namespace RouterQuack.Core.IntentFileParsers;
 
 /// <summary>
 /// Describes an intent file reader and parser.
 /// </summary>
-public interface IIntentFileParser : IErrorCollector
+public interface IIntentFileParser : IStep
 {
     /// <summary>
     /// Read and parse an intent file.

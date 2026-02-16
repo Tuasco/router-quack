@@ -1,32 +1,41 @@
 using Microsoft.Extensions.DependencyInjection;
 using RouterQuack.CLI.Startup;
+using RouterQuack.Core;
 using RouterQuack.Core.Extensions;
-using RouterQuack.Core.Steps;
+using RouterQuack.Core.IntentFileParsers;
+using RouterQuack.Core.Processors;
+using RouterQuack.Core.Validators;
 using Serilog;
 
 // Dependency injection
 using var serviceScope = DependencyInjection.CreateServiceScope(args);
+var di = serviceScope.ServiceProvider;
 
 // Arguments parser
-var argumentsParser = serviceScope.ServiceProvider.GetRequiredService<IArgumentsParser>();
+var argumentsParser = di.GetRequiredService<IArgumentsParser>();
 
 // Pipeline
-var intentFileReader = serviceScope.ServiceProvider.GetRequiredService<IIntentFileParser>();
-var step1ResolveNeighbours =
-    serviceScope.ServiceProvider.GetRequiredKeyedService<IStep>(nameof(Step1ResolveNeighbours));
-var step2RunChecks =
-    serviceScope.ServiceProvider.GetRequiredKeyedService<IStep>(nameof(Step2RunChecks));
-var step3GenerateIpAddresses =
-    serviceScope.ServiceProvider.GetRequiredKeyedService<IStep>(nameof(Step3GenerateLinkAddresses));
-var step4GenerateLoopbackAddresses =
-    serviceScope.ServiceProvider.GetRequiredKeyedService<IStep>(nameof(Step4GenerateLoopbackAddresses));
+var intentFileReader = di.GetRequiredService<IIntentFileParser>();
+var step1ResolveNeighbours = di.GetRequiredKeyedService<IProcessor>(nameof(ResolveNeighbours));
+var step3GenerateIpAddresses = di.GetRequiredKeyedService<IProcessor>(nameof(GenerateLinkAddresses));
+var step4GenerateLoopbackAddresses = di.GetRequiredKeyedService<IProcessor>(nameof(GenerateLoopbackAddresses));
 
 var asses = intentFileReader.ReadFiles(argumentsParser.FilePaths);
 try
 {
-    asses.ExecuteStep(step1ResolveNeighbours)
-        .ExecuteStep(step2RunChecks)
-        .ExecuteStep(step3GenerateIpAddresses)
+    // Resolve neighbours first
+    asses.ExecuteStep(step1ResolveNeighbours);
+
+    // Execute validators
+    asses.ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(NoDuplicateIpAddress)))
+        .ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(NoDuplicateRouterNames)))
+        .ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(NoExternalRouterWithoutAddress)))
+        .ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(ValidBgpRelationships)))
+        .ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(ValidLoopbackAddresses)))
+        .ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(ValidNetworkSpaces)));
+
+    // Execute other processors
+    asses.ExecuteStep(step3GenerateIpAddresses)
         .ExecuteStep(step4GenerateLoopbackAddresses);
 }
 catch (StepException)

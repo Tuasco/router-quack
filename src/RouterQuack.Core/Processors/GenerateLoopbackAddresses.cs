@@ -5,11 +5,11 @@ using RouterQuack.Core.Extensions;
 using RouterQuack.Core.Models;
 using RouterQuack.Core.Utils;
 
-namespace RouterQuack.Core.Steps;
+namespace RouterQuack.Core.Processors;
 
-public class Step4GenerateLoopbackAddresses(
-    ILogger<Step4GenerateLoopbackAddresses> logger,
-    NetworkUtils networkUtils) : IStep
+public class GenerateLoopbackAddresses(
+    ILogger<GenerateLoopbackAddresses> logger,
+    NetworkUtils networkUtils) : IProcessor
 {
     public bool ErrorsOccurred { get; set; }
     public ILogger Logger { get; set; } = logger;
@@ -17,7 +17,7 @@ public class Step4GenerateLoopbackAddresses(
     private UInt128 _addressCounter;
     private List<IPAddress> _usedAddresses = null!;
 
-    public void Execute(ICollection<As> asses)
+    public void Process(ICollection<As> asses)
     {
         var routers = asses
             .SelectMany(a => a.Routers)

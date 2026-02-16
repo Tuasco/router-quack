@@ -1,7 +1,8 @@
 using System.Diagnostics.Contracts;
 using System.Text;
 using RouterQuack.Core.Models;
-using RouterQuack.Core.Steps;
+using RouterQuack.Core.Processors;
+using RouterQuack.Core.Validators;
 
 namespace RouterQuack.Core.Extensions;
 
@@ -10,16 +11,32 @@ public static class AsCollectionExtensions
     extension(ICollection<As> source)
     {
         /// <summary>
-        /// Call the execution of a step of the pipeline.
+        /// Call the execution of a config processor of the pipeline.
         /// </summary>
-        /// <param name="step">The step to execute.</param>
+        /// <param name="processor">The configProcessor to execute.</param>
         /// <returns>The modified collection of As objects. This is used to make a call chain.</returns>
         /// <exception cref="StepException">Step executed with errors.</exception>
-        public ICollection<As> ExecuteStep(IStep step)
+        public ICollection<As> ExecuteStep(IProcessor processor)
         {
-            step.Execute(source);
+            processor.Process(source);
 
-            if (step.ErrorsOccurred)
+            if (processor.ErrorsOccurred)
+                throw new StepException();
+
+            return source;
+        }
+
+        /// <summary>
+        /// Call the execution of a config processor of the pipeline.
+        /// </summary>
+        /// <param name="validator">The configProcessor to execute.</param>
+        /// <returns>The modified collection of As objects. This is used to make a call chain.</returns>
+        /// <exception cref="StepException">Step executed with errors.</exception>
+        public ICollection<As> ExecuteStep(IValidator validator)
+        {
+            validator.Validate(source);
+
+            if (validator.ErrorsOccurred)
                 throw new StepException();
 
             return source;
