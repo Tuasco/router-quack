@@ -13,6 +13,7 @@ public class GenerateLinkAddresses(
     InterfaceUtils interfaceUtils) : IProcessor
 {
     public bool ErrorsOccurred { get; set; }
+    public string? BeginMessage { get; init; } = "Generating addresses for interfaces";
     public ILogger Logger { get; set; } = logger;
 
     private UInt128 _addressCount;

@@ -12,6 +12,7 @@ public class GenerateLoopbackAddresses(
     NetworkUtils networkUtils) : IProcessor
 {
     public bool ErrorsOccurred { get; set; }
+    public string? BeginMessage { get; init; } = "Generating loopback addresses for routers";
     public ILogger Logger { get; set; } = logger;
 
     private UInt128 _addressCounter;

@@ -20,6 +20,7 @@ public partial class YamlParser(
     private static partial Regex YamlEnding();
 
     public bool ErrorsOccurred { get; set; }
+    public string? BeginMessage { get; init; } = "Parsing intent file(s)";
     public ILogger Logger { get; set; } = logger;
 
     /// <summary>
@@ -29,7 +30,6 @@ public partial class YamlParser(
     /// <returns>New collection of As objects.</returns>
     public ICollection<As> ReadFiles(string[] filePaths)
     {
-        logger.LogInformation("Parsing intent file(s)...");
         var asDict = new Dictionary<int, YamlAs>();
 
         foreach (var path in filePaths)

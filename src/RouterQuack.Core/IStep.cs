@@ -9,7 +9,9 @@ public interface IStep
 {
     protected internal bool ErrorsOccurred { get; set; }
 
-    public ILogger Logger { get; set; }
+    protected internal string? BeginMessage { get; init; }
+
+    protected internal ILogger Logger { get; }
 }
 
 /// <summary>

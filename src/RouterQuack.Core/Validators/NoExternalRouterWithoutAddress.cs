@@ -10,6 +10,7 @@ namespace RouterQuack.Core.Validators;
 public class NoExternalRouterWithoutAddress(ILogger<NoExternalRouterWithoutAddress> logger) : IValidator
 {
     public bool ErrorsOccurred { get; set; }
+    public string? BeginMessage { get; init; } = null;
     public ILogger Logger { get; set; } = logger;
 
     public void Validate(ICollection<As> asses)

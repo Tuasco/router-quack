@@ -12,6 +12,7 @@ namespace RouterQuack.Core.Processors;
 public class ResolveNeighbours(ILogger<ResolveNeighbours> logger) : IProcessor
 {
     public bool ErrorsOccurred { get; set; }
+    public string? BeginMessage { get; init; } = "Resolving neighbours";
     public ILogger Logger { get; set; } = logger;
 
     public void Process(ICollection<As> asses)
@@ -90,6 +91,7 @@ public class ResolveNeighbours(ILogger<ResolveNeighbours> logger) : IProcessor
         {
             var result = i.Neighbour is null && i.ParentRouter.Name == routerName;
 
+            // ReSharper disable once InvertIf
             if (result)
             {
                 this.LogWarning("The neighbour of interface {InterfaceName} in router {RouterName} of AS number " +

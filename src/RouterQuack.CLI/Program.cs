@@ -27,6 +27,7 @@ try
     asses.ExecuteStep(step1ResolveNeighbours);
 
     // Execute validators
+    Log.Information("Validating intent...");
     asses.ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(NoDuplicateIpAddress)))
         .ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(NoDuplicateRouterNames)))
         .ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(NoExternalRouterWithoutAddress)))

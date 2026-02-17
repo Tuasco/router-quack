@@ -1,5 +1,6 @@
 using System.Diagnostics.Contracts;
 using System.Text;
+using Microsoft.Extensions.Logging;
 using RouterQuack.Core.Models;
 using RouterQuack.Core.Processors;
 using RouterQuack.Core.Validators;
@@ -18,6 +19,7 @@ public static class AsCollectionExtensions
         /// <exception cref="StepException">Step executed with errors.</exception>
         public ICollection<As> ExecuteStep(IProcessor processor)
         {
+            LogBeginMessage(processor);
             processor.Process(source);
 
             if (processor.ErrorsOccurred)
@@ -34,6 +36,7 @@ public static class AsCollectionExtensions
         /// <exception cref="StepException">Step executed with errors.</exception>
         public ICollection<As> ExecuteStep(IValidator validator)
         {
+            LogBeginMessage(validator);
             validator.Validate(source);
 
             if (validator.ErrorsOccurred)
@@ -95,5 +98,13 @@ public static class AsCollectionExtensions
                     StringComparison.Ordinal) < 0;
             }
         }
+    }
+
+    private static void LogBeginMessage(IStep step)
+    {
+        #pragma warning disable CA2254
+        if (!string.IsNullOrWhiteSpace(step.BeginMessage))
+            step.Logger.LogInformation(step.BeginMessage + "...");
+        #pragma warning restore CA2254
     }
 }

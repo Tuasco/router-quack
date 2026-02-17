@@ -11,6 +11,7 @@ namespace RouterQuack.Core.Validators;
 public class ValidLoopbackAddresses(ILogger<ValidLoopbackAddresses> logger) : IValidator
 {
     public bool ErrorsOccurred { get; set; }
+    public string? BeginMessage { get; init; } = null;
     public ILogger Logger { get; set; } = logger;
 
     public void Validate(ICollection<As> asses)

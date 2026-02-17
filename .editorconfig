@@ -36,6 +36,9 @@ resharper_indent_nested_usings_stmt = true
 resharper_indent_nested_while_stmt = true
 resharper_object_creation_when_type_not_evident = target_typed
 resharper_use_indent_from_vs = false
+resharper_csharp_indent_preprocessor_if = usual_indent
+resharper_csharp_indent_preprocessor_region = usual_indent
+resharper_csharp_indent_preprocessor_other = usual_indent
 
 # ReSharper inspection severities
 resharper_arrange_redundant_parentheses_highlighting = hint
@@ -64,3 +67,8 @@ resharper_web_config_module_not_resolved_highlighting = warning
 resharper_web_config_type_not_resolved_highlighting = warning
 resharper_web_config_wrong_module_highlighting = warning
 resharper_unnecessary_whitespace_highlighting = hint
+
+[*.yaml]
+indent_style = tab
+indent_size = 2
+tab_width = 2
