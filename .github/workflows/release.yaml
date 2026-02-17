@@ -1,37 +1,37 @@
 name: New Release
 
 on:
-    push:
-        branches: [ main ]
-        paths:
-            - 'Directory.Build.props'
+  push:
+    branches: [ main ]
+    paths:
+      - 'Directory.Build.props'
 
 jobs:
-    tag-release:
-        runs-on: ubuntu-latest
-        permissions:
-            contents: write
+  tag-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
-        steps:
-            -   name: Checkout code
-                uses: actions/checkout@v4
-                with:
-                    fetch-depth: 0
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-            -   name: Extract version from Directory.Build.props
-                id: get_version
-                run: |
-                    VERSION=$(grep -oP '(?<=<Version>)[^<]+' Directory.Build.props)
-                    if [ -z "$VERSION" ]; then
-                      echo "Error: Could not extract version from Directory.Build.props"
-                      exit 1
-                    fi
-                    echo "version=$VERSION" >> $GITHUB_OUTPUT
-                    echo "Found version: $VERSION"
+      - name: Extract version from Directory.Build.props
+        id: get_version
+        run: |
+          VERSION=$(grep -oP '(?<=<Version>)[^<]+' Directory.Build.props)
+          if [ -z "$VERSION" ]; then
+            echo "Error: Could not extract version from Directory.Build.props"
+            exit 1
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Found version: $VERSION"
 
-            -   name: Create and push tag
-                run: |
-                    git config user.name "GitHub Actions"
-                    git config user.email "actions@github.com"
-                    git tag -a "v${{ steps.get_version.outputs.version }}" -m "Release v${{ steps.get_version.outputs.version }}"
-                    git push origin "v${{ steps.get_version.outputs.version }}"
+      - name: Create and push tag
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git tag -a "v${{ steps.get_version.outputs.version }}" -m "Release v${{ steps.get_version.outputs.version }}"
+          git push origin "v${{ steps.get_version.outputs.version }}"
