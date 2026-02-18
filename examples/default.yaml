@@ -22,7 +22,7 @@
       interfaces:
         GigabitEthernet0/0:
           neighbour: "R1"
-          
+
 112:
   routers:
     R2:

@@ -16,39 +16,41 @@ public class ValidBgpRelationships(ILogger<ValidBgpRelationships> logger) : IVal
 
     public void Validate(ICollection<As> asses)
     {
-        var interfaces = asses
-            .SelectMany(a => a.Routers)
-            .SelectMany(r => r.Interfaces)
-            .ToList();
+        var links = asses.GetAllLinks();
 
-        while (interfaces.Count > 0)
+        foreach (var link in links)
         {
-            var @interface = interfaces.First();
-
             // Check if our neighbour's BGP strategy matches ours
-            if (@interface
-                is not ({ Bgp: BgpRelationship.None, Neighbour.Bgp: BgpRelationship.None }
-                or { Bgp: BgpRelationship.Peer, Neighbour.Bgp: BgpRelationship.Peer }
-                or { Bgp: BgpRelationship.Client, Neighbour.Bgp: BgpRelationship.Provider }
-                or { Bgp: BgpRelationship.Provider, Neighbour.Bgp: BgpRelationship.Client }))
+            if (link
+                is not ({ Item1.Bgp: BgpRelationship.None, Item2.Bgp: BgpRelationship.None }
+                or { Item1.Bgp: BgpRelationship.Peer, Item2.Bgp: BgpRelationship.Peer }
+                or { Item1.Bgp: BgpRelationship.Client, Item2.Bgp: BgpRelationship.Provider }
+                or { Item1.Bgp: BgpRelationship.Provider, Item2.Bgp: BgpRelationship.Client }))
                 this.LogError("Invalid BGP relationship between interface {InterfaceName} of router {RouterName} " +
-                              "in AS number {AsNumber}",
-                    @interface.Name,
-                    @interface.ParentRouter.Name,
-                    @interface.ParentRouter.ParentAs.Number);
+                              "in AS number {AsNumber}.",
+                    link.Item1.Name,
+                    link.Item1.ParentRouter.Name,
+                    @link.Item1.ParentRouter.ParentAs.Number);
 
-            // Check if BGP is on if our neighbour is in a different AS
-            if (@interface.Bgp == BgpRelationship.None
-                && @interface.ParentRouter.ParentAs.Number != @interface.Neighbour!.ParentRouter.ParentAs.Number)
+            // Check if BGP is off when our neighbour is in the same AS
+            if (link is not { Item1.Bgp: BgpRelationship.None, Item2.Bgp: BgpRelationship.None }
+                && link.Item1.ParentRouter.ParentAs.Number == link.Item2.ParentRouter.ParentAs.Number)
                 this.LogWarning(
                     "Interface {InterfaceName} of router {RouterName} in AS number {AsNumber} " +
-                    "has a neighbour in another interface, yet doesn't use BGP",
-                    @interface.Name,
-                    @interface.ParentRouter.Name,
-                    @interface.ParentRouter.ParentAs.Number);
+                    "and its neighbour are in the same AS, yet define a BGP relationship.",
+                    link.Item1.Name,
+                    link.Item1.ParentRouter.Name,
+                    link.Item1.ParentRouter.ParentAs.Number);
 
-            interfaces.Remove(@interface);
-            interfaces.Remove(@interface.Neighbour!);
+            // Check if BGP is on when our neighbour is in the same AS
+            if (link is { Item1.Bgp: BgpRelationship.None, Item2.Bgp: BgpRelationship.None }
+                && link.Item1.ParentRouter.ParentAs.Number != link.Item2.ParentRouter.ParentAs.Number)
+                this.LogWarning(
+                    "Interface {InterfaceName} of router {RouterName} in AS number {AsNumber} " +
+                    "has a neighbour in another interface, yet doesn't use BGP.",
+                    link.Item1.Name,
+                    link.Item1.ParentRouter.Name,
+                    link.Item1.ParentRouter.ParentAs.Number);
         }
     }
 }
