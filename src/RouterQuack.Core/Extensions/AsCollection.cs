@@ -1,10 +1,6 @@
 using System.Diagnostics.Contracts;
 using System.Text;
-using Microsoft.Extensions.Logging;
-using RouterQuack.Core.IntentFileParsers;
 using RouterQuack.Core.Models;
-using RouterQuack.Core.Processors;
-using RouterQuack.Core.Validators;
 
 namespace RouterQuack.Core.Extensions;
 
@@ -12,39 +8,6 @@ public static class AsCollectionExtensions
 {
     extension(ICollection<As> source)
     {
-        /// <summary>
-        /// Call the execution of a config processor of the pipeline.
-        /// </summary>
-        /// <param name="step">The step to execute.</param>
-        /// <param name="filePaths">This shouldn't be here. To replace with configuration model.</param>
-        /// <returns>The modified collection of As objects. This is used to make a call chain.</returns>
-        /// <exception cref="StepException">Step executed with errors.</exception>
-        /// <exception cref="ArgumentException">Unsupported IStep derived interface.</exception>
-        public ICollection<As> ExecuteStep(IStep step, string[]? filePaths = null)
-        {
-            LogBeginMessage(step);
-
-            switch (step)
-            {
-                case IIntentFileParser intentFileParser:
-                    intentFileParser.ReadFiles(filePaths!, source);
-                    break;
-                case IValidator validator:
-                    validator.Validate(source);
-                    break;
-                case IProcessor processor:
-                    processor.Process(source);
-                    break;
-                default:
-                    throw new ArgumentException("Unsupported step type", nameof(step));
-            }
-
-            if (step.ErrorsOccurred)
-                throw new StepException();
-
-            return source;
-        }
-
         /// <summary>
         /// Return a multi-line summary of the As collection.
         /// </summary>
@@ -98,13 +61,5 @@ public static class AsCollectionExtensions
                     StringComparison.Ordinal) < 0;
             }
         }
-    }
-
-    private static void LogBeginMessage(IStep step)
-    {
-        #pragma warning disable CA2254
-        if (!string.IsNullOrWhiteSpace(step.BeginMessage))
-            step.Logger.LogInformation(step.BeginMessage + "...");
-        #pragma warning restore CA2254
     }
 }

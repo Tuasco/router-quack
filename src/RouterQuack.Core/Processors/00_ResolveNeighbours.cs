@@ -9,20 +9,21 @@ namespace RouterQuack.Core.Processors;
 /// Resolve the neighbours of the interfaces from their initial dummy neighbour.
 /// </summary>
 /// <remarks>This step has to be executed first, even before validators.</remarks>
-public class ResolveNeighbours(ILogger<ResolveNeighbours> logger) : IProcessor
+public class ResolveNeighbours(ILogger<ResolveNeighbours> logger, Context context) : IProcessor
 {
     public bool ErrorsOccurred { get; set; }
-    public string? BeginMessage { get; init; } = "Resolving neighbours";
-    public ILogger Logger { get; set; } = logger;
+    public string BeginMessage => "Resolving neighbours";
+    public ILogger Logger { get; } = logger;
+    public Context Context { get; } = context;
 
-    public void Process(ICollection<As> asses)
+    public void Process()
     {
-        var interfaces = asses
+        var interfaces = Context.Asses
             .SelectMany(a => a.Routers)
             .SelectMany(a => a.Interfaces);
 
         foreach (var @interface in interfaces)
-            ReplaceNeighbour(asses, @interface);
+            ReplaceNeighbour(Context.Asses, @interface);
     }
 
     /// <summary>

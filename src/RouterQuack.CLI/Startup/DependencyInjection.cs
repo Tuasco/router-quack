@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RouterQuack.Core.IntentFileParsers;
+using RouterQuack.Core.Models;
 using RouterQuack.Core.Processors;
 using RouterQuack.Core.Utils;
 using RouterQuack.Core.Validators;
@@ -21,8 +22,8 @@ public static class DependencyInjection
     public static IServiceScope CreateServiceScope(string[] args)
     {
         // Parse arguments
-        var options = ArgumentsParser.CreateFromArgs(args);
-        var minLevel = options.Verbosity switch
+        var context = ArgumentsParser.CreateFromArgs(args);
+        var minLevel = context.Verbosity switch
         {
             VerbosityLevel.Quiet => LogEventLevel.Warning,
             VerbosityLevel.Normal => LogEventLevel.Information,
@@ -39,11 +40,11 @@ public static class DependencyInjection
 
         var builder = Host.CreateApplicationBuilder(args);
 
+        // Register context
+        builder.Services.AddSingleton<Context>(context);
+
         // Register logger (Serilog)
         builder.Services.AddSerilog();
-
-        // Register args parser
-        builder.Services.AddSingleton<IArgumentsParser>(options);
 
         // Register utils
         builder.Services

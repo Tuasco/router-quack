@@ -9,22 +9,24 @@ namespace RouterQuack.Core.Processors;
 
 public class GenerateLoopbackAddresses(
     ILogger<GenerateLoopbackAddresses> logger,
+    Context context,
     NetworkUtils networkUtils) : IProcessor
 {
     public bool ErrorsOccurred { get; set; }
-    public string? BeginMessage { get; init; } = "Generating loopback addresses for routers";
-    public ILogger Logger { get; set; } = logger;
+    public string BeginMessage => "Generating loopback addresses for routers";
+    public ILogger Logger { get; } = logger;
+    public Context Context { get; } = context;
 
     private UInt128 _addressCounter;
     private List<IPAddress> _usedAddresses = null!;
 
-    public void Process(ICollection<As> asses)
+    public void Process()
     {
-        var routers = asses
+        var routers = Context.Asses
             .SelectMany(a => a.Routers)
             .Where(r => r is { External: false, LoopbackAddress: null });
 
-        _usedAddresses = asses
+        _usedAddresses = Context.Asses
             .SelectMany(a => a.Routers)
             .Where(r => r.LoopbackAddress != null)
             .Select(r => r.LoopbackAddress!.IpAddress)

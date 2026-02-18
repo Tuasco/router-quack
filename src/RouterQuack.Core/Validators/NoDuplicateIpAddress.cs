@@ -7,15 +7,17 @@ namespace RouterQuack.Core.Validators;
 /// <summary>
 /// Generate an error if there are duplicate IP Addresses.
 /// </summary>
-public class NoDuplicateIpAddress(ILogger<NoDuplicateIpAddress> logger) : IValidator
+public class NoDuplicateIpAddress(ILogger<NoDuplicateIpAddress> logger, Context context) : IValidator
 {
     public bool ErrorsOccurred { get; set; }
-    public string? BeginMessage { get; init; } = null;
-    public ILogger Logger { get; set; } = logger;
+    public string? BeginMessage => null;
+    public ILogger Logger { get; } = logger;
+    public Context Context { get; } = context;
 
-    public void Validate(ICollection<As> asses)
+
+    public void Validate()
     {
-        var addresses = asses
+        var addresses = Context.Asses
             .SelectMany(a => a.Routers)
             .SelectMany(r => r.Interfaces)
             .SelectMany(i => i.Addresses)

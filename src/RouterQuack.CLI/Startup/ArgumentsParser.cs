@@ -1,42 +1,17 @@
 using System.CommandLine;
+using RouterQuack.Core.Models;
 
 namespace RouterQuack.CLI.Startup;
 
-public interface IArgumentsParser
+public static class ArgumentsParser
 {
-    /// <summary>
-    /// Array of paths of intent files.
-    /// </summary>
-    public string[] FilePaths { get; set; }
-
-    public string OutputDirectoryPath { get; set; }
-
-    public VerbosityLevel Verbosity { get; set; }
-
-    public bool DryRun { get; set; }
-
-    public bool Strict { get; set; }
-}
-
-public class ArgumentsParser : IArgumentsParser
-{
-    public required string[] FilePaths { get; set; }
-
-    public required string OutputDirectoryPath { get; set; }
-
-    public required VerbosityLevel Verbosity { get; set; }
-
-    public required bool DryRun { get; set; }
-
-    public required bool Strict { get; set; }
-
     /// <summary>
     /// Create and return a new ArgumentsParser object after parsing arguments.
     /// </summary>
     /// <param name="args">CLI arguments.</param>
     /// <returns>A new ArgumentsParser object.</returns>
     /// <remarks>This is used instead of DI because this is used before DI is configured</remarks>
-    public static ArgumentsParser CreateFromArgs(string[] args)
+    public static Context CreateFromArgs(string[] args)
     {
         // Add file option
         Option<IEnumerable<FileInfo>> fileOption = new("--file", "-f")
@@ -87,7 +62,7 @@ public class ArgumentsParser : IArgumentsParser
         rootCommand.Options.Add(dryRunOption);
         rootCommand.Options.Add(strictOption);
 
-        ArgumentsParser? result = null;
+        Context? result = null;
         rootCommand.SetAction(parseResult =>
         {
             // Intent files
@@ -109,7 +84,7 @@ public class ArgumentsParser : IArgumentsParser
             // Dry run
             var strict = parseResult.GetValue(strictOption);
 
-            result = new ArgumentsParser
+            result = new()
             {
                 FilePaths = filePaths,
                 OutputDirectoryPath = outputDirectoryPath,
@@ -127,11 +102,4 @@ public class ArgumentsParser : IArgumentsParser
 
         return result;
     }
-}
-
-public enum VerbosityLevel
-{
-    Quiet, // -q
-    Normal, // Default
-    Detailed // -v
 }

@@ -14,20 +14,23 @@ using YamlAs = RouterQuack.IO.Yaml.Models.As;
 namespace RouterQuack.IO.Yaml.Parser;
 
 public partial class YamlParser(
+    ILogger<YamlParser> logger,
+    Context context,
     NetworkUtils networkUtils,
     AsUtils asUtils,
     RouterUtils routerUtils,
-    InterfaceUtils interfaceUtils,
-    ILogger<YamlParser> logger) : IIntentFileParser
+    InterfaceUtils interfaceUtils) : IIntentFileParser
 {
     [GeneratedRegex(@"\.ya?ml$")]
     private static partial Regex YamlEnding();
 
     public bool ErrorsOccurred { get; set; }
-    public string? BeginMessage { get; init; } = "Parsing intent file(s)";
-    public ILogger Logger { get; set; } = logger;
+    public string BeginMessage => "Parsing intent file(s)";
+    public ILogger Logger { get; } = logger;
+    public Context Context { get; } = context;
 
-    public void ReadFiles(string[] filePaths, ICollection<As> asses)
+
+    public void ReadFiles(string[] filePaths)
     {
         var asDict = new Dictionary<int, YamlAs>();
 
@@ -57,7 +60,7 @@ public partial class YamlParser(
         }
 
         logger.LogDebug("Found {AsNumber} ASs", asDict.Count);
-        YamlAsToCoreAs(asDict, asses);
+        YamlAsToCoreAs(asDict, Context.Asses);
 
         if (ErrorsOccurred)
             throw new StepException();

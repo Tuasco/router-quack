@@ -7,15 +7,17 @@ namespace RouterQuack.Core.Validators;
 /// <summary>
 /// Generate an error if there are duplicate router names.
 /// </summary>
-public class NoDuplicateRouterNames(ILogger<NoDuplicateRouterNames> logger) : IValidator
+public class NoDuplicateRouterNames(ILogger<NoDuplicateRouterNames> logger, Context context) : IValidator
 {
     public bool ErrorsOccurred { get; set; }
-    public string? BeginMessage { get; init; } = null;
-    public ILogger Logger { get; set; } = logger;
+    public string? BeginMessage => null;
+    public ILogger Logger { get; } = logger;
+    public Context Context { get; } = context;
 
-    public void Validate(ICollection<As> asses)
+
+    public void Validate()
     {
-        var routers = asses
+        var routers = Context.Asses
             .SelectMany(a => a.Routers)
             .CountBy(n => n.Name)
             .Where(c => c.Value > 1)

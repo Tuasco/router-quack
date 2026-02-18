@@ -8,15 +8,17 @@ namespace RouterQuack.Core.Validators;
 /// <summary>
 /// Generate an error if there is a mismatch in the configured networks version per AS
 /// </summary>
-public class ValidNetworkSpaces(ILogger<ValidNetworkSpaces> logger) : IValidator
+public class ValidNetworkSpaces(ILogger<ValidNetworkSpaces> logger, Context context) : IValidator
 {
     public bool ErrorsOccurred { get; set; }
-    public string? BeginMessage { get; init; } = null;
-    public ILogger Logger { get; set; } = logger;
+    public string? BeginMessage => null;
+    public ILogger Logger { get; } = logger;
+    public Context Context { get; } = context;
 
-    public void Validate(ICollection<As> asses)
+
+    public void Validate()
     {
-        foreach (var @as in asses)
+        foreach (var @as in Context.Asses)
         {
             if (@as.NetworksSpaceV4 is not null
                 && @as.NetworksSpaceV4?.BaseAddress.AddressFamily != AddressFamily.InterNetwork)

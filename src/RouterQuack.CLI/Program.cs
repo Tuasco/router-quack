@@ -13,7 +13,7 @@ using var serviceScope = DependencyInjection.CreateServiceScope(args);
 var di = serviceScope.ServiceProvider;
 
 // Arguments parser
-var argumentsParser = di.GetRequiredService<IArgumentsParser>();
+var context = di.GetRequiredService<Context>();
 
 // Pipeline
 var intentFileReader = di.GetRequiredService<IIntentFileParser>();
@@ -21,18 +21,17 @@ var step1ResolveNeighbours = di.GetRequiredKeyedService<IProcessor>(nameof(Resol
 var step3GenerateIpAddresses = di.GetRequiredKeyedService<IProcessor>(nameof(GenerateLinkAddresses));
 var step4GenerateLoopbackAddresses = di.GetRequiredKeyedService<IProcessor>(nameof(GenerateLoopbackAddresses));
 
-ICollection<As> asses = [];
 try
 {
     // Read intent file
-    asses.ExecuteStep(intentFileReader, argumentsParser.FilePaths);
+    context.ExecuteStep(intentFileReader);
 
     // Resolve neighbours first
-    asses.ExecuteStep(step1ResolveNeighbours);
+    context.ExecuteStep(step1ResolveNeighbours);
 
     // Execute validators
     Log.Information("Validating intent...");
-    asses.ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(NoDuplicateIpAddress)))
+    context.ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(NoDuplicateIpAddress)))
         .ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(NoDuplicateRouterNames)))
         .ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(NoExternalRouterWithoutAddress)))
         .ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(ValidBgpRelationships)))
@@ -40,20 +39,20 @@ try
         .ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(ValidNetworkSpaces)));
 
     // Execute other processors
-    asses.ExecuteStep(step3GenerateIpAddresses)
+    context.ExecuteStep(step3GenerateIpAddresses)
         .ExecuteStep(step4GenerateLoopbackAddresses);
 }
 catch (StepException)
 {
     Log.Information("Exited with errors. Nothing changed.");
-    Log.Debug("ASs summary:\n{Summary}", asses.Summary());
+    Log.Debug("ASs summary:\n{Summary}", context.Asses.Summary());
     Environment.Exit(1);
 }
 catch (Exception e)
 {
     Log.Error("Unhandled exception occured.");
     Log.Debug("Exception:\n{Exception}", e);
-    Log.Debug("ASs summary:\n{Summary}", asses.Summary());
+    Log.Debug("ASs summary:\n{Summary}", context.Asses.Summary());
     Environment.Exit(2);
 }
 

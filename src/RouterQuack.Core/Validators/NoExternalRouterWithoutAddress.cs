@@ -7,15 +7,19 @@ namespace RouterQuack.Core.Validators;
 /// <summary>
 /// Generate an error if there are external routers with no manual IP Addresses.
 /// </summary>
-public class NoExternalRouterWithoutAddress(ILogger<NoExternalRouterWithoutAddress> logger) : IValidator
+public class NoExternalRouterWithoutAddress(
+    ILogger<NoExternalRouterWithoutAddress> logger,
+    Context context) : IValidator
 {
     public bool ErrorsOccurred { get; set; }
-    public string? BeginMessage { get; init; } = null;
-    public ILogger Logger { get; set; } = logger;
+    public string? BeginMessage => null;
+    public ILogger Logger { get; } = logger;
+    public Context Context { get; } = context;
 
-    public void Validate(ICollection<As> asses)
+
+    public void Validate()
     {
-        var interfaces = asses
+        var interfaces = Context.Asses
             .SelectMany(a => a.Routers)
             .Where(r => r.External)
             .SelectMany(r => r.Interfaces)

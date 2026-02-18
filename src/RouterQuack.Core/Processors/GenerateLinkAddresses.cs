@@ -9,26 +9,28 @@ namespace RouterQuack.Core.Processors;
 
 public class GenerateLinkAddresses(
     ILogger<GenerateLinkAddresses> logger,
+    Context context,
     NetworkUtils networkUtils,
     InterfaceUtils interfaceUtils) : IProcessor
 {
     public bool ErrorsOccurred { get; set; }
-    public string? BeginMessage { get; init; } = "Generating addresses for interfaces";
-    public ILogger Logger { get; set; } = logger;
+    public string BeginMessage => "Generating addresses for interfaces";
+    public ILogger Logger { get; } = logger;
+    public Context Context { get; } = context;
 
     private UInt128 _addressCount;
     private List<IPAddress> _usedAddresses = null!;
 
-    public void Process(ICollection<As> asses)
+    public void Process()
     {
-        _usedAddresses = asses
+        _usedAddresses = Context.Asses
             .SelectMany(a => a.Routers)
             .SelectMany(r => r.Interfaces)
             .SelectMany(i => i.Addresses)
             .Select(a => a.IpAddress)
             .ToList();
 
-        var links = asses.GetAllLinks(i => !interfaceUtils.HasLinkNetwork(i));
+        var links = Context.Asses.GetAllLinks(i => !interfaceUtils.HasLinkNetwork(i));
 
         foreach (var link in links)
         {

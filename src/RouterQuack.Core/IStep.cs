@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using RouterQuack.Core.Models;
 
 namespace RouterQuack.Core;
 
@@ -9,9 +10,11 @@ public interface IStep
 {
     protected internal bool ErrorsOccurred { get; set; }
 
-    protected internal string? BeginMessage { get; init; }
+    protected internal string? BeginMessage { get; }
 
     protected internal ILogger Logger { get; }
+
+    protected internal Context Context { get; }
 }
 
 /// <summary>

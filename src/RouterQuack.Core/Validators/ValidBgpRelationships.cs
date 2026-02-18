@@ -8,15 +8,17 @@ namespace RouterQuack.Core.Validators;
 /// Generate an error if there are uncoherent BGP relationships.
 /// </summary>
 /// /// <remarks>Will generate a warning if there are interfaces with an inter-AS neighbour but no BGP.</remarks>
-public class ValidBgpRelationships(ILogger<ValidBgpRelationships> logger) : IValidator
+public class ValidBgpRelationships(ILogger<ValidBgpRelationships> logger, Context context) : IValidator
 {
     public bool ErrorsOccurred { get; set; }
-    public string? BeginMessage { get; init; } = null;
-    public ILogger Logger { get; set; } = logger;
+    public string? BeginMessage => null;
+    public ILogger Logger { get; } = logger;
+    public Context Context { get; } = context;
 
-    public void Validate(ICollection<As> asses)
+
+    public void Validate()
     {
-        var links = asses.GetAllLinks();
+        var links = Context.Asses.GetAllLinks();
 
         foreach (var link in links)
         {

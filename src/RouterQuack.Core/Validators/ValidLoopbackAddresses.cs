@@ -8,15 +8,17 @@ namespace RouterQuack.Core.Validators;
 /// <summary>
 /// Generate an error if a loopback address is not in /128 (or /32 in IPv4)
 /// </summary>
-public class ValidLoopbackAddresses(ILogger<ValidLoopbackAddresses> logger) : IValidator
+public class ValidLoopbackAddresses(ILogger<ValidLoopbackAddresses> logger, Context context) : IValidator
 {
     public bool ErrorsOccurred { get; set; }
-    public string? BeginMessage { get; init; } = null;
-    public ILogger Logger { get; set; } = logger;
+    public string? BeginMessage => null;
+    public ILogger Logger { get; } = logger;
+    public Context Context { get; } = context;
 
-    public void Validate(ICollection<As> asses)
+
+    public void Validate()
     {
-        var routers = asses
+        var routers = Context.Asses
             .SelectMany(a => a.Routers)
             .Where(r => r.LoopbackAddress is not null);
 
