@@ -6,10 +6,8 @@ namespace RouterQuack.IO.Yaml.Parser;
 
 public partial class YamlParser
 {
-    private ICollection<As> YamlAsToCoreAs(IDictionary<int, YamlAs> asDict)
+    private void YamlAsToCoreAs(IDictionary<int, YamlAs> asDict, ICollection<As> asses)
     {
-        ICollection<As> asses = [];
-
         foreach (var (key, value) in asDict)
         {
             IgpType igp;
@@ -60,7 +58,5 @@ public partial class YamlParser
             @as.Routers = YamlRouterToCoreRouter(value.Routers, @as, brand, value.External);
             asses.Add(@as);
         }
-
-        return asses;
     }
 }

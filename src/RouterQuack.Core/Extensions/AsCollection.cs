@@ -1,6 +1,7 @@
 using System.Diagnostics.Contracts;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using RouterQuack.Core.IntentFileParsers;
 using RouterQuack.Core.Models;
 using RouterQuack.Core.Processors;
 using RouterQuack.Core.Validators;
@@ -14,32 +15,31 @@ public static class AsCollectionExtensions
         /// <summary>
         /// Call the execution of a config processor of the pipeline.
         /// </summary>
-        /// <param name="processor">The configProcessor to execute.</param>
+        /// <param name="step">The step to execute.</param>
+        /// <param name="filePaths">This shouldn't be here. To replace with configuration model.</param>
         /// <returns>The modified collection of As objects. This is used to make a call chain.</returns>
         /// <exception cref="StepException">Step executed with errors.</exception>
-        public ICollection<As> ExecuteStep(IProcessor processor)
+        /// <exception cref="ArgumentException">Unsupported IStep derived interface.</exception>
+        public ICollection<As> ExecuteStep(IStep step, string[]? filePaths = null)
         {
-            LogBeginMessage(processor);
-            processor.Process(source);
+            LogBeginMessage(step);
 
-            if (processor.ErrorsOccurred)
-                throw new StepException();
+            switch (step)
+            {
+                case IIntentFileParser intentFileParser:
+                    intentFileParser.ReadFiles(filePaths!, source);
+                    break;
+                case IValidator validator:
+                    validator.Validate(source);
+                    break;
+                case IProcessor processor:
+                    processor.Process(source);
+                    break;
+                default:
+                    throw new ArgumentException("Unsupported step type", nameof(step));
+            }
 
-            return source;
-        }
-
-        /// <summary>
-        /// Call the execution of a config processor of the pipeline.
-        /// </summary>
-        /// <param name="validator">The configProcessor to execute.</param>
-        /// <returns>The modified collection of As objects. This is used to make a call chain.</returns>
-        /// <exception cref="StepException">Step executed with errors.</exception>
-        public ICollection<As> ExecuteStep(IValidator validator)
-        {
-            LogBeginMessage(validator);
-            validator.Validate(source);
-
-            if (validator.ErrorsOccurred)
+            if (step.ErrorsOccurred)
                 throw new StepException();
 
             return source;

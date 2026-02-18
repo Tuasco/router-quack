@@ -3,6 +3,7 @@ using RouterQuack.CLI.Startup;
 using RouterQuack.Core;
 using RouterQuack.Core.Extensions;
 using RouterQuack.Core.IntentFileParsers;
+using RouterQuack.Core.Models;
 using RouterQuack.Core.Processors;
 using RouterQuack.Core.Validators;
 using Serilog;
@@ -20,9 +21,12 @@ var step1ResolveNeighbours = di.GetRequiredKeyedService<IProcessor>(nameof(Resol
 var step3GenerateIpAddresses = di.GetRequiredKeyedService<IProcessor>(nameof(GenerateLinkAddresses));
 var step4GenerateLoopbackAddresses = di.GetRequiredKeyedService<IProcessor>(nameof(GenerateLoopbackAddresses));
 
-var asses = intentFileReader.ReadFiles(argumentsParser.FilePaths);
+ICollection<As> asses = [];
 try
 {
+    // Read intent file
+    asses.ExecuteStep(intentFileReader, argumentsParser.FilePaths);
+
     // Resolve neighbours first
     asses.ExecuteStep(step1ResolveNeighbours);
 
