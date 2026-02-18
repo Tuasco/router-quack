@@ -41,7 +41,7 @@ public static class DependencyInjection
         var builder = Host.CreateApplicationBuilder(args);
 
         // Register context
-        builder.Services.AddSingleton<Context>(context);
+        builder.Services.AddSingleton(context);
 
         // Register logger (Serilog)
         builder.Services.AddSerilog();

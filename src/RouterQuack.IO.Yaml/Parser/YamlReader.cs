@@ -38,13 +38,13 @@ public partial class YamlParser(
         {
             if (!File.Exists(path))
             {
-                logger.LogWarning("File {Path} not found, skipping.", path);
+                this.LogWarning("File {Path} not found, skipping.", path);
                 continue;
             }
 
             if (!YamlEnding().IsMatch(path))
             {
-                logger.LogWarning("File {Path} is not YAML, skipping.", path);
+                this.LogWarning("File {Path} is not YAML, skipping.", path);
                 continue;
             }
 

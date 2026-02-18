@@ -44,13 +44,13 @@ try
 }
 catch (StepException)
 {
-    Log.Information("Exited with errors. Nothing changed.");
+    Log.Fatal("Exited with errors. Nothing changed.");
     Log.Debug("ASs summary:\n{Summary}", context.Asses.Summary());
     Environment.Exit(1);
 }
 catch (Exception e)
 {
-    Log.Error("Unhandled exception occured.");
+    Log.Fatal("Unhandled exception occured.");
     Log.Debug("Exception:\n{Exception}", e);
     Log.Debug("ASs summary:\n{Summary}", context.Asses.Summary());
     Environment.Exit(2);

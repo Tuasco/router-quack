@@ -32,5 +32,8 @@ public static class ErrorCollectorExtensions
         [StructuredMessageTemplate] string message, params object?[] args)
     {
         source.Logger.LogWarning(message, args);
+
+        if (source.Context.Strict)
+            source.ErrorsOccurred = true;
     }
 }
