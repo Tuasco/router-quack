@@ -1,5 +1,3 @@
-using RouterQuack.Core.Models;
-
 namespace RouterQuack.Core.Validators;
 
 public interface IValidator : IStep

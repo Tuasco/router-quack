@@ -1,7 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RouterQuack.Core.IntentFileParsers;
-using RouterQuack.Core.Models;
 using RouterQuack.Core.Processors;
 using RouterQuack.Core.Utils;
 using RouterQuack.Core.Validators;

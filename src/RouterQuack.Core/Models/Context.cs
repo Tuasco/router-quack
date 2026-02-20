@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using RouterQuack.Core.IntentFileParsers;
 using RouterQuack.Core.Processors;
 using RouterQuack.Core.Validators;

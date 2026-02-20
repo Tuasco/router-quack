@@ -1,6 +1,5 @@
 using System.Diagnostics.Contracts;
 using System.Text;
-using RouterQuack.Core.Models;
 
 namespace RouterQuack.Core.Extensions;
 

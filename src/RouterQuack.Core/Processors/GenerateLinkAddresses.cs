@@ -1,8 +1,6 @@
 using System.Net;
 using System.Net.Sockets;
-using Microsoft.Extensions.Logging;
 using RouterQuack.Core.Extensions;
-using RouterQuack.Core.Models;
 using RouterQuack.Core.Utils;
 
 namespace RouterQuack.Core.Processors;

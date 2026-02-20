@@ -1,5 +1,4 @@
 using System.CommandLine;
-using RouterQuack.Core.Models;
 
 namespace RouterQuack.CLI.Startup;
 

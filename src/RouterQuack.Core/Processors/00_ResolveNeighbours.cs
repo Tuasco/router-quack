@@ -1,7 +1,5 @@
 using System.Diagnostics.Contracts;
-using Microsoft.Extensions.Logging;
 using RouterQuack.Core.Extensions;
-using RouterQuack.Core.Models;
 
 namespace RouterQuack.Core.Processors;
 

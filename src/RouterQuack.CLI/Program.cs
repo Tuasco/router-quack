@@ -3,7 +3,6 @@ using RouterQuack.CLI.Startup;
 using RouterQuack.Core;
 using RouterQuack.Core.Extensions;
 using RouterQuack.Core.IntentFileParsers;
-using RouterQuack.Core.Models;
 using RouterQuack.Core.Processors;
 using RouterQuack.Core.Validators;
 using Serilog;

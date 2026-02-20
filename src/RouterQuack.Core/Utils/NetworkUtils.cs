@@ -2,7 +2,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using System.Net;
 using System.Net.Sockets;
-using RouterQuack.Core.Models;
 
 namespace RouterQuack.Core.Utils;
 

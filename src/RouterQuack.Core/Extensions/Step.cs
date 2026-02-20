@@ -1,13 +1,12 @@
 using JetBrains.Annotations;
-using Microsoft.Extensions.Logging;
 
-#pragma warning disable CA2254
-// ReSharper disable ConvertToExtensionBlock
 // Roslyn has know issues with params in extension block. See https://github.com/dotnet/roslyn/issues/80024.
+// ReSharper disable ConvertToExtensionBlock
+#pragma warning disable CA2254
 
 namespace RouterQuack.Core.Extensions;
 
-public static class ErrorCollectorExtensions
+public static class StepExtensions
 {
     /// <summary>
     /// Log an error and set ErrorsOccurred to true.

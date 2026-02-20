@@ -1,6 +1,3 @@
-using Microsoft.Extensions.Logging;
-using RouterQuack.Core.Models;
-
 namespace RouterQuack.Core;
 
 /// <summary>

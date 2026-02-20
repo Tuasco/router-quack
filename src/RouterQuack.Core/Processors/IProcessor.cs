@@ -1,5 +1,3 @@
-using RouterQuack.Core.Models;
-
 namespace RouterQuack.Core.Processors;
 
 /// <summary>

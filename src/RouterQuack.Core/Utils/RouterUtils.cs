@@ -3,7 +3,6 @@ using System.Diagnostics.Contracts;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
-using RouterQuack.Core.Models;
 
 namespace RouterQuack.Core.Utils;
 
