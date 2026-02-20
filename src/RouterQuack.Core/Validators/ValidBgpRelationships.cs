@@ -32,7 +32,7 @@ public class ValidBgpRelationships(ILogger<ValidBgpRelationships> logger, Contex
                     link.Item1.ParentRouter.Name,
                     @link.Item1.ParentRouter.ParentAs.Number);
 
-            // Check if BGP is off when our neighbour is in the same AS
+            // Check if BGP is off when our neighbour is in a different AS
             if (link is not { Item1.Bgp: BgpRelationship.None, Item2.Bgp: BgpRelationship.None }
                 && link.Item1.ParentRouter.ParentAs.Number == link.Item2.ParentRouter.ParentAs.Number)
                 this.LogWarning(
@@ -42,9 +42,9 @@ public class ValidBgpRelationships(ILogger<ValidBgpRelationships> logger, Contex
                     link.Item1.ParentRouter.Name,
                     link.Item1.ParentRouter.ParentAs.Number);
 
-            // Check if BGP is on when our neighbour is in the same AS
-            if (link is { Item1.Bgp: BgpRelationship.None, Item2.Bgp: BgpRelationship.None }
-                && link.Item1.ParentRouter.ParentAs.Number != link.Item2.ParentRouter.ParentAs.Number)
+            // Check if BGP is on when our neighbour is in the same AS (impossible if the previous case matched)
+            else if (link is { Item1.Bgp: BgpRelationship.None, Item2.Bgp: BgpRelationship.None }
+                     && link.Item1.ParentRouter.ParentAs.Number != link.Item2.ParentRouter.ParentAs.Number)
                 this.LogWarning(
                     "Interface {InterfaceName} of router {RouterName} in AS number {AsNumber} " +
                     "has a neighbour in another interface, yet doesn't use BGP.",

@@ -17,7 +17,7 @@ public class GenerateLinkAddresses(
     public Context Context { get; } = context;
 
     private UInt128 _addressCount;
-    private List<IPAddress> _usedAddresses = null!;
+    private HashSet<IPAddress> _usedAddresses = null!;
 
     public void Process()
     {
@@ -26,7 +26,7 @@ public class GenerateLinkAddresses(
             .SelectMany(r => r.Interfaces)
             .SelectMany(i => i.Addresses)
             .Select(a => a.IpAddress)
-            .ToList();
+            .ToHashSet();
 
         var links = Context.Asses.GetAllLinks(i => !interfaceUtils.HasLinkNetwork(i));
 

@@ -6,6 +6,7 @@ using System.Net.Sockets;
 namespace RouterQuack.Core.Utils;
 
 [SuppressMessage("Performance", "CA1822:Mark members as static")]
+[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
 public sealed class NetworkUtils
 {
     /// <param name="ip">An IP address (string format).</param>
@@ -59,7 +60,7 @@ public sealed class NetworkUtils
     /// <exception cref="InvalidOperationException">Overflow of <paramref name="space"/>.</exception>
     public IPAddress GenerateAvailableIpAddress(IPNetwork space,
         ref UInt128 addressCount,
-        ICollection<IPAddress> usedAddresses)
+        ISet<IPAddress> usedAddresses)
     {
         var maxBits = space.BaseAddress.AddressFamily == AddressFamily.InterNetworkV6 ? 128 : 32;
         var hostBits = maxBits - space.PrefixLength;

@@ -66,7 +66,10 @@ public class ResolveNeighbours(ILogger<ResolveNeighbours> logger, Context contex
     [Pure]
     private Interface? ResolveNeighbour(ICollection<As> asses, Interface @interface, int asNumber, string routerName)
     {
-        // Try and get our neighbour
+        /* For large scale, consider pre-building lookups for interfaces by (asNumber, routerName, interfaceName)
+         * to avoid O(n) FirstOrDefault calls.
+         * Using lookups would bring us down from O(R * I) to O(R + I).
+         */
         return asses.FirstOrDefault(a => a.Number == asNumber)
             ?.Routers.FirstOrDefault(r => r.Name == routerName)
             ?.Interfaces.FirstOrDefault(FilterNeighbours);
@@ -120,7 +123,7 @@ public class ResolveNeighbours(ILogger<ResolveNeighbours> logger, Context contex
         => neighbourPath.Length switch
         {
             1 => @interface.ParentRouter.ParentAs.Number,
-            2 => int.TryParse(neighbourPath.First(), out var asNumber) ? asNumber : 0,
+            2 => int.TryParse(neighbourPath[0], out var asNumber) ? asNumber : 0,
             _ => 0
         };
 }

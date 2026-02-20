@@ -16,7 +16,7 @@ public class GenerateLoopbackAddresses(
     public Context Context { get; } = context;
 
     private UInt128 _addressCounter;
-    private List<IPAddress> _usedAddresses = null!;
+    private HashSet<IPAddress> _usedAddresses = null!;
 
     public void Process()
     {
@@ -28,7 +28,7 @@ public class GenerateLoopbackAddresses(
             .SelectMany(a => a.Routers)
             .Where(r => r.LoopbackAddress != null)
             .Select(r => r.LoopbackAddress!.IpAddress)
-            .ToList();
+            .ToHashSet();
 
         foreach (var router in routers)
         {
