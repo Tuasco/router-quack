@@ -67,6 +67,7 @@ resharper_web_config_module_not_resolved_highlighting = warning
 resharper_web_config_type_not_resolved_highlighting = warning
 resharper_web_config_wrong_module_highlighting = warning
 resharper_unnecessary_whitespace_highlighting = hint
+resharper_can_use_global_alias = true
 
 [*.yaml]
 indent_style = tab

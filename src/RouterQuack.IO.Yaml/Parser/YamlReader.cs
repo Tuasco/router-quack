@@ -3,13 +3,10 @@ using System.Text.RegularExpressions;
 using Humanizer;
 using Microsoft.Extensions.Logging;
 using RouterQuack.Core;
-using RouterQuack.Core.Extensions;
 using RouterQuack.Core.IntentFileParsers;
-using RouterQuack.Core.Models;
 using RouterQuack.Core.Utils;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
-using YamlAs = RouterQuack.IO.Yaml.Models.As;
 
 namespace RouterQuack.IO.Yaml.Parser;
 
