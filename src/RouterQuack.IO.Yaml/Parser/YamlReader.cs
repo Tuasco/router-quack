@@ -59,7 +59,7 @@ public partial class YamlParser(
                 AddAs(@as.Key, @as.Value, asDict);
         }
 
-        logger.LogDebug("Found {AsNumber} ASs", asDict.Count);
+        logger.LogDebug("Found {AsNumber} AS(s)", asDict.Count);
         YamlAsToCoreAs(asDict, Context.Asses);
 
         if (ErrorsOccurred)

@@ -53,6 +53,8 @@ public class GenerateLoopbackAddresses(
             }
 
             router.LoopbackAddress = new(new(ip, maxBits), ip);
+            logger.LogDebug("Generated loopback {IpNetwork} for router {RouterName} in AS {AsNumber}",
+                new IPNetwork(ip, maxBits), router.Name, router.ParentAs.Number);
         }
     }
 }

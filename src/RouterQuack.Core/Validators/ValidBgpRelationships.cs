@@ -9,7 +9,7 @@ namespace RouterQuack.Core.Validators;
 public class ValidBgpRelationships(ILogger<ValidBgpRelationships> logger, Context context) : IValidator
 {
     public bool ErrorsOccurred { get; set; }
-    public string? BeginMessage => null;
+    public string BeginMessage => "Ensuring consistent BGP relationships between neighbours";
     public ILogger Logger { get; } = logger;
     public Context Context { get; } = context;
 

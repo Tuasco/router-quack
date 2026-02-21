@@ -83,13 +83,13 @@ public class ResolveNeighbours(ILogger<ResolveNeighbours> logger, Context contex
             (i.Neighbour is not null && (
                 (i.Neighbour.Neighbour is null && i.Neighbour.Name.Split(':').Last() == @interface.ParentRouter.Name)
                 || (i.Neighbour.Neighbour is not null && i.Neighbour == @interface)))
-            || FilterNeighboursWithErrors(i);
+            || FilterNeighboursWithWarnings(i);
 
         /* Filter in interfaces with null neighbours, but their router's name matches (and FilterNeighbours())
          * This is useful when our neighbour has been parsed first but unsuccessfully.
-         * If a neighbour matched here, log a warning
+         * If a neighbour matched here, log a warning.
          */
-        bool FilterNeighboursWithErrors(Interface i)
+        bool FilterNeighboursWithWarnings(Interface i)
         {
             var result = i.Neighbour is null && i.ParentRouter.Name == routerName;
 

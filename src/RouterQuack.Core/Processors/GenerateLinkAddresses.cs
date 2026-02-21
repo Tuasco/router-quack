@@ -115,5 +115,10 @@ public class GenerateLinkAddresses(
         var linkNetwork = new IPNetwork(ip1, maxBits - 1);
         link.Item1.Addresses.Add(new(linkNetwork, ip1));
         link.Item2.Addresses.Add(new(linkNetwork, ip2));
+
+        logger.LogDebug("Generated link {IpNetwork} between {Router1}:{Interface1} and {Router2}:{Interface2}",
+            linkNetwork,
+            link.Item1.ParentRouter.Name, link.Item1.Name,
+            link.Item2.ParentRouter.Name, link.Item2.Name);
     }
 }

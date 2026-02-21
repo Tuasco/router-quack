@@ -9,7 +9,7 @@ namespace RouterQuack.Core.Validators;
 public class ValidLoopbackAddresses(ILogger<ValidLoopbackAddresses> logger, Context context) : IValidator
 {
     public bool ErrorsOccurred { get; set; }
-    public string? BeginMessage => null;
+    public string BeginMessage => "Ensuring loopback addresses are valid";
     public ILogger Logger { get; } = logger;
     public Context Context { get; } = context;
 
@@ -23,12 +23,11 @@ public class ValidLoopbackAddresses(ILogger<ValidLoopbackAddresses> logger, Cont
         foreach (var router in routers)
         {
             var maxBits = router.LoopbackAddress!.IpAddress.AddressFamily == AddressFamily.InterNetworkV6 ? 128 : 32;
-            if (router.LoopbackAddress.NetworkAddress.PrefixLength == maxBits)
-                continue;
 
-            this.LogError("Invalid loopback address in router {RouterName} in AS number {AsNumber}",
-                router.Name,
-                router.ParentAs.Number);
+            if (router.LoopbackAddress.NetworkAddress.PrefixLength != maxBits)
+                this.LogError("Invalid loopback address in router {RouterName} in AS number {AsNumber}",
+                    router.Name,
+                    router.ParentAs.Number);
         }
     }
 }

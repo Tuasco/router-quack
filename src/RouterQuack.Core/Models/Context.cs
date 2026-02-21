@@ -55,9 +55,20 @@ public class Context
 
     private static void LogBeginMessage(IStep step)
     {
+        if (string.IsNullOrWhiteSpace(step.BeginMessage))
+            return;
+
         #pragma warning disable CA2254
-        if (!string.IsNullOrWhiteSpace(step.BeginMessage))
-            step.Logger.LogInformation(step.BeginMessage + "...");
+        switch (step)
+        {
+            case IValidator:
+                step.Logger.LogDebug(step.BeginMessage + '.');
+                break;
+
+            default:
+                step.Logger.LogInformation(step.BeginMessage + "...");
+                break;
+        }
         #pragma warning restore CA2254
     }
 }
