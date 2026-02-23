@@ -3,8 +3,6 @@ name: New Release
 on:
   push:
     branches: [ main ]
-    paths:
-      - 'Directory.Build.props'
 
 jobs:
   test:
@@ -26,17 +24,39 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuget-
 
-      - name: Restore dependencies
-        run: dotnet restore
-
       - name: Run tests
         run: dotnet test
 
+  check-props:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.diff.outputs.changed }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if Directory.Build.props changed since last tag
+        id: diff
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$LAST_TAG" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          elif git diff --name-only "$LAST_TAG" HEAD | grep -q 'Directory.Build.props'; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
   tag-release:
-    needs: test
+    needs: [ test, check-props ]
+    if: needs.check-props.outputs.changed == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
