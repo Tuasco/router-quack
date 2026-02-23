@@ -30,7 +30,7 @@ jobs:
         run: dotnet restore
 
       - name: Run tests
-        run: dotnet test --no-restore
+        run: dotnet test
 
   tag-release:
     needs: test
