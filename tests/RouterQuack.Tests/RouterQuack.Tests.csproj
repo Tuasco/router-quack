@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>RouterQuack.Tests</RootNamespace>
+        <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+        <OutputType>Exe</OutputType>
+        <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="TUnit" Version="0.59.0"/>
+        <PackageReference Include="NSubstitute" Version="5.3.0"/>
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\RouterQuack.Core\RouterQuack.Core.csproj"/>
+        <ProjectReference Include="..\..\src\RouterQuack.IO.Yaml\RouterQuack.IO.Yaml.csproj"/>
+    </ItemGroup>
+
+</Project>
