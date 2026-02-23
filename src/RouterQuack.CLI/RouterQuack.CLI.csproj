@@ -21,4 +21,8 @@
         <PackageReference Include="System.CommandLine" Version="2.0.2" />
     </ItemGroup>
 
+    <ItemGroup>
+        <None Remove="packages.lock.json"/>
+    </ItemGroup>
+
 </Project>
