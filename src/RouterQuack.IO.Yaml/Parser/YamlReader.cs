@@ -59,6 +59,9 @@ public partial class YamlParser(
         logger.LogDebug("Found {AsNumber} AS(s)", asDict.Count);
         YamlAsToCoreAs(asDict, Context.Asses);
 
+        if (Context.Asses.Count == 0)
+            this.LogError("No AS specified.");
+
         if (ErrorsOccurred)
             throw new StepException();
     }
