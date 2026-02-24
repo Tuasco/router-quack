@@ -119,6 +119,7 @@ jobs:
         with:
           token: ${{ github.token }}
           tag: v${{ needs.tag-release.outputs.version }}
+          restrictToTypes: feature,fix,perf,refactor,test,chore,ci
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
