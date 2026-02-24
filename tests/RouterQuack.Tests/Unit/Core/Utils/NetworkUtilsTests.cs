@@ -71,7 +71,7 @@ public class NetworkUtilsTests
         var ip2 = _utils.GenerateAvailableIpAddress(space, ref counter, used);
 
         await Assert.That(ip1).IsNotEqualTo(ip2);
-        await Assert.That(used).HasCount().EqualTo(2);
+        await Assert.That(used).Count().IsEqualTo(2);
     }
 
     [Test]
@@ -85,7 +85,7 @@ public class NetworkUtilsTests
         var ip = _utils.GenerateAvailableIpAddress(space, ref counter, used);
 
         await Assert.That(ip).IsNotEqualTo(reserved);
-        await Assert.That(used).HasCount().EqualTo(2);
+        await Assert.That(used).Count().IsEqualTo(2);
     }
 
     [Test]

@@ -31,7 +31,7 @@ public class RouterUtilsTests
         var id = _utils.GetDefaultId("TestRouter");
 
         await Assert.That(id.AddressFamily).IsEqualTo(AddressFamily.InterNetwork);
-        await Assert.That(id.GetAddressBytes()).HasCount().EqualTo(4);
+        await Assert.That(id.GetAddressBytes()).Count().IsEqualTo(4);
     }
 
     [Test]
