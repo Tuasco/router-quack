@@ -16,7 +16,7 @@ public sealed class Address
         var parts = address.Split('/');
 
         if (parts.Length != 2)
-            throw new ArgumentException($"Couldn't translate IP address {address}");
+            throw new ArgumentException($"Couldn't translate IP address {address} (invalid format)");
 
         if (!int.TryParse(parts[1], out var mask))
             throw new ArgumentException($"Couldn't translate IP address {address} (invalid mask)");

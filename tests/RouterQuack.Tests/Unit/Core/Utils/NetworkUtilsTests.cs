@@ -23,10 +23,10 @@ public class NetworkUtilsTests
     }
 
     [Test]
-    [Arguments("192.168.1.1", "Couldn't translate IP address")]
-    [Arguments("invalid", "Couldn't translate IP address")]
-    [Arguments("192.168.1.1/abc", "Couldn't translate IP address (invalid mask)")]
-    [Arguments("invalid/24", "Couldn't translate IP address (invalid IP)")]
+    [Arguments("192.168.1.1", "(invalid format)")]
+    [Arguments("invalid", "(invalid format)")]
+    [Arguments("192.168.1.1/abc", "(invalid mask)")]
+    [Arguments("invalid/24", "(invalid IP)")]
     public async Task ParseIpAddress_InvalidInput_ThrowsArgumentException(string input, string expectedMessage)
     {
         await Assert.That(() => new Address(input))
