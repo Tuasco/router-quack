@@ -26,31 +26,19 @@ public class ValidBgpRelationships(ILogger<ValidBgpRelationships> logger, Contex
                 or { Item1.Bgp: BgpRelationship.Peer, Item2.Bgp: BgpRelationship.Peer }
                 or { Item1.Bgp: BgpRelationship.Client, Item2.Bgp: BgpRelationship.Provider }
                 or { Item1.Bgp: BgpRelationship.Provider, Item2.Bgp: BgpRelationship.Client }))
-                this.LogError("Invalid BGP relationship between interface {InterfaceName} of router {RouterName} " +
-                              "in AS number {AsNumber}.",
-                    link.Item1.Name,
-                    link.Item1.ParentRouter.Name,
-                    @link.Item1.ParentRouter.ParentAs.Number);
+                this.Log(link.Item1, "Invalid BGP relationship with neighbour");
 
             // Check if BGP is off when our neighbour is in a different AS
             if (link is not { Item1.Bgp: BgpRelationship.None, Item2.Bgp: BgpRelationship.None }
-                && link.Item1.ParentRouter.ParentAs.Number == link.Item2.ParentRouter.ParentAs.Number)
-                this.LogWarning(
-                    "Interface {InterfaceName} of router {RouterName} in AS number {AsNumber} " +
-                    "and its neighbour are in the same AS, yet define a BGP relationship.",
-                    link.Item1.Name,
-                    link.Item1.ParentRouter.Name,
-                    link.Item1.ParentRouter.ParentAs.Number);
+                && link.Item1.ParentRouter.ParentAs == link.Item2.ParentRouter.ParentAs)
+                this.Log(link.Item1, "Neighbour is in the same AS, yet a BGP relationship is defined",
+                    logLevel: LogLevel.Warning);
 
             // Check if BGP is on when our neighbour is in the same AS (impossible if the previous case matched)
             else if (link is { Item1.Bgp: BgpRelationship.None, Item2.Bgp: BgpRelationship.None }
-                     && link.Item1.ParentRouter.ParentAs.Number != link.Item2.ParentRouter.ParentAs.Number)
-                this.LogWarning(
-                    "Interface {InterfaceName} of router {RouterName} in AS number {AsNumber} " +
-                    "has a neighbour in another interface, yet doesn't use BGP.",
-                    link.Item1.Name,
-                    link.Item1.ParentRouter.Name,
-                    link.Item1.ParentRouter.ParentAs.Number);
+                     && link.Item1.ParentRouter.ParentAs != link.Item2.ParentRouter.ParentAs)
+                this.Log(link.Item1, "Neighbour is in a different AS, yet no BGP relationship is defined",
+                    logLevel: LogLevel.Warning);
         }
     }
 }

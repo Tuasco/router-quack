@@ -16,7 +16,7 @@ public class NetworkUtilsTests
     public async Task ParseIpAddress_ValidInput_ReturnsCorrectAddress(
         string input, string expectedIp, int expectedPrefix)
     {
-        var result = _utils.ParseIpAddress(input);
+        var result = new Address(input);
 
         await Assert.That(result.IpAddress.ToString()).IsEqualTo(expectedIp);
         await Assert.That(result.NetworkAddress.PrefixLength).IsEqualTo(expectedPrefix);
@@ -29,7 +29,7 @@ public class NetworkUtilsTests
     [Arguments("invalid/24", "Couldn't translate IP address (invalid IP)")]
     public async Task ParseIpAddress_InvalidInput_ThrowsArgumentException(string input, string expectedMessage)
     {
-        await Assert.That(() => _utils.ParseIpAddress(input))
+        await Assert.That(() => new Address(input))
             .Throws<ArgumentException>()
             .WithMessageContaining(expectedMessage);
     }

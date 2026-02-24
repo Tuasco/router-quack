@@ -25,9 +25,7 @@ public class ValidLoopbackAddresses(ILogger<ValidLoopbackAddresses> logger, Cont
             var maxBits = router.LoopbackAddress!.IpAddress.AddressFamily == AddressFamily.InterNetworkV6 ? 128 : 32;
 
             if (router.LoopbackAddress.NetworkAddress.PrefixLength != maxBits)
-                this.LogError("Invalid loopback address in router {RouterName} in AS number {AsNumber}",
-                    router.Name,
-                    router.ParentAs.Number);
+                this.Log(router, "Invalid loopback address");
         }
     }
 }

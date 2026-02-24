@@ -41,11 +41,7 @@ public class ResolveNeighbours(ILogger<ResolveNeighbours> logger, Context contex
 
         var neighbour = ResolveNeighbour(asses, @interface, asNumber, routerName);
         if (neighbour is null)
-        {
-            this.LogError("Couldn't resolve neighbour of interface {InterfaceName} in router {RouterName} " +
-                          "of AS number {AsNumber}.",
-                @interface.Name, @interface.ParentRouter.Name, @interface.ParentRouter.ParentAs.Number);
-        }
+            this.Log(@interface, "Could not resolve neighbour");
 
         @interface.Neighbour = neighbour;
     }
@@ -96,14 +92,8 @@ public class ResolveNeighbours(ILogger<ResolveNeighbours> logger, Context contex
             // ReSharper disable once InvertIf
             if (result)
             {
-                this.LogWarning("The neighbour of interface {InterfaceName} in router {RouterName} of AS number " +
-                                "{AsNumber} was resolved by guessing the exact interface of {NeighbourRouterName} " +
-                                "({NeighbourInterfaceName}).",
-                    @interface.Name,
-                    @interface.ParentRouter.Name,
-                    @interface.ParentRouter.ParentAs.Number,
-                    routerName,
-                    i.Name);
+                this.Log(@interface, $"Neighbour resolved by guessing ({routerName}:{i.Name})",
+                    logLevel: LogLevel.Warning);
 
                 i.Neighbour = @interface;
             }

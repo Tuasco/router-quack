@@ -9,27 +9,6 @@ namespace RouterQuack.Core.Utils;
 [SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
 public sealed class NetworkUtils
 {
-    /// <param name="ip">An IP address (string format).</param>
-    /// <returns>A formatted IP address.</returns>
-    /// <remarks>The IPv4 or IPv6 address is expected to include the prefix length in CIDR format.</remarks>
-    /// <exception cref="ArgumentException">Invalid IP address.</exception>
-    [Pure]
-    public Address ParseIpAddress(string ip)
-    {
-        var parts = ip.Split('/');
-
-        if (parts.Length != 2)
-            throw new ArgumentException("Couldn't translate IP address");
-
-        if (!int.TryParse(parts[1], out var mask))
-            throw new ArgumentException("Couldn't translate IP address (invalid mask)");
-
-        if (!IPAddress.TryParse(parts[0], out var ipAddress))
-            throw new ArgumentException("Couldn't translate IP address (invalid IP)");
-
-        return new(new(ipAddress, mask), ipAddress);
-    }
-
     /// <param name="version">An IP version (string format).</param>
     /// <returns>The corresponding IP version (Enum flags format).</returns>
     /// /// <exception cref="ArgumentException">Non <c>null</c> and unknown networks IP version.</exception>

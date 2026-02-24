@@ -1,3 +1,4 @@
+#pragma warning disable CA2254
 namespace RouterQuack.IO.Yaml.Parser;
 
 public partial class YamlParser
@@ -13,7 +14,7 @@ public partial class YamlParser
             }
             catch (ArgumentException e)
             {
-                this.LogError("{ErrorMessage} of AS number {AsNumber}", e.Message, key);
+                this.LogError("AS number {AsNumber}: " + e.Message, key);
                 igp = 0;
             }
 
@@ -24,7 +25,7 @@ public partial class YamlParser
             }
             catch (Exception e)
             {
-                this.LogError("{ErrorMessage} of AS number {AsNumber}", e.Message, key);
+                this.LogError("AS number {AsNumber}: " + e.Message, key);
                 version = 0;
             }
 
@@ -47,7 +48,7 @@ public partial class YamlParser
             }
             catch (ArgumentException e)
             {
-                this.LogError("{ErrorMessage} (default brand) of AS number {AsNumber}", e.Message, key);
+                this.LogError("AS number {AsNumber}: " + e.Message, key);
                 brand = 0;
             }
 

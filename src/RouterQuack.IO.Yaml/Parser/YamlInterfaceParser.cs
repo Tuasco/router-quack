@@ -21,17 +21,11 @@ public partial class YamlParser
             foreach (var address in value.Addresses ?? [])
                 try
                 {
-                    addresses.Add(networkUtils.ParseIpAddress(address));
+                    addresses.Add(new(address));
                 }
                 catch (ArgumentException e)
                 {
-                    this.LogError("{ErrorMessage}: {IpAddress} of interface {InterfaceName} in router {RouterName} " +
-                                  "of AS number {AsNumber}",
-                        e.Message,
-                        address,
-                        key,
-                        parentRouter.Name,
-                        parentRouter.ParentAs.Number);
+                    this.Log(dummyNeighbour, e.Message);
                 }
 
             interfaces.Add(new()

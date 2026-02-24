@@ -34,8 +34,7 @@ public class GenerateLoopbackAddresses(
         {
             if (!router.ParentAs.LoopbackSpace.HasValue)
             {
-                this.LogError("Need to generate  loopback address for {RouterName}, yet no space was provided in AS.",
-                    router.Name);
+                this.Log(router, "Couldn't generate loopback address (no loopback space defined in AS)");
                 continue;
             }
 
@@ -48,7 +47,7 @@ public class GenerateLoopbackAddresses(
             }
             catch (InvalidOperationException)
             {
-                this.LogError("Loopback space of AS {AsNumber} has overflowed.", router.ParentAs.Number);
+                this.Log(router.ParentAs, "Loopback space has overflowed");
                 return;
             }
 

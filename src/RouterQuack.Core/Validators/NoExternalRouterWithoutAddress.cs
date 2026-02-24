@@ -25,10 +25,6 @@ public class NoExternalRouterWithoutAddress(
             .ToArray();
 
         foreach (var @interface in interfaces)
-            this.LogError("Interface {InterfaceName} of router {RouterName} in AS number {AsNumber} " +
-                          "or its neighbour is marked external but has no configured IP address",
-                @interface.Name,
-                @interface.ParentRouter.Name,
-                @interface.ParentRouter.ParentAs.Number);
+            this.Log(@interface, "Self or neighbour is marked external but has no configured IP address");
     }
 }

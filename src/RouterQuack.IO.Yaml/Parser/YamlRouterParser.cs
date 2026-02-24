@@ -1,3 +1,4 @@
+#pragma warning disable CA2254
 namespace RouterQuack.IO.Yaml.Parser;
 
 public partial class YamlParser
@@ -15,7 +16,7 @@ public partial class YamlParser
             // When only the key is declared (no YAML body), value will be null.
             if (value is null)
             {
-                this.LogError("Router {RouterName} of AS number {AsNumber} has no body.",
+                this.LogError("Router {RouterName} in AS number {AsNumber}: Body cannot be empty.",
                     key,
                     parentAs.Number);
                 continue;
@@ -28,10 +29,7 @@ public partial class YamlParser
             }
             catch (ArgumentException e)
             {
-                this.LogError("{ErrorMessage} in router {RouterName} of AS number {AsNumber}",
-                    e.Message,
-                    key,
-                    parentAs.Number);
+                this.LogError("Router {RouterName} in AS number {AsNumber}: " + e.Message + '.', key, parentAs.Number);
                 routerBrand = routerUtils.ParseBrand(defaultBrand.ToString());
             }
 
@@ -39,14 +37,13 @@ public partial class YamlParser
             try
             {
                 loopbackAddress = value.Loopback is not null
-                    ? networkUtils.ParseIpAddress(value.Loopback)
+                    ? new Address(value.Loopback)
                     : null;
             }
             catch (ArgumentException)
             {
-                this.LogError("Could not parse loopback address {LoopbackAddress} of router {RouterName}",
-                    value.Loopback,
-                    key);
+                this.LogError("Router {RouterName} in AS number {AsNumber}: Could not parse loopback address.",
+                    key, parentAs.Number);
                 loopbackAddress = null;
             }
 
