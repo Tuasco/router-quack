@@ -8,7 +8,7 @@ First off, thank you for considering contributing to router-quack!
 
 - Check the [Issues](https://github.com/Tuasco/router-quack/issues) to see if the bug has already been reported.
 - If not, open a new issue using our **Bug Report** template.
-- Please include your YAML intent file and the incorrect output generated (which you can get with the `-v` or
+- Please include your intent file(s) and the incorrect output generated (which you can get with the `-v` or
   `--verbose` flags).
 
 ### Suggesting Enhancements
@@ -25,6 +25,11 @@ We follow the **Fork and Pull** model:
 3. **Create a branch** for your fix/feature (e.g., `git switch -c feature/new-vendor-support`).
 4. **Commit** your changes with clear, descriptive messages.
 5. **Push** to your fork and submit a **Pull Request** against our `main` branch.
+
+### Commit messages
+
+If you want a change to be mentioned in the release notes, it must start with a requarks type.
+Accepted types are : `feature`, `fix`, `perf`, `refactor`, `test`, `chore` and `ci`.
 
 ## Project Architecture
 
@@ -43,18 +48,16 @@ All pipeline steps implement `IStep`, which provides:
 
 #### Child Interfaces
 
-- **`IIntentFileParser`**: Reads and parses YAML intent files
+- **`IIntentFileParser`**: Reads and parses intent files
     - Implement this for new file format support
-    - Method: `ReadFiles(string[] filePaths)`
+  - Examples: YAML intent files parser
 
 - **`IValidator`**: Validates parsed configuration
     - Implement this for new validation rules
-    - Method: `Validate()`
     - Examples: `NoDuplicateRouterNames`, `ValidNetworkSpaces`
 
 - **`IProcessor`**: Processes and transforms configuration data
     - Implement this for new processing stages
-    - Method: `Process()`
     - Examples: Configuration generation, data transformation
 
 ### Adding New Features
