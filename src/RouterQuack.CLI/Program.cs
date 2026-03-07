@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using RouterQuack.CLI.Startup;
 using RouterQuack.Core;
+using RouterQuack.Core.ConfigFileWriters;
 using RouterQuack.Core.Extensions;
 using RouterQuack.Core.IntentFileParsers;
 using RouterQuack.Core.Processors;
@@ -36,6 +37,24 @@ try
     context.ExecuteStep(di.GetRequiredKeyedService<IProcessor>(nameof(GenerateLinkAddresses)))
         .ExecuteStep(di.GetRequiredKeyedService<IProcessor>(nameof(GenerateLoopbackAddresses)))
         .ExecuteStep(di.GetRequiredKeyedService<IProcessor>(nameof(PopulateRouterIds)));
+
+    // Stop here if dry run
+    if (context.DryRun)
+    {
+        Log.Information("Skipping config files generation and deployment...");
+        return;
+    }
+
+    // Write config files to output folder
+    Log.Information("Generating config files...");
+
+    if (!Directory.Exists(context.OutputDirectoryPath))
+    {
+        Log.Debug("Creating output directory.");
+        Directory.CreateDirectory(context.OutputDirectoryPath);
+    }
+
+    context.ExecuteStep(di.GetRequiredKeyedService<IConfigFileWriter>(RouterBrand.Cisco));
 }
 catch (StepException)
 {

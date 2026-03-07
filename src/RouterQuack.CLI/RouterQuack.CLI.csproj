@@ -11,6 +11,7 @@
     <ItemGroup>
         <ProjectReference Include="..\RouterQuack.Core\RouterQuack.Core.csproj" />
         <ProjectReference Include="..\RouterQuack.IO.Yaml\RouterQuack.IO.Yaml.csproj" />
+        <ProjectReference Include="..\RouterQuack.IO.Cisco\RouterQuack.IO.Cisco.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
