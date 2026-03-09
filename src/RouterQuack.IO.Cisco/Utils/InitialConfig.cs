@@ -11,6 +11,7 @@ internal static class InitialConfig
         builder.AppendLine(BootConfig);
         builder.AppendLine(PostBootConfig);
         builder.AppendLine(ConnectionConfig);
+        builder.AppendLine(IpConfig);
     }
 
     private const string PreBootConfig =

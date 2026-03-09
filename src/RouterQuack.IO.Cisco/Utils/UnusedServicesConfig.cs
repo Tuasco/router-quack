@@ -6,7 +6,7 @@ internal static class UnusedServicesConfig
 {
     internal static void ApplyUnusedServicesConfig(StringBuilder builder)
     {
-        builder.AppendLine();
+        builder.AppendLine(Config);
     }
 
     private const string Config =
