@@ -31,12 +31,14 @@ public class CiscoWriter(ILogger<CiscoWriter> logger, Context context) : IConfig
                 var builder = new StringBuilder();
                 InitialConfig.ApplyInitialConfig(builder, router.Name);
                 OspfConfig.ApplyOspfConfig(builder, router.Id);
-                BgpConfig.ApplyBgpConfig(builder, router);
+                //BgpConfig.ApplyBgpConfig(builder, router);
                 InterfacesConfig.ApplyInterfacesConfig(builder, router);
                 UnusedServicesConfig.ApplyUnusedServicesConfig(builder);
                 LoggingConfig.ApplyLoggingConfig(builder);
                 builder.Append("end");
-                Console.WriteLine(builder.ToString());
+
+                using var file = new FileStream(Path.Join(path, $"{router.Name}.cfg"), FileMode.Create);
+                file.Write(Encoding.UTF8.GetBytes(builder.ToString()));
             }
         }
     }
