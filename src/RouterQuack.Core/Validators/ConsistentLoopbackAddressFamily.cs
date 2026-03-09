@@ -16,7 +16,6 @@ public class ConsistentLoopbackAddressFamily(
         foreach (var @as in Context.Asses)
         {
             var defaultFamily = @as.LoopbackSpace?.BaseAddress.AddressFamily;
-            Console.WriteLine($"Default family : {defaultFamily}");
 
             foreach (var router in @as.Routers)
             {
