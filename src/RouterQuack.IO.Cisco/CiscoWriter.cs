@@ -22,12 +22,18 @@ public class CiscoWriter(ILogger<CiscoWriter> logger, Context context) : IConfig
 
         foreach (var @as in Context.Asses)
         {
+            if (@as.FullyExternal)
+                continue;
+
             var path = Path.Join(outputDirectory, @as.Number.ToString());
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
 
             foreach (var router in @as.Routers)
             {
+                if (router.External)
+                    continue;
+
                 var builder = new StringBuilder();
                 InitialConfig.ApplyInitialConfig(builder, router.Name);
                 OspfConfig.ApplyOspfConfig(builder, router.Id);

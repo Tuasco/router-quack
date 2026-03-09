@@ -9,8 +9,7 @@ internal static class InterfacesConfig
 {
     internal static void ApplyInterfacesConfig(StringBuilder builder, Router router)
     {
-        if (!router.External)
-            ApplyLoopbackConfig(builder, router.LoopbackAddress!.IpAddress);
+        ApplyLoopbackConfig(builder, router.LoopbackAddress!.IpAddress);
     }
 
     private static void ApplyLoopbackConfig(StringBuilder builder, IPAddress loopback)
