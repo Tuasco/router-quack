@@ -32,7 +32,7 @@ public class CiscoWriter(ILogger<CiscoWriter> logger, Context context) : IConfig
                 InitialConfig.ApplyInitialConfig(builder, router.Name);
                 OspfConfig.ApplyOspfConfig(builder, router.Id);
                 BgpConfig.ApplyBgpConfig(builder, router);
-                InterfacesConfig.ApplyInterfacesConfig(builder);
+                InterfacesConfig.ApplyInterfacesConfig(builder, router);
                 UnusedServicesConfig.ApplyUnusedServicesConfig(builder);
                 LoggingConfig.ApplyLoggingConfig(builder);
                 builder.Append("end");
