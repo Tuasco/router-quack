@@ -22,6 +22,8 @@ public sealed class Router
 
     public required As ParentAs { get; init; }
 
+    public bool BorderRouter => Interfaces.Any(i => i.Bgp != BgpRelationship.None);
+
     [Pure]
     public override string ToString()
     {
