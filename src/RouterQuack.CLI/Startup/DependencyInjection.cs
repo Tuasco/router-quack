@@ -68,7 +68,8 @@ public static class DependencyInjection
         builder.Services
             .AddKeyedSingleton<IProcessor, ResolveNeighbours>(nameof(ResolveNeighbours))
             .AddKeyedSingleton<IProcessor, GenerateLinkAddresses>(nameof(GenerateLinkAddresses))
-            .AddKeyedSingleton<IProcessor, GenerateLoopbackAddresses>(nameof(GenerateLoopbackAddresses));
+            .AddKeyedSingleton<IProcessor, GenerateLoopbackAddresses>(nameof(GenerateLoopbackAddresses))
+            .AddKeyedSingleton<IProcessor, PopulateRouterIds>(nameof(PopulateRouterIds));
 
         return builder.Build().Services.CreateScope();
     }

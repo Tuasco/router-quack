@@ -1,9 +1,12 @@
 using System.Net;
+using RouterQuack.Core.Utils;
 
 namespace RouterQuack.Tests.Unit.TestHelpers;
 
 internal static class TestData
 {
+    private static RouterUtils _routerUtils = new RouterUtils();
+
     internal static As CreateAs(
         int number = 1,
         IgpType igp = IgpType.Ibgp,
@@ -42,14 +45,15 @@ internal static class TestData
         IPAddress? loopbackAddressV6 = null,
         bool external = false,
         ICollection<Interface>? interfaces = null,
-        As? parentAs = null)
+        As? parentAs = null,
+        bool useDefaultId = true)
     {
         var interfaceList = interfaces?.ToList() ?? [];
 
         var router = new Router
         {
             Name = name,
-            Id = id ?? IPAddress.Parse("1.2.3.4"),
+            Id = id,
             Brand = brand,
             LoopbackAddressV4 = loopbackAddressV4,
             LoopbackAddressV6 = loopbackAddressV6,
@@ -57,6 +61,9 @@ internal static class TestData
             Interfaces = interfaceList,
             ParentAs = parentAs!
         };
+
+        if (useDefaultId)
+            router.Id ??= _routerUtils.GetDefaultId(name);
 
         foreach (var @interface in interfaceList)
             SetParentRouter(@interface, router);

@@ -36,7 +36,7 @@ public partial class YamlParser
             var router = new Router
             {
                 Name = key,
-                Id = value.Id ?? routerUtils.GetDefaultId(key),
+                Id = value.Id,
                 Brand = routerBrand,
                 LoopbackAddressV4 = value.LoopbackV4,
                 LoopbackAddressV6 = value.LoopbackV6,

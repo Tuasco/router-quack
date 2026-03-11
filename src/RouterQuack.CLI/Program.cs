@@ -34,7 +34,8 @@ try
 
     // Execute other processors
     context.ExecuteStep(di.GetRequiredKeyedService<IProcessor>(nameof(GenerateLinkAddresses)))
-        .ExecuteStep(di.GetRequiredKeyedService<IProcessor>(nameof(GenerateLoopbackAddresses)));
+        .ExecuteStep(di.GetRequiredKeyedService<IProcessor>(nameof(GenerateLoopbackAddresses)))
+        .ExecuteStep(di.GetRequiredKeyedService<IProcessor>(nameof(PopulateRouterIds)));
 }
 catch (StepException)
 {

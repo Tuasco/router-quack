@@ -8,7 +8,7 @@ public sealed class Router
 {
     public required string Name { get; init; }
 
-    public required IPAddress Id { get; init; }
+    public required IPAddress? Id { get; set; }
 
     public required RouterBrand Brand { get; init; }
 
