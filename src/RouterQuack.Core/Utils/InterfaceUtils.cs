@@ -4,6 +4,7 @@ using System.Diagnostics.Contracts;
 namespace RouterQuack.Core.Utils;
 
 [SuppressMessage("Performance", "CA1822:Mark members as static")]
+[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
 public sealed class InterfaceUtils
 {
     /// <param name="bgp">A BGP relationship (string format).</param>
@@ -19,18 +20,4 @@ public sealed class InterfaceUtils
             ? bgpRelationship
             : throw new ArgumentException("Couldn't parse BGP relationship");
     }
-
-    /// <summary>
-    /// Return whether an interface has a common network with its neighbour.
-    /// </summary>
-    /// <param name="interface"></param>
-    /// <returns><c>true</c> if the interfaces of the link share a common network.</returns>
-    [Pure]
-    public bool HasLinkNetwork(Interface @interface)
-        => (from address in @interface.Addresses
-                from neighbourAddress in @interface.Neighbour!.Addresses
-                where address.NetworkAddress.Equals(neighbourAddress.NetworkAddress)
-                      && !address.IpAddress.Equals(neighbourAddress.IpAddress)
-                select true)
-            .Any();
 }

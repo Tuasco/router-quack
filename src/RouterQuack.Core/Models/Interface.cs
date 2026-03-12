@@ -12,6 +12,10 @@ public sealed class Interface
 
     public BgpRelationship Bgp { get; init; } = BgpRelationship.None;
 
+    public Address? Ipv4Address { get; set; }
+
+    public Address? Ipv6Address { get; set; }
+
     public required ICollection<Address> Addresses { get; init; }
 
     public required Router ParentRouter { get; init; }

@@ -35,16 +35,22 @@ public sealed class NetworkUtils
     /// <param name="space">The address space to pick networks from.</param>
     /// <param name="addressCount">A reference to a counter, used as an offset.</param>
     /// <param name="usedAddresses">A collection of unavailable IP addresses.</param>
+    /// <param name="checkNext">Whether to check if the next IP address is also unused.</param>
     /// <returns>A new unique IP address.</returns>
     /// <exception cref="InvalidOperationException">Overflow of <paramref name="space"/>.</exception>
     public IPAddress GenerateAvailableIpAddress(IPNetwork space,
         ref UInt128 addressCount,
-        ISet<IPAddress> usedAddresses)
+        ISet<IPAddress> usedAddresses,
+        bool checkNext = false)
     {
         var maxBits = space.BaseAddress.AddressFamily == AddressFamily.InterNetworkV6 ? 128 : 32;
         var hostBits = maxBits - space.PrefixLength;
         var baseBytes = space.BaseAddress.GetAddressBytes();
-        IPAddress ip;
+        IPAddress ip, nextIp = null!;
+
+        var condition = (IPAddress ip1, IPAddress ip2) => usedAddresses.Contains(ip1);
+        if (checkNext)
+            condition = (ip1, ip2) => usedAddresses.Contains(ip1) || usedAddresses.Contains(ip2);
 
         do
         {
@@ -54,7 +60,10 @@ public sealed class NetworkUtils
 
             ip = ApplyOffset(baseBytes, addressCount);
             addressCount++;
-        } while (usedAddresses.Contains(ip));
+
+            if (checkNext)
+                nextIp = ApplyOffset(baseBytes, addressCount);
+        } while (condition(ip, nextIp));
 
         usedAddresses.Add(ip);
         return ip;

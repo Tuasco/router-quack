@@ -29,7 +29,7 @@ public static class AsCollectionExtensions
         /// <returns>An <see cref="Enumerable" /> of <see cref="Tuple{Interface, Interface}"/>.</returns>
         /// <exception cref="ArgumentNullException">The neighbour of an interface is null.</exception>
         [Pure]
-        public IEnumerable<Tuple<Interface, Interface>> GetAllLinks(
+        public IEnumerable<(Interface, Interface)> GetAllLinks(
             Func<Interface, bool>? predicate = null,
             bool validateBoth = false)
 
@@ -46,7 +46,7 @@ public static class AsCollectionExtensions
 
             return interfaces
                 .Where(FilterDuplicates)
-                .Select(i => new Tuple<Interface, Interface>(i, i.Neighbour!));
+                .Select(i => (i, i.Neighbour!));
 
             bool FilterDuplicates(Interface @interface)
             {

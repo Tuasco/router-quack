@@ -8,15 +8,14 @@ namespace RouterQuack.Core.Processors;
 public class GenerateLinkAddresses(
     ILogger<GenerateLinkAddresses> logger,
     Context context,
-    NetworkUtils networkUtils,
-    InterfaceUtils interfaceUtils) : IProcessor
+    NetworkUtils networkUtils) : IProcessor
 {
     public bool ErrorsOccurred { get; set; }
     public string BeginMessage => "Generating addresses for interfaces";
     public ILogger Logger { get; } = logger;
     public Context Context { get; } = context;
 
-    private UInt128 _addressCount;
+    private UInt128 _addressCountV4, _addressCountV6;
     private HashSet<IPAddress> _usedAddresses = null!;
     private const IpVersion BothVersions = IpVersion.Ipv6 | IpVersion.Ipv4;
 
@@ -29,30 +28,53 @@ public class GenerateLinkAddresses(
             .Select(a => a.IpAddress)
             .ToHashSet();
 
-        var links = Context.Asses.GetAllLinks(i => !interfaceUtils.HasLinkNetwork(i));
-
-        foreach (var link in links)
+        foreach (var link in Context.Asses.GetAllLinks())
         {
-            if (link.Item1.ParentRouter.External || link.Item2.ParentRouter.External)
+            var addresses = GetLinkNetworks(link).ToArray();
+
+            // If we need to generate IPv4 link addresses
+            if ((link.Item1.ParentRouter.ParentAs.NetworksIpVersion & IpVersion.Ipv4) == IpVersion.Ipv4
+                || (link.Item2.ParentRouter.ParentAs.NetworksIpVersion & IpVersion.Ipv4) == IpVersion.Ipv4)
             {
-                this.Log(link.Item1,
-                    "Self or neighbour is in an external router, yet no valid link addresses were assigned");
-                continue;
+                var ipv4Addresses = addresses.Where(a
+                    => a.address.NetworkAddress.BaseAddress.AddressFamily == AddressFamily.InterNetwork).ToArray();
+                switch (ipv4Addresses.Length)
+                {
+                    case 0:
+                        AssignIpAddress(link, IpVersion.Ipv4);
+                        break;
+
+                    case 1:
+                        (link.Item1.Ipv4Address, link.Item2.Ipv4Address) = ipv4Addresses.First();
+                        break;
+
+                    default:
+                        this.Log(link.Item1, "Many IPv4 links between self an neighbour.");
+                        break;
+                }
             }
 
-            var generateIpv4 =
-                (link.Item1.ParentRouter.ParentAs.NetworksIpVersion & IpVersion.Ipv4) == IpVersion.Ipv4
-                || (link.Item2.ParentRouter.ParentAs.NetworksIpVersion & IpVersion.Ipv4) == IpVersion.Ipv4;
+            // If we need to generate IPv6 link addresses
+            if ((link.Item1.ParentRouter.ParentAs.NetworksIpVersion & IpVersion.Ipv6) == IpVersion.Ipv6
+                || (link.Item2.ParentRouter.ParentAs.NetworksIpVersion & IpVersion.Ipv6) == IpVersion.Ipv6)
+            {
+                var ipv6Addresses = addresses.Where(a
+                    => a.address.NetworkAddress.BaseAddress.AddressFamily == AddressFamily.InterNetworkV6).ToArray();
+                switch (ipv6Addresses.Length)
+                {
+                    case 0:
+                        AssignIpAddress(link, IpVersion.Ipv6);
+                        break;
 
-            var generateIpv6 =
-                (link.Item1.ParentRouter.ParentAs.NetworksIpVersion & IpVersion.Ipv6) == IpVersion.Ipv6
-                || (link.Item2.ParentRouter.ParentAs.NetworksIpVersion & IpVersion.Ipv6) == IpVersion.Ipv6;
+                    case 1:
+                        (link.Item1.Ipv6Address, link.Item2.Ipv6Address) = ipv6Addresses.First();
+                        break;
 
-            if (generateIpv4)
-                AssignIpAddress(link, IpVersion.Ipv4);
-
-            if (generateIpv6)
-                AssignIpAddress(link, IpVersion.Ipv6);
+                    default:
+                        this.Log(link.Item1, "Many IPv6 links between self an neighbour.");
+                        break;
+                }
+            }
         }
     }
 
@@ -61,21 +83,35 @@ public class GenerateLinkAddresses(
     /// </summary>
     /// <param name="link">The interface to assign an IP address to.</param>
     /// <param name="ipVersion">The IP version to use.</param>
-    private void AssignIpAddress(Tuple<Interface, Interface> link, IpVersion ipVersion)
+    private void AssignIpAddress((Interface, Interface) link, IpVersion ipVersion)
     {
         var space = ipVersion switch
         {
             IpVersion.Ipv4 =>
-                link.Item1.ParentRouter.ParentAs.NetworksSpaceV4
-                ?? link.Item2.ParentRouter.ParentAs.NetworksSpaceV4,
+                link.Item1.ParentRouter.ParentAs.NetworksSpaceV4 ?? link.Item2.ParentRouter.ParentAs.NetworksSpaceV4,
 
             IpVersion.Ipv6 =>
-                link.Item1.ParentRouter.ParentAs.NetworksSpaceV6
-                ?? link.Item2.ParentRouter.ParentAs.NetworksSpaceV6,
+                link.Item1.ParentRouter.ParentAs.NetworksSpaceV6 ?? link.Item2.ParentRouter.ParentAs.NetworksSpaceV6,
 
             _ => null
         };
 
+        // Check that external routers have manually setup link addresses
+        if (link.Item1.ParentRouter.External)
+        {
+            this.Log(link.Item1, $"External router, " +
+                                 $"yet no valid {ipVersion.ToString()} link addresses were assigned");
+            return;
+        }
+
+        if (link.Item2.ParentRouter.External)
+        {
+            this.Log(link.Item2, $"External router, " +
+                                 $"yet no valid {ipVersion.ToString()} link addresses were assigned");
+            return;
+        }
+
+        // Check space is valid
         if (space is null)
         {
             this.Log(link.Item1, $"Cannot generate {ipVersion.ToString()} addresses for self and neighbour " +
@@ -84,38 +120,16 @@ public class GenerateLinkAddresses(
         }
 
         // About to generate a second IPv4 address
-        var match = false;
-
-        if (space.Value.BaseAddress.AddressFamily == AddressFamily.InterNetwork
-            && link.Item1.Addresses.Any(a => a.IpAddress.AddressFamily == AddressFamily.InterNetwork))
-        {
-            // Generate warning only if an IPv6 address has been or will be generated
-            var logLevel = link.Item1.ParentRouter is { External: false, ParentAs.NetworksIpVersion: BothVersions }
-                ? LogLevel.Warning
-                : LogLevel.Error;
-            this.Log(link.Item1, "Already has an IPv4 address", logLevel: logLevel);
-            match = true;
-        }
-
-        if (space.Value.BaseAddress.AddressFamily == AddressFamily.InterNetwork
-            && link.Item2.Addresses.Any(a => a.IpAddress.AddressFamily == AddressFamily.InterNetwork))
-        {
-            var logLevel = link.Item2.ParentRouter is { External: false, ParentAs.NetworksIpVersion: BothVersions }
-                ? LogLevel.Warning
-                : LogLevel.Error;
-            this.Log(link.Item2, "Already has an IPv4 address", logLevel: logLevel);
-            match = true;
-        }
-
-        if (match)
+        if (AlreadyHasIpv4Address(link, space.Value))
             return;
 
-        var maxBits = space.Value.BaseAddress.AddressFamily == AddressFamily.InterNetworkV6 ? 128 : 32;
+        // Generate and populate IP addresses
         IPAddress ip1, ip2;
         try
         {
-            ip1 = networkUtils.GenerateAvailableIpAddress(space.Value, ref _addressCount, _usedAddresses);
-            ip2 = networkUtils.GenerateAvailableIpAddress(space.Value, ref _addressCount, _usedAddresses);
+            ref var addressCount = ref ipVersion == IpVersion.Ipv4 ? ref _addressCountV4 : ref _addressCountV6;
+            ip1 = networkUtils.GenerateAvailableIpAddress(space.Value, ref addressCount, _usedAddresses, true);
+            ip2 = networkUtils.GenerateAvailableIpAddress(space.Value, ref addressCount, _usedAddresses);
         }
         catch (InvalidOperationException)
         {
@@ -123,13 +137,71 @@ public class GenerateLinkAddresses(
             return;
         }
 
+        var maxBits = ipVersion == IpVersion.Ipv6 ? 128 : 32;
         var linkNetwork = new IPNetwork(ip1, maxBits - 1);
-        link.Item1.Addresses.Add(new(linkNetwork, ip1));
-        link.Item2.Addresses.Add(new(linkNetwork, ip2));
+        if (ipVersion == IpVersion.Ipv4)
+        {
+            link.Item1.Ipv4Address = new(linkNetwork, ip1);
+            link.Item2.Ipv4Address = new(linkNetwork, ip2);
+        }
+        else
+        {
+            link.Item1.Ipv6Address = new(linkNetwork, ip1);
+            link.Item2.Ipv6Address = new(linkNetwork, ip2);
+        }
 
         logger.LogDebug("Generated link {IpNetwork} between {Router1}:{Interface1} and {Router2}:{Interface2}",
             linkNetwork,
             link.Item1.ParentRouter.Name, link.Item1.Name,
             link.Item2.ParentRouter.Name, link.Item2.Name);
     }
+
+    /// <summary>
+    /// Log warning or error if an interface of a link already has an IPv4 address, while trying to generate one.
+    /// </summary>
+    /// <param name="link">Link to process.</param>
+    /// <param name="space">Networks space of the link.</param>
+    /// <returns><c>true</c> if a warning or error was logged.</returns>
+    private bool AlreadyHasIpv4Address((Interface, Interface) link, IPNetwork space)
+    {
+        switch (space.BaseAddress.AddressFamily)
+        {
+            case AddressFamily.InterNetwork
+                when link.Item1.Addresses.Any(a => a.IpAddress.AddressFamily == AddressFamily.InterNetwork):
+            {
+                // Generate warning only if an IPv6 address has been or will be generated
+                var logLevel = link.Item1.ParentRouter is { External: false, ParentAs.NetworksIpVersion: BothVersions }
+                    ? LogLevel.Warning
+                    : LogLevel.Error;
+                this.Log(link.Item1, "Already has an IPv4 address", logLevel: logLevel);
+                return true;
+            }
+
+            case AddressFamily.InterNetwork
+                when link.Item2.Addresses.Any(a => a.IpAddress.AddressFamily == AddressFamily.InterNetwork):
+            {
+                var logLevel = link.Item2.ParentRouter is { External: false, ParentAs.NetworksIpVersion: BothVersions }
+                    ? LogLevel.Warning
+                    : LogLevel.Error;
+                this.Log(link.Item2, "Already has an IPv4 address", logLevel: logLevel);
+                return true;
+            }
+
+            default:
+                return false;
+        }
+    }
+
+    /// <summary>
+    /// Return the <see cref="Address"/>es of a link, if addresses share a common networks.
+    /// </summary>
+    /// <param name="link">The link to process.</param>
+    /// <returns>
+    /// A list of valid link addresses (i.e. when the interface's and neighbour's addresses share a common network).
+    /// </returns>
+    private static IEnumerable<(Address address, Address neighbourAddress)> GetLinkNetworks((Interface, Interface) link)
+        => link.Item1.Addresses
+            .SelectMany(_ => link.Item2.Addresses, (address, neighbourAddress) => (address, neighbourAddress))
+            .Where(t => t.address.NetworkAddress.Equals(t.neighbourAddress.NetworkAddress)
+                        && !t.address.IpAddress.Equals(t.neighbourAddress.IpAddress));
 }
