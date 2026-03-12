@@ -23,7 +23,7 @@ public class ValidLoopbackAddressesTests
         var validator = new ValidLoopbackAddresses(_logger, context);
         validator.Validate();
 
-        await Assert.That(validator.ErrorsOccurred).IsFalse();
+        await Assert.That(validator.Context.ErrorsOccurred).IsFalse();
     }
 
     [Test]
@@ -39,7 +39,7 @@ public class ValidLoopbackAddressesTests
         var validator = new ValidLoopbackAddresses(_logger, context);
         validator.Validate();
 
-        await Assert.That(validator.ErrorsOccurred).IsFalse();
+        await Assert.That(validator.Context.ErrorsOccurred).IsFalse();
     }
 
     [Test]
@@ -54,6 +54,6 @@ public class ValidLoopbackAddressesTests
         var validator = new ValidLoopbackAddresses(_logger, context);
         validator.Validate();
 
-        await Assert.That(validator.ErrorsOccurred).IsFalse();
+        await Assert.That(validator.Context.ErrorsOccurred).IsFalse();
     }
 }

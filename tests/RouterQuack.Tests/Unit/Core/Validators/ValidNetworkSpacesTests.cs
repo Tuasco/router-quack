@@ -26,7 +26,7 @@ public class ValidNetworkSpacesTests
         var validator = new ValidNetworkSpaces(_logger, context);
         validator.Validate();
 
-        await Assert.That(validator.ErrorsOccurred).IsFalse();
+        await Assert.That(validator.Context.ErrorsOccurred).IsFalse();
     }
 
     [Test]
@@ -44,7 +44,7 @@ public class ValidNetworkSpacesTests
         var validator = new ValidNetworkSpaces(_logger, context);
         validator.Validate();
 
-        await Assert.That(validator.ErrorsOccurred).IsTrue();
+        await Assert.That(validator.Context.ErrorsOccurred).IsTrue();
     }
 
     [Test]
@@ -62,7 +62,7 @@ public class ValidNetworkSpacesTests
         var validator = new ValidNetworkSpaces(_logger, context);
         validator.Validate();
 
-        await Assert.That(validator.ErrorsOccurred).IsTrue();
+        await Assert.That(validator.Context.ErrorsOccurred).IsTrue();
     }
 
     [Test]
@@ -80,7 +80,7 @@ public class ValidNetworkSpacesTests
         var validator = new ValidNetworkSpaces(_logger, context);
         validator.Validate();
 
-        await Assert.That(validator.ErrorsOccurred).IsTrue();
+        await Assert.That(validator.Context.ErrorsOccurred).IsTrue();
     }
 
     [Test]
@@ -98,7 +98,7 @@ public class ValidNetworkSpacesTests
         var validator = new ValidNetworkSpaces(_logger, context);
         validator.Validate();
 
-        await Assert.That(validator.ErrorsOccurred).IsTrue();
+        await Assert.That(validator.Context.ErrorsOccurred).IsTrue();
     }
 
     [Test]
@@ -116,6 +116,6 @@ public class ValidNetworkSpacesTests
         var validator = new ValidNetworkSpaces(_logger, context);
         validator.Validate();
 
-        await Assert.That(validator.ErrorsOccurred).IsFalse();
+        await Assert.That(validator.Context.ErrorsOccurred).IsFalse();
     }
 }

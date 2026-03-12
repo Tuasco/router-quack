@@ -7,7 +7,6 @@ namespace RouterQuack.Core.Validators;
 /// </summary>
 public class NoDuplicateLoopbackAddress(ILogger<NoDuplicateLoopbackAddress> logger, Context context) : IValidator
 {
-    public bool ErrorsOccurred { get; set; }
     public string BeginMessage => "Ensuring no duplicate manual IP address exist";
     public ILogger Logger { get; } = logger;
     public Context Context { get; } = context;

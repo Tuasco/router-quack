@@ -8,7 +8,6 @@ namespace RouterQuack.Core.Validators;
 /// /// <remarks>Will generate a warning if there are interfaces with an inter-AS neighbour but no BGP.</remarks>
 public class ValidBgpRelationships(ILogger<ValidBgpRelationships> logger, Context context) : IValidator
 {
-    public bool ErrorsOccurred { get; set; }
     public string BeginMessage => "Ensuring consistent BGP relationships between neighbours";
     public ILogger Logger { get; } = logger;
     public Context Context { get; } = context;

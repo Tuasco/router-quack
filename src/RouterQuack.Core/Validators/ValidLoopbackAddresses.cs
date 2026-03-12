@@ -8,7 +8,6 @@ namespace RouterQuack.Core.Validators;
 /// </summary>
 public class ValidLoopbackAddresses(ILogger<ValidLoopbackAddresses> logger, Context context) : IValidator
 {
-    public bool ErrorsOccurred { get; set; }
     public string BeginMessage => "Ensuring loopback addresses are valid";
     public ILogger Logger { get; } = logger;
     public Context Context { get; } = context;
