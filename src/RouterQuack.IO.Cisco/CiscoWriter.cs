@@ -36,9 +36,9 @@ public class CiscoWriter(ILogger<CiscoWriter> logger, Context context) : IConfig
 
                 var builder = new StringBuilder();
                 InitialConfig.ApplyInitialConfig(builder, router.Name);
-                OspfConfig.ApplyOspfConfig(builder, router.Id);
-                BgpConfig.ApplyBgpConfig(builder, router);
+                OspfConfig.ApplyOspfConfig(builder, router.Id!);
                 InterfacesConfig.ApplyInterfacesConfig(builder, router);
+                BgpConfig.ApplyBgpConfig(builder, router);
                 UnusedServicesConfig.ApplyUnusedServicesConfig(builder);
                 LoggingConfig.ApplyLoggingConfig(builder);
                 builder.Append("end");

@@ -32,7 +32,6 @@ internal static class InitialConfig
     private const string PostBootConfig =
         """
         no ip domain lookup
-        transport preferred none
         !
         !
         """;
@@ -64,7 +63,7 @@ internal static class InitialConfig
         ipv6 unicast-routing
         ipv6 cef
         ip tcp synwait-time 5
-        ip icmp error-interval 0
+        ipv6 icmp error-interval 0
         !
         !
         """;

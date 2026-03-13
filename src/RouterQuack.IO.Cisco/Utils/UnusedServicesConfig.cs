@@ -23,7 +23,6 @@ internal static class UnusedServicesConfig
         no service config
         no snmp-server
         no cdp run
-        no lldp run
         !
         !
         """;

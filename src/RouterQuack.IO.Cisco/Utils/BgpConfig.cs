@@ -1,4 +1,3 @@
-using System.Net.Sockets;
 using System.Text;
 using RouterQuack.Core.Models;
 
@@ -19,18 +18,17 @@ internal static class BgpConfig
         builder.AppendLine($" bgp router-id {router.Id}");
         builder.AppendLine(ConfigStart);
 
-        var neighbours = router.Interfaces.Select(i => i.Neighbour!).ToArray();
+        var ibgpNeighbours = router.ParentAs.Routers.ToArray();
+        var ebgpNeighbours = router.Interfaces
+            .Where(r => r.Bgp != BgpRelationship.None)
+            .Select(i => i.Neighbour!)
+            .ToArray();
+
         List<string> ipv4AddressFamily = [];
         List<string> ipv6AddressFamily = [];
 
-        // Configure eBGP neighbours
-        if (isBorderRouter)
-            ConfigureEbgp(builder, neighbours, ipv4AddressFamily, ipv6AddressFamily);
-
-        // Configure iBGP neighbours
-        if (router.ParentAs.Igp == IgpType.Ibgp)
-            ConfigureIbgp(builder, neighbours, router.ParentAs.Number, ipv4AddressFamily, ipv6AddressFamily);
-
+        ConfigureEbgp(builder, ebgpNeighbours, ipv4AddressFamily, ipv6AddressFamily);
+        ConfigureIbgp(builder, ibgpNeighbours, ipv4AddressFamily, ipv6AddressFamily);
         ConfigureAddressFamilies(builder, ipv4AddressFamily, ipv6AddressFamily);
     }
 
@@ -47,36 +45,54 @@ internal static class BgpConfig
         in List<string> ipv4AddressFamily,
         in List<string> ipv6AddressFamily)
     {
-        foreach (var neighbour in neighbours.Where(i => i.Bgp != BgpRelationship.None))
+        foreach (var neighbour in neighbours)
         {
-            var address = neighbour.Addresses.First().IpAddress;
-            builder.AppendLine($" neighbor {address} remote-as {neighbour.ParentRouter.ParentAs.Number}");
+            var addressV4 = neighbour.Ipv4Address?.IpAddress;
 
-            var addressFamily = address.AddressFamily == AddressFamily.InterNetwork
-                ? ipv4AddressFamily
-                : ipv6AddressFamily;
+            if (addressV4 is not null)
+            {
+                builder.AppendLine($" neighbor {addressV4} remote-as {neighbour.ParentRouter.ParentAs.Number}");
+                ipv4AddressFamily.Add($"  neighbor {addressV4} activate");
+            }
 
-            addressFamily.Add($"  neighbor {address} activate");
+            var addressV6 = neighbour.Ipv6Address?.IpAddress;
+
+            // ReSharper disable once InvertIf
+            if (addressV6 is not null)
+            {
+                builder.AppendLine($" neighbor {addressV6} remote-as {neighbour.ParentRouter.ParentAs.Number}");
+                ipv6AddressFamily.Add($"  neighbor {addressV6} activate");
+            }
         }
     }
 
     private static void ConfigureIbgp(StringBuilder builder,
-        Interface[] neighbours,
-        int asNumber,
+        Router[] neighbours,
         in List<string> ipv4AddressFamily,
         in List<string> ipv6AddressFamily)
     {
-        foreach (var neighbour in neighbours.Where(i => i.Bgp == BgpRelationship.None))
+        foreach (var neighbour in neighbours)
         {
-            var address = neighbour.ParentRouter.LoopbackAddress!.IpAddress;
-            builder.AppendLine($" neighbor {address} remote-as {asNumber}");
-            builder.AppendLine($" neighbor {address} update-source Loopback0");
+            var addressV4 = neighbour.LoopbackAddressV4;
 
-            var addressFamily = address.AddressFamily == AddressFamily.InterNetwork
-                ? ipv4AddressFamily
-                : ipv6AddressFamily;
+            if (addressV4 is not null)
+            {
+                builder.AppendLine($" neighbor {addressV4} remote-as {neighbour.ParentAs.Number}");
+                builder.AppendLine($" neighbor {addressV4} update-source Loopback0");
+                ipv4AddressFamily.Add($"  neighbor {addressV4} activate");
+                ipv4AddressFamily.Add($"  neighbor {addressV4} next-hop-self");
+            }
 
-            addressFamily.AddRange([$"  neighbor {address} activate", $"  neighbor {address} next-hop-self"]);
+            var addressV6 = neighbour.LoopbackAddressV6;
+
+            // ReSharper disable once InvertIf
+            if (addressV6 is not null)
+            {
+                builder.AppendLine($" neighbor {addressV6} remote-as {neighbour.ParentAs.Number}");
+                builder.AppendLine($" neighbor {addressV6} update-source Loopback0");
+                ipv6AddressFamily.Add($"  neighbor {addressV6} activate");
+                ipv6AddressFamily.Add($"  neighbor {addressV6} next-hop-self");
+            }
         }
     }
 
@@ -87,14 +103,12 @@ internal static class BgpConfig
         builder.AppendLine(" !");
         builder.AppendLine(" address-family ipv4 unicast");
         builder.AppendJoin("\n", ipv4AddressFamily);
-        builder.Append(ipv4AddressFamily.Any() ? "\n" : null);
-        builder.AppendLine("  exit");
+        builder.AppendLine($"{(ipv4AddressFamily.Any() ? '\n' : null)}  exit-address-family");
 
         builder.AppendLine(" !");
         builder.AppendLine(" address-family ipv6");
         builder.AppendJoin("\n", ipv6AddressFamily);
-        builder.Append(ipv6AddressFamily.Any() ? "\n" : null);
-        builder.AppendLine("  exit");
+        builder.AppendLine($"{(ipv6AddressFamily.Any() ? '\n' : null)}  exit-address-family");
 
         builder.AppendLine("!\n!");
     }

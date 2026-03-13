@@ -20,7 +20,6 @@ internal static class LoggingConfig
         logging buffered 64000
         logging console critical
         logging monitor debugging
-        logging synchronous
         !
         !
         """;

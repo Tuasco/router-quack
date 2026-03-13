@@ -9,7 +9,7 @@ internal static class InterfacesConfig
 {
     internal static void ApplyInterfacesConfig(StringBuilder builder, Router router)
     {
-        ApplyLoopbackConfig(builder, router.LoopbackAddress!.IpAddress);
+        ApplyLoopbackConfig(builder, router.LoopbackAddressV4, router.LoopbackAddressV6);
 
         builder.AppendLine(InterfacesConfigHeader);
         foreach (var @interface in router.Interfaces)
@@ -18,18 +18,22 @@ internal static class InterfacesConfig
 
     private const string InterfacesConfigHeader = "! ================= INTERFACES =================";
 
-    private static void ApplyLoopbackConfig(StringBuilder builder, IPAddress loopback)
+    private static void ApplyLoopbackConfig(StringBuilder builder, IPAddress? loopbackV4, IPAddress? loopbackV6)
     {
+        if (loopbackV4 is null && loopbackV6 is null)
+            return;
+
         builder.AppendLine(LoopbackConfigStart);
 
-        if (loopback.AddressFamily == AddressFamily.InterNetwork)
+        if (loopbackV4 is not null)
         {
-            builder.AppendLine($" ip address {loopback} 255.255.255.255");
+            builder.AppendLine($" ip address {loopbackV4} 255.255.255.255");
             builder.AppendLine(" ip ospf 1 area 0");
         }
-        else
+
+        if (loopbackV6 is not null)
         {
-            builder.AppendLine($" ipv6 address {loopback}/128");
+            builder.AppendLine($" ipv6 address {loopbackV6}/128");
             builder.AppendLine(" ipv6 ospf 1 area 0");
         }
 
@@ -48,31 +52,37 @@ internal static class InterfacesConfig
         builder.AppendLine(InterfaceConfigStart);
 
         // IPv4
-        var ipv4Addresses = @interface.Addresses
-            .Where(a => a.IpAddress.AddressFamily == AddressFamily.InterNetwork).ToArray();
+        var ipv4Address =
+            @interface.Addresses.FirstOrDefault(a => a.IpAddress.AddressFamily == AddressFamily.InterNetwork)
+            ?? @interface.Ipv4Address;
 
-        // ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
-        if (!ipv4Addresses.Any())
+        if (ipv4Address is not null)
+        {
+            builder.AppendLine(
+                $" ip address {ipv4Address.IpAddress} {GetV4Mask(ipv4Address.NetworkAddress.PrefixLength)}");
+
+            if (@interface.Bgp == BgpRelationship.None)
+                builder.AppendLine(" ip ospf 1 area 0");
+        }
+        else
             builder.AppendLine(" no ip address");
-        else if (@interface.Bgp == BgpRelationship.None)
-            builder.AppendLine(" ip ospf 1 area 0");
-
-        foreach (var address in ipv4Addresses)
-            builder.AppendLine($" ip address {address.IpAddress} {GetV4Mask(address.NetworkAddress.PrefixLength)}");
 
         // IPv6
         var ipv6Addresses = @interface.Addresses
-            .Where(a => a.IpAddress.AddressFamily == AddressFamily.InterNetworkV6).ToArray();
+            .Where(a => a.IpAddress.AddressFamily == AddressFamily.InterNetworkV6)
+            .ToList();
+
+        if (@interface.Ipv6Address is not null)
+            ipv6Addresses.Insert(0, @interface.Ipv6Address);
 
         if (ipv6Addresses.Any())
-        {
             builder.AppendLine(" ipv6 enable");
-            if (@interface.Bgp == BgpRelationship.None)
-                builder.AppendLine(" ipv6 ospf 1 area 0");
-        }
 
         foreach (var address in ipv6Addresses)
             builder.AppendLine($" ipv6 address {address.IpAddress}/{address.NetworkAddress.PrefixLength}");
+
+        if (ipv6Addresses.Any() && @interface.Bgp == BgpRelationship.None)
+            builder.AppendLine(" ipv6 ospf 1 area 0");
 
         builder.AppendLine("!\n!");
         return;

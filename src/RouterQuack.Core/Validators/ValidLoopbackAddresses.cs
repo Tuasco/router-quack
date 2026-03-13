@@ -6,7 +6,7 @@ namespace RouterQuack.Core.Validators;
 /// <summary>
 /// Generate an error if a loopback address is not in /128 (or /32 in IPv4) or is of the wrong address family
 /// </summary>
-public class ValidLoopbackMasks(ILogger<ValidLoopbackMasks> logger, Context context) : IValidator
+public class ValidLoopbackAddresses(ILogger<ValidLoopbackAddresses> logger, Context context) : IValidator
 {
     public bool ErrorsOccurred { get; set; }
     public string BeginMessage => "Ensuring loopback masks are valid";

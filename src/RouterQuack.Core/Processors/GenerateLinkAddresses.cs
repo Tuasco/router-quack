@@ -45,7 +45,10 @@ public class GenerateLinkAddresses(
                         break;
 
                     case 1:
-                        (link.Item1.Ipv4Address, link.Item2.Ipv4Address) = ipv4Addresses.First();
+                        var linkAddresses = ipv4Addresses.First();
+                        (link.Item1.Ipv4Address, link.Item2.Ipv4Address) = linkAddresses;
+                        link.Item1.Addresses.Remove(linkAddresses.address);
+                        link.Item2.Addresses.Remove(linkAddresses.neighbourAddress);
                         break;
 
                     default:
@@ -67,7 +70,10 @@ public class GenerateLinkAddresses(
                         break;
 
                     case 1:
-                        (link.Item1.Ipv6Address, link.Item2.Ipv6Address) = ipv6Addresses.First();
+                        var linkAddresses = ipv6Addresses.First();
+                        (link.Item1.Ipv6Address, link.Item2.Ipv6Address) = linkAddresses;
+                        link.Item1.Addresses.Remove(linkAddresses.address);
+                        link.Item2.Addresses.Remove(linkAddresses.neighbourAddress);
                         break;
 
                     default:
