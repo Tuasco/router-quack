@@ -11,17 +11,17 @@
       id: "1.1.1.1"
       loopback_v6: "2001:1:1:1::1"
       interfaces:
-        GigabitEthernet0/0:
+        GigabitEthernet1/0:
           neighbour: "112:R2"
           bgp: "peer"
           addresses:
             - "2001:db8:1::0/127"
             - "192.168.1.0/31"
-        GigabitEthernet1/0:
+        GigabitEthernet2/0:
           neighbour: "R3"
     R3:
       interfaces:
-        GigabitEthernet0/0:
+        GigabitEthernet1/0:
           neighbour: "R1"
 
 112:
@@ -29,7 +29,7 @@
     R2:
       external: true
       interfaces:
-        GigabitEthernet0/0:
+        GigabitEthernet1/0:
           neighbour: "111:R1"
           bgp: "peer"
           addresses:

@@ -11,7 +11,6 @@ public class GenerateLinkAddressesTests
 {
     private readonly ILogger<GenerateLinkAddresses> _logger = Substitute.For<ILogger<GenerateLinkAddresses>>();
     private readonly NetworkUtils _networkUtils = new();
-    private readonly InterfaceUtils _interfaceUtils = new();
 
     [Test]
     public async Task Process_LinkWithoutAddress_GeneratesAddressesV4()
@@ -22,6 +21,33 @@ public class GenerateLinkAddressesTests
             TestData.CreateAs(
                 networksSpaceV4: IPNetwork.Parse("192.168.1.0/24"),
                 networksIpVersion: IpVersion.Ipv4,
+                routers:
+                [
+                    TestData.CreateRouter(name: "Router1", external: false, interfaces: [intf1]),
+                    TestData.CreateRouter(name: "Router2", external: false, interfaces: [intf2])
+                ])
+        };
+
+        var context = ContextFactory.Create(asses: asses);
+        var processor = new GenerateLinkAddresses(_logger, context, _networkUtils);
+        processor.Process();
+
+        await Assert.That(intf1.Ipv4Address).IsNotNull();
+        await Assert.That(intf2.Ipv4Address).IsNotNull();
+        await Assert.That(intf1.Ipv4Address!.NetworkAddress).IsEqualTo(intf2.Ipv4Address!.NetworkAddress);
+        await Assert.That(intf1.Ipv4Address!.IpAddress).IsNotEqualTo(intf2.Ipv4Address!.IpAddress);
+        await Assert.That(processor.Context.ErrorsOccurred).IsFalse();
+    }
+
+    [Test]
+    public async Task Process_LinkWithoutAddress_GeneratesAddressesV6()
+    {
+        var (intf1, intf2) = CreateLinkedInterfaces();
+        var asses = new List<As>
+        {
+            TestData.CreateAs(
+                networksSpaceV6: IPNetwork.Parse("2001:db8::/64"),
+                networksIpVersion: IpVersion.Ipv6,
                 routers:
                 [
                     TestData.CreateRouter(name: "Router1", external: false, interfaces: [intf1]),

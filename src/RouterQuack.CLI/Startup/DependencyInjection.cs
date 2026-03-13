@@ -1,9 +1,11 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using RouterQuack.Core.ConfigFileWriters;
 using RouterQuack.Core.IntentFileParsers;
 using RouterQuack.Core.Processors;
 using RouterQuack.Core.Utils;
 using RouterQuack.Core.Validators;
+using RouterQuack.IO.Cisco;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
@@ -78,6 +80,9 @@ public static class DependencyInjection
             .AddKeyedSingleton<IProcessor, GenerateLinkAddresses>(nameof(GenerateLinkAddresses))
             .AddKeyedSingleton<IProcessor, GenerateLoopbackAddresses>(nameof(GenerateLoopbackAddresses))
             .AddKeyedSingleton<IProcessor, PopulateRouterIds>(nameof(PopulateRouterIds));
+
+        builder.Services
+            .AddKeyedSingleton<IConfigFileWriter, CiscoWriter>(RouterBrand.Cisco);
 
         return builder.Build().Services.CreateScope();
     }
