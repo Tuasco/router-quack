@@ -9,7 +9,6 @@ public class GenerateLoopbackAddresses(
     Context context,
     NetworkUtils networkUtils) : IProcessor
 {
-    public bool ErrorsOccurred { get; set; }
     public string BeginMessage => "Generating loopback addresses for routers";
     public ILogger Logger { get; } = logger;
     public Context Context { get; } = context;

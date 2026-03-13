@@ -9,7 +9,10 @@ using RouterQuack.IO.Cisco;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
+using YamlAsMapper = RouterQuack.IO.Yaml.Parser.YamlAsMapper;
+using YamlInterfaceMapper = RouterQuack.IO.Yaml.Parser.YamlInterfaceMapper;
 using YamlParser = RouterQuack.IO.Yaml.Parser.YamlParser;
+using YamlRouterMapper = RouterQuack.IO.Yaml.Parser.YamlRouterMapper;
 
 namespace RouterQuack.CLI.Startup;
 
@@ -53,6 +56,11 @@ public static class DependencyInjection
             .AddSingleton<AsUtils>()
             .AddSingleton<RouterUtils>()
             .AddSingleton<InterfaceUtils>();
+
+        builder.Services
+            .AddSingleton<YamlInterfaceMapper>()
+            .AddSingleton<YamlRouterMapper>()
+            .AddSingleton<YamlAsMapper>();
 
         // Register steps
         builder.Services.AddSingleton<IIntentFileParser, YamlParser>();

@@ -27,7 +27,7 @@ public class ValidLoopbackSpacesTests
         var validator = new ValidLoopbackSpaces(_logger, context);
         validator.Validate();
 
-        await Assert.That(validator.ErrorsOccurred).IsFalse();
+        await Assert.That(validator.Context.ErrorsOccurred).IsFalse();
     }
 
     [Test]
@@ -43,7 +43,7 @@ public class ValidLoopbackSpacesTests
         var validator = new ValidLoopbackSpaces(_logger, context);
         validator.Validate();
 
-        await Assert.That(validator.ErrorsOccurred).IsTrue();
+        await Assert.That(validator.Context.ErrorsOccurred).IsTrue();
     }
 
     [Test]
@@ -59,7 +59,7 @@ public class ValidLoopbackSpacesTests
         var validator = new ValidLoopbackSpaces(_logger, context);
         validator.Validate();
 
-        await Assert.That(validator.ErrorsOccurred).IsTrue();
+        await Assert.That(validator.Context.ErrorsOccurred).IsTrue();
     }
 
     [Test]
@@ -77,7 +77,7 @@ public class ValidLoopbackSpacesTests
         validator.Validate();
 
         await Assert.That(router.LoopbackAddressV4).IsEqualTo(loopbackAddress);
-        await Assert.That(validator.ErrorsOccurred).IsFalse();
+        await Assert.That(validator.Context.ErrorsOccurred).IsFalse();
     }
 
     [Test]
@@ -95,7 +95,7 @@ public class ValidLoopbackSpacesTests
         validator.Validate();
 
         await Assert.That(router.LoopbackAddressV6).IsEqualTo(loopbackAddress);
-        await Assert.That(validator.ErrorsOccurred).IsFalse();
+        await Assert.That(validator.Context.ErrorsOccurred).IsFalse();
     }
 
     [Test]
@@ -111,7 +111,7 @@ public class ValidLoopbackSpacesTests
         var validator = new ValidLoopbackSpaces(_logger, context);
         validator.Validate();
 
-        await Assert.That(validator.ErrorsOccurred).IsTrue();
+        await Assert.That(validator.Context.ErrorsOccurred).IsTrue();
     }
 
     [Test]
@@ -127,6 +127,6 @@ public class ValidLoopbackSpacesTests
         var validator = new ValidLoopbackSpaces(_logger, context);
         validator.Validate();
 
-        await Assert.That(validator.ErrorsOccurred).IsTrue();
+        await Assert.That(validator.Context.ErrorsOccurred).IsTrue();
     }
 }

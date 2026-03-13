@@ -18,7 +18,7 @@ public class ValidBgpRelationshipsTests
         var validator = new ValidBgpRelationships(_logger, context);
         validator.Validate();
 
-        await Assert.That(validator.ErrorsOccurred).IsFalse();
+        await Assert.That(validator.Context.ErrorsOccurred).IsFalse();
     }
 
     [Test]
@@ -30,7 +30,7 @@ public class ValidBgpRelationshipsTests
         var validator = new ValidBgpRelationships(_logger, context);
         validator.Validate();
 
-        await Assert.That(validator.ErrorsOccurred).IsFalse();
+        await Assert.That(validator.Context.ErrorsOccurred).IsFalse();
     }
 
     [Test]
@@ -42,7 +42,7 @@ public class ValidBgpRelationshipsTests
         var validator = new ValidBgpRelationships(_logger, context);
         validator.Validate();
 
-        await Assert.That(validator.ErrorsOccurred).IsFalse();
+        await Assert.That(validator.Context.ErrorsOccurred).IsFalse();
     }
 
     [Test]
@@ -54,7 +54,7 @@ public class ValidBgpRelationshipsTests
         var validator = new ValidBgpRelationships(_logger, context);
         validator.Validate();
 
-        await Assert.That(validator.ErrorsOccurred).IsFalse();
+        await Assert.That(validator.Context.ErrorsOccurred).IsFalse();
     }
 
     [Test]
@@ -67,7 +67,7 @@ public class ValidBgpRelationshipsTests
         validator.Validate();
 
 
-        await Assert.That(validator.ErrorsOccurred).IsTrue();
+        await Assert.That(validator.Context.ErrorsOccurred).IsTrue();
     }
 
     [Test]
@@ -79,7 +79,7 @@ public class ValidBgpRelationshipsTests
         var validator = new ValidBgpRelationships(_logger, context);
         validator.Validate();
 
-        await Assert.That(validator.ErrorsOccurred).IsTrue();
+        await Assert.That(validator.Context.ErrorsOccurred).IsTrue();
     }
 
     private static (Interface, Interface) CreateLinkedInterfaces(

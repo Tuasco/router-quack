@@ -7,7 +7,6 @@ public class PopulateRouterIds(
     Context context,
     RouterUtils routerUtils) : IProcessor
 {
-    public bool ErrorsOccurred { get; set; }
     public string BeginMessage => "Populating router IDs from IPv4 loopback addresses (or generated)";
     public ILogger Logger { get; } = logger;
     public Context Context { get; } = context;

@@ -108,7 +108,7 @@ public static class StepExtensions
         [StructuredMessageTemplate] string message, params object?[] args)
     {
         source.Logger.LogError(message, args);
-        source.ErrorsOccurred = true;
+        source.Context.ApplyError();
     }
 
     /// <summary>
@@ -121,8 +121,6 @@ public static class StepExtensions
         [StructuredMessageTemplate] string message, params object?[] args)
     {
         source.Logger.LogWarning(message, args);
-
-        if (source.Context.Strict)
-            source.ErrorsOccurred = true;
+        source.Context.ApplyWarning();
     }
 }

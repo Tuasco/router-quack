@@ -9,7 +9,6 @@ public class NoExternalRouterWithoutAddress(
     ILogger<NoExternalRouterWithoutAddress> logger,
     Context context) : IValidator
 {
-    public bool ErrorsOccurred { get; set; }
     public string BeginMessage => "Ensuring no external routers lack an IP address";
     public ILogger Logger { get; } = logger;
     public Context Context { get; } = context;

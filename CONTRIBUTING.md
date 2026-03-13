@@ -43,7 +43,6 @@ All pipeline steps implement `IStep`, which provides:
 
 - `Context`: Shared data and configuration
 - `Logger`: For logging messages
-- `ErrorsOccurred`: Flag indicating if errors have occurred
 - `BeginMessage`: Optional message logged at step start
 
 #### Child Interfaces
