@@ -4,28 +4,20 @@ using Humanizer;
 using Microsoft.Extensions.Logging;
 using RouterQuack.Core;
 using RouterQuack.Core.IntentFileParsers;
-using RouterQuack.Core.Utils;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
 namespace RouterQuack.IO.Yaml.Parser;
 
-public partial class YamlParser(
-    ILogger<YamlParser> logger,
+public class YamlParser(ILogger<YamlParser> logger,
     Context context,
-    NetworkUtils networkUtils,
-    AsUtils asUtils,
-    RouterUtils routerUtils,
-    InterfaceUtils interfaceUtils) : IIntentFileParser
+    YamlAsMapper yamlAsMapper) : IIntentFileParser
 {
-    [GeneratedRegex(@"\.ya?ml$")]
-    private static partial Regex YamlEnding();
+    private static readonly Regex YamlEnding = new(@"\.ya?ml$");
 
-    public bool ErrorsOccurred { get; set; }
     public string BeginMessage => "Parsing intent file(s)";
     public ILogger Logger { get; } = logger;
     public Context Context { get; } = context;
-
 
     public void ReadFiles(string[] filePaths)
     {
@@ -39,7 +31,7 @@ public partial class YamlParser(
                 continue;
             }
 
-            if (!YamlEnding().IsMatch(path))
+            if (!YamlEnding.IsMatch(path))
             {
                 this.LogWarning("File {Path} is not YAML, skipping.", path);
                 continue;
@@ -57,12 +49,12 @@ public partial class YamlParser(
         }
 
         logger.LogDebug("Found {AsNumber} AS(s)", asDict.Count);
-        YamlAsToCoreAs(asDict, Context.Asses);
+        yamlAsMapper.Map(asDict, Context);
 
         if (Context.Asses.Count == 0)
             this.LogError("No AS specified.");
 
-        if (ErrorsOccurred)
+        if (Context.ErrorsOccurred)
             throw new StepException();
     }
 

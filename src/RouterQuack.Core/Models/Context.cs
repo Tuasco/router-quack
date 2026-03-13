@@ -9,6 +9,8 @@ public class Context
 {
     public ICollection<As> Asses { get; } = [];
 
+    public bool ErrorsOccurred { get; set; }
+
     /// <summary>
     /// Array of paths of intent files.
     /// </summary>
@@ -55,7 +57,7 @@ public class Context
                 throw new ArgumentException("Unsupported step type", nameof(step));
         }
 
-        if (step.ErrorsOccurred)
+        if (step.Context.ErrorsOccurred)
             throw new StepException();
 
         return this;

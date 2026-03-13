@@ -5,8 +5,6 @@ namespace RouterQuack.Core;
 /// </summary>
 public interface IStep
 {
-    protected internal bool ErrorsOccurred { get; set; }
-
     protected internal string? BeginMessage { get; }
 
     protected internal ILogger Logger { get; }

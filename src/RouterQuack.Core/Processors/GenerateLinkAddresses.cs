@@ -11,7 +11,6 @@ public class GenerateLinkAddresses(
     NetworkUtils networkUtils,
     InterfaceUtils interfaceUtils) : IProcessor
 {
-    public bool ErrorsOccurred { get; set; }
     public string BeginMessage => "Generating addresses for interfaces";
     public ILogger Logger { get; } = logger;
     public Context Context { get; } = context;

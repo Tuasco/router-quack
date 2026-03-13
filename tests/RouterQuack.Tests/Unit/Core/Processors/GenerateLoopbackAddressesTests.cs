@@ -30,7 +30,7 @@ public class GenerateLoopbackAddressesTests
 
         await Assert.That(routers[0].LoopbackAddressV4).IsNotNull();
         await Assert.That(routers[0].LoopbackAddressV6).IsNull();
-        await Assert.That(processor.ErrorsOccurred).IsFalse();
+        await Assert.That(processor.Context.ErrorsOccurred).IsFalse();
     }
 
     [Test]
@@ -51,7 +51,7 @@ public class GenerateLoopbackAddressesTests
 
         await Assert.That(routers[0].LoopbackAddressV6).IsNotNull();
         await Assert.That(routers[0].LoopbackAddressV4).IsNull();
-        await Assert.That(processor.ErrorsOccurred).IsFalse();
+        await Assert.That(processor.Context.ErrorsOccurred).IsFalse();
     }
 
     [Test]

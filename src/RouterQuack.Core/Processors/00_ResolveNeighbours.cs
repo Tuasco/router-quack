@@ -9,7 +9,6 @@ namespace RouterQuack.Core.Processors;
 /// <remarks>This step has to be executed first, even before validators.</remarks>
 public class ResolveNeighbours(ILogger<ResolveNeighbours> logger, Context context) : IProcessor
 {
-    public bool ErrorsOccurred { get; set; }
     public string BeginMessage => "Resolving neighbours";
     public ILogger Logger { get; } = logger;
     public Context Context { get; } = context;

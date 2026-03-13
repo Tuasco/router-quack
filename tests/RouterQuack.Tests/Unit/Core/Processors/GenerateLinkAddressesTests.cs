@@ -35,7 +35,7 @@ public class GenerateLinkAddressesTests
 
         await Assert.That(intf1.Addresses).Count().IsEqualTo(1);
         await Assert.That(intf2.Addresses).Count().IsEqualTo(1);
-        await Assert.That(processor.ErrorsOccurred).IsFalse();
+        await Assert.That(processor.Context.ErrorsOccurred).IsFalse();
     }
 
     [Test]
@@ -61,7 +61,7 @@ public class GenerateLinkAddressesTests
 
         await Assert.That(intf1.Addresses).Count().IsEqualTo(1);
         await Assert.That(intf2.Addresses).Count().IsEqualTo(1);
-        await Assert.That(processor.ErrorsOccurred).IsFalse();
+        await Assert.That(processor.Context.ErrorsOccurred).IsFalse();
     }
 
     [Test]
@@ -87,7 +87,7 @@ public class GenerateLinkAddressesTests
 
         await Assert.That(intf1.Addresses).Count().IsEqualTo(0);
         await Assert.That(intf2.Addresses).Count().IsEqualTo(0);
-        await Assert.That(processor.ErrorsOccurred).IsTrue();
+        await Assert.That(processor.Context.ErrorsOccurred).IsTrue();
     }
 
     [Test]
@@ -118,7 +118,7 @@ public class GenerateLinkAddressesTests
 
         await Assert.That(intf1.Addresses).Count().IsEqualTo(1);
         await Assert.That(intf2.Addresses).Count().IsEqualTo(1);
-        await Assert.That(processor.ErrorsOccurred).IsTrue();
+        await Assert.That(processor.Context.ErrorsOccurred).IsTrue();
     }
 
     [Test]
@@ -141,7 +141,7 @@ public class GenerateLinkAddressesTests
         var processor = new GenerateLinkAddresses(_logger, context, _networkUtils, _interfaceUtils);
         processor.Process();
 
-        await Assert.That(processor.ErrorsOccurred).IsTrue();
+        await Assert.That(processor.Context.ErrorsOccurred).IsTrue();
     }
 
     [Test]
