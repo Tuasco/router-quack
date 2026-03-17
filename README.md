@@ -101,7 +101,10 @@ Here is a minimal example with two ASes peering over BGP:
           bgp: "peer"
 ```
 
-See the [`examples/`](examples) directory for more, including a
+See the [wiki](https://github.com/Tuasco/router-quack/wiki/Documentation_YAML_TOC) for a comprehensive documentation
+of the YAML intent file syntax.
+
+Also see the [`examples/`](examples) directory for more, including a
 [multi-file setup](examples/ManyFiles) that splits each AS into its own file.
 
 ## Contributing
