@@ -13,10 +13,12 @@ public static class AsCollectionExtensions
         [Pure]
         public string Summary()
         {
-            var str = new StringBuilder();
+            if (source.Count == 0)
+                return "None";
 
-            foreach (var @as in source)
-                str.Append(@as).Append('\n');
+            var str = new StringBuilder()
+                .Append('\n')
+                .AppendJoin("\n", source);
 
             return str.ToString().TrimEnd('\n');
         }

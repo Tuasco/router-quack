@@ -52,9 +52,10 @@ public enum IgpType
     iBGP
 }
 
+[SuppressMessage("ReSharper", "InconsistentNaming")]
 [Flags]
 public enum IpVersion
 {
-    Ipv4 = 1,
-    Ipv6 = 2
+    IPv4 = 1,
+    IPv6 = 2
 }

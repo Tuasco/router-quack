@@ -12,7 +12,7 @@ public class ValidNetworkSpaces(ILogger<ValidNetworkSpaces> logger, Context cont
     public ILogger Logger { get; } = logger;
     public Context Context { get; } = context;
 
-    private const IpVersion BothVersions = IpVersion.Ipv6 | IpVersion.Ipv4;
+    private const IpVersion BothVersions = IpVersion.IPv6 | IpVersion.IPv4;
 
     public void Validate()
     {
@@ -28,8 +28,8 @@ public class ValidNetworkSpaces(ILogger<ValidNetworkSpaces> logger, Context cont
 
             if (!@as.FullyExternal
                 && @as
-                    is { NetworksSpaceV4: null, IpVersions: IpVersion.Ipv4 or BothVersions }
-                    or { NetworksSpaceV6: null, IpVersions: IpVersion.Ipv6 or BothVersions })
+                    is { NetworksSpaceV4: null, IpVersions: IpVersion.IPv4 or BothVersions }
+                    or { NetworksSpaceV6: null, IpVersions: IpVersion.IPv6 or BothVersions })
                 this.Log(@as, "The chosen networks version doesn't have a provided space");
         }
     }

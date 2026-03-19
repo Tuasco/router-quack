@@ -6,25 +6,26 @@ First off, thank you for considering contributing to router-quack!
 
 ### Reporting Bugs
 
-- Check the [Issues](https://github.com/Tuasco/router-quack/issues) to see if the bug has already been reported.
-- If not, open a new issue using our **Bug Report** template.
-- Please include your intent file(s) and the incorrect output generated (which you can get with the `-v` or
-  `--verbose` flags).
+1. Check the [Issues](https://github.com/Tuasco/router-quack/issues) to see if the bug has already been reported.
+1. If not, open a new issue using our **Bug Report** template.
+1. Please include your intent file(s).
 
 ### Suggesting Enhancements
 
-- Whether it's a new CLI flag or support for a new vendor (e.g., VyOS, MikroTik), your ideas are welcome.
-- Open an issue labeled `enhancement` to discuss the design before diving into the code.
+1. Whether it's a new CLI flag, support for a new vendor (e.g., VyOS, MikroTik), or something else, your ideas are
+   welcome.
+1. Open an [issue](https://github.com/Tuasco/router-quack/issues) using our **Feature Request** template
+   to discuss the design before diving into the code.
 
 ### Pull Requests
 
 We follow the **Fork and Pull** model:
 
 1. **Fork** the repository to your own account.
-2. **Clone** your fork locally.
-3. **Create a branch** for your fix/feature (e.g., `git switch -c feature/new-vendor-support`).
-4. **Commit** your changes with clear, descriptive messages.
-5. **Push** to your fork and submit a **Pull Request** against our `main` branch.
+1. **Clone** your fork locally.
+1. **Create a branch** for your fix/feature (e.g., `git switch -c feature/new-vendor-support`).
+1. **Commit** your changes with clear, descriptive messages.
+1. **Push** to your fork and submit a **Pull Request** against our `main` branch.
 
 ### Commit messages
 
@@ -40,7 +41,6 @@ The project follows a pipeline architecture with steps implementing specific int
 #### IStep (Base Interface)
 
 All pipeline steps implement `IStep`, which provides:
-
 - `Context`: Shared data and configuration
 - `Logger`: For logging messages
 - `BeginMessage`: Optional message logged at step start
@@ -50,14 +50,15 @@ All pipeline steps implement `IStep`, which provides:
 - **`IIntentFileParser`**: Reads and parses intent files
     - Implement this for new file format support
   - Examples: YAML intent files parser
-
 - **`IValidator`**: Validates parsed configuration
     - Implement this for new validation rules
     - Examples: `NoDuplicateRouterNames`, `ValidNetworkSpaces`
-
 - **`IProcessor`**: Processes and transforms configuration data
     - Implement this for new processing stages
     - Examples: Configuration generation, data transformation
+- **`IConfigFileWriter`**: Writes the parsed configuration
+    - Implement this for new vendor support
+    - Examples: Cisco writer
 
 ### Adding New Features
 
@@ -74,6 +75,7 @@ router-quack/
 │   ├── RouterQuack.CLI/          # Command-line interface
 │   ├── RouterQuack.Core/         # Core business logic
 │   └── RouterQuack.IO.Yaml/      # YAML parsing
+│   └── RouterQuack.IO.Cisco/     # Cisco config generation
 └── tests/
     └── RouterQuack.Tests/        # Unit tests
 ```
@@ -106,8 +108,8 @@ To run the CLI:
 dotnet run --project src/RouterQuack.CLI -- [flags]
 ```
 
-**Note:** The project has nullable reference types enabled. Pay attention to any nullability warnings during
-compilation.
+**Note:** The project has nullable reference types enabled.
+Pay attention to any nullability warnings during compilation.
 
 ### Testing
 
@@ -117,9 +119,8 @@ Run all tests from the root directory:
 dotnet test
 ```
 
-Tests are located in `tests/RouterQuack.Tests/` and use the TUnit testing framework with NSubstitute for mocking. When
-contributing:
-
+Tests are located in `tests/RouterQuack.Tests/` and use the TUnit testing framework with NSubstitute for mocking.
+When contributing:
 - Add tests for new features
 - Ensure existing tests pass before submitting a PR
 - Write tests that cover both success and failure cases
@@ -129,7 +130,6 @@ contributing:
 ### Automatic Formatting
 
 The project includes an `.editorconfig` file that your IDE should automatically detect. It configures:
-
 - **Indentation:** 4 spaces for C#, 2-space tabs for YAML
 - **Line endings:** LF (Unix-style)
 - **C# style preferences:** var usage, modifier order, parentheses rules
@@ -137,10 +137,10 @@ The project includes an `.editorconfig` file that your IDE should automatically 
 
 ### Formatting Guidelines
 
-- **Indentation:** Use 4 spaces (not tabs)
 - **Braces:**
     - Use braces for all control structures except single-line `if` statements
     - Opening braces go on the next line for classes, methods, and properties
+  - Leave empty line before and after code block (function, loop, if statement, ...)
 - **Line Endings:** Use LF line endings
 - **Namespaces:** Use file-scoped namespaces where possible
 - **Extensions:** Use the newer extension syntax when available
@@ -193,12 +193,12 @@ The project includes an `.editorconfig` file that your IDE should automatically 
 
 ## License
 
-This project is licensed under the GNU General Public Licence v3.0 (GPL-3.0). See the [LICENCE](LICENCE) file for
-details.
+This project is licensed under the GNU General Public Licence v3.0 (GPL-3.0).
+See the [LICENCE](LICENCE) file for details.
 
 By contributing to router-quack, you agree that your contributions will be licensed under the same GPL-3.0 Licence.
 
 ## Questions?
 
-If you have questions about the development process or need clarification on the architecture, feel free to open a
-discussion issue with the `question` label.
+If you have questions about the development process or need clarification on the architecture,
+feel free to open a discussion issue with the `question` label.

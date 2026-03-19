@@ -17,7 +17,7 @@ public class As
 
     public IPNetwork? NetworksSpaceV6 { get; init; }
 
-    public IpVersion Networks { get; init; } = IpVersion.Ipv4 | IpVersion.Ipv6;
+    public IpVersion Networks { get; init; } = IpVersion.IPv4 | IpVersion.IPv6;
 
     public RouterBrand Brand { get; init; } = RouterBrand.Cisco;
 

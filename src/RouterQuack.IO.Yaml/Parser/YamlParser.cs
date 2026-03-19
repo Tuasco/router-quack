@@ -9,7 +9,8 @@ using YamlDotNet.Serialization.NamingConventions;
 
 namespace RouterQuack.IO.Yaml.Parser;
 
-public class YamlParser(ILogger<YamlParser> logger,
+public class YamlParser(
+    ILogger<YamlParser> logger,
     Context context,
     YamlAsMapper yamlAsMapper) : IIntentFileParser
 {
@@ -43,7 +44,21 @@ public class YamlParser(ILogger<YamlParser> logger,
                 .WithNamingConvention(UnderscoredNamingConvention.Instance)
                 .Build();
 
-            var fileData = deserializer.Deserialize<IDictionary<int, YamlAs>>(File.ReadAllText(path));
+            // If there is a syntax error in the intent file, Deserialize() will throw an Exception with a message.
+            IDictionary<int, YamlAs> fileData;
+            try
+            {
+                fileData = deserializer.Deserialize<IDictionary<int, YamlAs>>(File.ReadAllText(path));
+            }
+            catch (Exception e)
+            {
+                #pragma warning disable CA2254
+                logger.LogError(e + $"(file: {path})");
+                #pragma warning restore CA2254
+
+                throw new StepException();
+            }
+
             foreach (var @as in fileData)
                 AddAs(@as.Key, @as.Value, asDict);
         }

@@ -14,7 +14,7 @@ internal static class TestData
         IPNetwork? loopbackSpaceV6 = null,
         IPNetwork? networksSpaceV4 = null,
         IPNetwork? networksSpaceV6 = null,
-        IpVersion ipVersion = IpVersion.Ipv6 | IpVersion.Ipv4,
+        IpVersion ipVersion = IpVersion.IPv6 | IpVersion.IPv4,
         ICollection<Router>? routers = null)
     {
         var routerList = routers?.ToList() ?? [];

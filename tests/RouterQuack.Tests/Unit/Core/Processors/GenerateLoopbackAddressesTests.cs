@@ -20,7 +20,7 @@ public class GenerateLoopbackAddressesTests
         {
             TestData.CreateAs(
                 loopbackSpaceV4: IPNetwork.Parse("10.0.0.0/24"),
-                ipVersion: IpVersion.Ipv4,
+                ipVersion: IpVersion.IPv4,
                 routers: routers)
         };
 
@@ -41,7 +41,7 @@ public class GenerateLoopbackAddressesTests
         {
             TestData.CreateAs(
                 loopbackSpaceV6: IPNetwork.Parse("2001:db8::/64"),
-                ipVersion: IpVersion.Ipv6,
+                ipVersion: IpVersion.IPv6,
                 routers: routers)
         };
 
@@ -63,7 +63,7 @@ public class GenerateLoopbackAddressesTests
         {
             TestData.CreateAs(
                 loopbackSpaceV4: IPNetwork.Parse("10.0.0.0/24"),
-                ipVersion: IpVersion.Ipv4,
+                ipVersion: IpVersion.IPv4,
                 routers: routers)
         };
 
@@ -84,7 +84,7 @@ public class GenerateLoopbackAddressesTests
         {
             TestData.CreateAs(
                 loopbackSpaceV6: IPNetwork.Parse("2001:db8::/64"),
-                ipVersion: IpVersion.Ipv6,
+                ipVersion: IpVersion.IPv6,
                 routers: routers)
         };
 
@@ -128,7 +128,7 @@ public class GenerateLoopbackAddressesTests
         {
             TestData.CreateAs(
                 loopbackSpaceV4: IPNetwork.Parse("10.0.0.0/24"),
-                ipVersion: IpVersion.Ipv4,
+                ipVersion: IpVersion.IPv4,
                 routers: routers)
         };
 
@@ -155,7 +155,7 @@ public class GenerateLoopbackAddressesTests
         {
             TestData.CreateAs(
                 loopbackSpaceV6: IPNetwork.Parse("2001:db8::/64"),
-                ipVersion: IpVersion.Ipv6,
+                ipVersion: IpVersion.IPv6,
                 routers: routers)
         };
 

@@ -18,7 +18,7 @@ public class ValidLoopbackSpacesTests
     {
         var asses = new List<As>
         {
-            TestData.CreateAs(ipVersion: IpVersion.Ipv4,
+            TestData.CreateAs(ipVersion: IpVersion.IPv4,
                 loopbackSpaceV4: IPNetwork.Parse(address),
                 routers: [TestData.CreateRouter()])
         };
@@ -36,7 +36,7 @@ public class ValidLoopbackSpacesTests
         var router = TestData.CreateRouter(loopbackAddressV4: null);
         var asses = new List<As>
         {
-            TestData.CreateAs(loopbackSpaceV4: null, ipVersion: IpVersion.Ipv4, routers: [router])
+            TestData.CreateAs(loopbackSpaceV4: null, ipVersion: IpVersion.IPv4, routers: [router])
         };
 
         var context = ContextFactory.Create(asses: asses);
@@ -52,7 +52,7 @@ public class ValidLoopbackSpacesTests
         var router = TestData.CreateRouter(loopbackAddressV6: null);
         var asses = new List<As>
         {
-            TestData.CreateAs(loopbackSpaceV6: null, ipVersion: IpVersion.Ipv6, routers: [router])
+            TestData.CreateAs(loopbackSpaceV6: null, ipVersion: IpVersion.IPv6, routers: [router])
         };
 
         var context = ContextFactory.Create(asses: asses);
@@ -69,7 +69,7 @@ public class ValidLoopbackSpacesTests
         var router = TestData.CreateRouter(loopbackAddressV4: loopbackAddress);
         var asses = new List<As>
         {
-            TestData.CreateAs(loopbackSpaceV4: null, ipVersion: IpVersion.Ipv4, routers: [router])
+            TestData.CreateAs(loopbackSpaceV4: null, ipVersion: IpVersion.IPv4, routers: [router])
         };
 
         var context = ContextFactory.Create(asses: asses);
@@ -87,7 +87,7 @@ public class ValidLoopbackSpacesTests
         var router = TestData.CreateRouter(loopbackAddressV6: loopbackAddress);
         var asses = new List<As>
         {
-            TestData.CreateAs(loopbackSpaceV6: null, ipVersion: IpVersion.Ipv6, routers: [router])
+            TestData.CreateAs(loopbackSpaceV6: null, ipVersion: IpVersion.IPv6, routers: [router])
         };
 
         var context = ContextFactory.Create(asses: asses);
@@ -104,7 +104,7 @@ public class ValidLoopbackSpacesTests
         var routers = new List<Router> { TestData.CreateRouter(loopbackAddressV4: null, external: false) };
         var asses = new List<As>
         {
-            TestData.CreateAs(loopbackSpaceV4: null, ipVersion: IpVersion.Ipv4, routers: routers)
+            TestData.CreateAs(loopbackSpaceV4: null, ipVersion: IpVersion.IPv4, routers: routers)
         };
 
         var context = ContextFactory.Create(asses: asses);
@@ -120,7 +120,7 @@ public class ValidLoopbackSpacesTests
         var routers = new List<Router> { TestData.CreateRouter(loopbackAddressV6: null, external: false) };
         var asses = new List<As>
         {
-            TestData.CreateAs(loopbackSpaceV6: null, ipVersion: IpVersion.Ipv6, routers: routers)
+            TestData.CreateAs(loopbackSpaceV6: null, ipVersion: IpVersion.IPv6, routers: routers)
         };
 
         var context = ContextFactory.Create(asses: asses);

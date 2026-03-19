@@ -16,7 +16,7 @@ public class GenerateLinkAddresses(
 
     private UInt128 _addressCountV4, _addressCountV6;
     private HashSet<IPAddress> _usedAddresses = null!;
-    private const IpVersion BothVersions = IpVersion.Ipv6 | IpVersion.Ipv4;
+    private const IpVersion BothVersions = IpVersion.IPv6 | IpVersion.IPv4;
 
     public void Process()
     {
@@ -32,15 +32,15 @@ public class GenerateLinkAddresses(
             var addresses = GetLinkNetworks(link).ToArray();
 
             // If we need to generate IPv4 link addresses
-            if ((link.Item1.ParentRouter.ParentAs.IpVersions & IpVersion.Ipv4) == IpVersion.Ipv4
-                || (link.Item2.ParentRouter.ParentAs.IpVersions & IpVersion.Ipv4) == IpVersion.Ipv4)
+            if ((link.Item1.ParentRouter.ParentAs.IpVersions & IpVersion.IPv4) == IpVersion.IPv4
+                || (link.Item2.ParentRouter.ParentAs.IpVersions & IpVersion.IPv4) == IpVersion.IPv4)
             {
                 var ipv4Addresses = addresses.Where(a
                     => a.address.NetworkAddress.BaseAddress.AddressFamily == AddressFamily.InterNetwork).ToArray();
                 switch (ipv4Addresses.Length)
                 {
                     case 0:
-                        AssignIpAddress(link, IpVersion.Ipv4);
+                        AssignIpAddress(link, IpVersion.IPv4);
                         break;
 
                     case 1:
@@ -57,15 +57,15 @@ public class GenerateLinkAddresses(
             }
 
             // If we need to generate IPv6 link addresses
-            if ((link.Item1.ParentRouter.ParentAs.IpVersions & IpVersion.Ipv6) == IpVersion.Ipv6
-                || (link.Item2.ParentRouter.ParentAs.IpVersions & IpVersion.Ipv6) == IpVersion.Ipv6)
+            if ((link.Item1.ParentRouter.ParentAs.IpVersions & IpVersion.IPv6) == IpVersion.IPv6
+                || (link.Item2.ParentRouter.ParentAs.IpVersions & IpVersion.IPv6) == IpVersion.IPv6)
             {
                 var ipv6Addresses = addresses.Where(a
                     => a.address.NetworkAddress.BaseAddress.AddressFamily == AddressFamily.InterNetworkV6).ToArray();
                 switch (ipv6Addresses.Length)
                 {
                     case 0:
-                        AssignIpAddress(link, IpVersion.Ipv6);
+                        AssignIpAddress(link, IpVersion.IPv6);
                         break;
 
                     case 1:
@@ -92,10 +92,10 @@ public class GenerateLinkAddresses(
     {
         var space = ipVersion switch
         {
-            IpVersion.Ipv4 =>
+            IpVersion.IPv4 =>
                 link.Item1.ParentRouter.ParentAs.NetworksSpaceV4 ?? link.Item2.ParentRouter.ParentAs.NetworksSpaceV4,
 
-            IpVersion.Ipv6 =>
+            IpVersion.IPv6 =>
                 link.Item1.ParentRouter.ParentAs.NetworksSpaceV6 ?? link.Item2.ParentRouter.ParentAs.NetworksSpaceV6,
 
             _ => null
@@ -132,7 +132,7 @@ public class GenerateLinkAddresses(
         IPAddress ip1, ip2;
         try
         {
-            ref var addressCount = ref ipVersion == IpVersion.Ipv4 ? ref _addressCountV4 : ref _addressCountV6;
+            ref var addressCount = ref ipVersion == IpVersion.IPv4 ? ref _addressCountV4 : ref _addressCountV6;
             ip1 = networkUtils.GenerateAvailableIpAddress(space.Value, ref addressCount, _usedAddresses, true);
             ip2 = networkUtils.GenerateAvailableIpAddress(space.Value, ref addressCount, _usedAddresses);
         }
@@ -142,9 +142,9 @@ public class GenerateLinkAddresses(
             return;
         }
 
-        var maxBits = ipVersion == IpVersion.Ipv6 ? 128 : 32;
+        var maxBits = ipVersion == IpVersion.IPv6 ? 128 : 32;
         var linkNetwork = new IPNetwork(ip1, maxBits - 1);
-        if (ipVersion == IpVersion.Ipv4)
+        if (ipVersion == IpVersion.IPv4)
         {
             link.Item1.Ipv4Address = new(linkNetwork, ip1);
             link.Item2.Ipv4Address = new(linkNetwork, ip2);

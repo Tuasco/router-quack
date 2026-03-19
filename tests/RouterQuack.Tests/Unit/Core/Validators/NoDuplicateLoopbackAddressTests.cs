@@ -19,7 +19,7 @@ public class NoDuplicateLoopbackAddressTests
             TestData.CreateRouter(loopbackAddressV4: IPAddress.Parse("10.10.10.1")),
             TestData.CreateRouter(loopbackAddressV4: IPAddress.Parse("10.10.10.2"))
         };
-        var asses = new List<As> { TestData.CreateAs(ipVersion: IpVersion.Ipv4, routers: routers) };
+        var asses = new List<As> { TestData.CreateAs(ipVersion: IpVersion.IPv4, routers: routers) };
 
         var context = ContextFactory.Create(asses: asses);
         var validator = new NoDuplicateLoopbackAddress(_logger, context);
@@ -36,7 +36,7 @@ public class NoDuplicateLoopbackAddressTests
             TestData.CreateRouter(loopbackAddressV6: IPAddress.Parse("2001:1:1:1::1")),
             TestData.CreateRouter(loopbackAddressV6: IPAddress.Parse("2001:1:1:1::2"))
         };
-        var asses = new List<As> { TestData.CreateAs(ipVersion: IpVersion.Ipv6, routers: routers) };
+        var asses = new List<As> { TestData.CreateAs(ipVersion: IpVersion.IPv6, routers: routers) };
 
         var context = ContextFactory.Create(asses: asses);
         var validator = new NoDuplicateLoopbackAddress(_logger, context);
@@ -53,7 +53,7 @@ public class NoDuplicateLoopbackAddressTests
             TestData.CreateRouter(loopbackAddressV4: IPAddress.Parse("10.10.10.1")),
             TestData.CreateRouter(loopbackAddressV4: IPAddress.Parse("10.10.10.1"))
         };
-        var asses = new List<As> { TestData.CreateAs(ipVersion: IpVersion.Ipv4, routers: routers) };
+        var asses = new List<As> { TestData.CreateAs(ipVersion: IpVersion.IPv4, routers: routers) };
 
         var context = ContextFactory.Create(asses: asses);
         var validator = new NoDuplicateLoopbackAddress(_logger, context);
@@ -70,7 +70,7 @@ public class NoDuplicateLoopbackAddressTests
             TestData.CreateRouter(loopbackAddressV6: IPAddress.Parse("2001:1:1:1::1")),
             TestData.CreateRouter(loopbackAddressV6: IPAddress.Parse("2001:1:1:1::1"))
         };
-        var asses = new List<As> { TestData.CreateAs(ipVersion: IpVersion.Ipv6, routers: routers) };
+        var asses = new List<As> { TestData.CreateAs(ipVersion: IpVersion.IPv6, routers: routers) };
 
         var context = ContextFactory.Create(asses: asses);
         var validator = new NoDuplicateLoopbackAddress(_logger, context);

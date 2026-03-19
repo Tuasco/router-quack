@@ -59,7 +59,7 @@ try
 catch (StepException)
 {
     Log.Fatal("Exited with errors. Nothing changed.");
-    Log.Debug("ASs summary:\n{Summary}", context.Asses.Summary());
+    Log.Debug("ASs summary: {Summary}", context.Asses.Summary());
     Environment.Exit(1);
 }
 catch (Exception e)

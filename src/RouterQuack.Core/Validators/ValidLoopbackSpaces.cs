@@ -17,7 +17,7 @@ public class ValidLoopbackSpaces(ILogger<ValidLoopbackSpaces> logger, Context co
     {
         var assesV4 = Context.Asses
             .Where(a => !a.FullyExternal)
-            .Where(a => (a.IpVersions & IpVersion.Ipv4) == IpVersion.Ipv4)
+            .Where(a => (a.IpVersions & IpVersion.IPv4) == IpVersion.IPv4)
             .Where(a => a.Routers.Any(r => r.LoopbackAddressV4 is null));
 
         foreach (var @as in assesV4)
@@ -30,7 +30,7 @@ public class ValidLoopbackSpaces(ILogger<ValidLoopbackSpaces> logger, Context co
 
         var assesV6 = Context.Asses
             .Where(a => !a.FullyExternal)
-            .Where(a => (a.IpVersions & IpVersion.Ipv6) == IpVersion.Ipv6)
+            .Where(a => (a.IpVersions & IpVersion.IPv6) == IpVersion.IPv6)
             .Where(a => a.Routers.Any(r => r.LoopbackAddressV6 is null));
 
         foreach (var @as in assesV6)

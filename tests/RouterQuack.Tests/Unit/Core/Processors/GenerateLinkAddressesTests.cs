@@ -20,7 +20,7 @@ public class GenerateLinkAddressesTests
         {
             TestData.CreateAs(
                 networksSpaceV4: IPNetwork.Parse("192.168.1.0/24"),
-                ipVersion: IpVersion.Ipv4,
+                ipVersion: IpVersion.IPv4,
                 routers:
                 [
                     TestData.CreateRouter(name: "Router1", external: false, interfaces: [intf1]),
@@ -47,7 +47,7 @@ public class GenerateLinkAddressesTests
         {
             TestData.CreateAs(
                 networksSpaceV6: IPNetwork.Parse("2001:db8::/64"),
-                ipVersion: IpVersion.Ipv6,
+                ipVersion: IpVersion.IPv6,
                 routers:
                 [
                     TestData.CreateRouter(name: "Router1", external: false, interfaces: [intf1]),
@@ -75,7 +75,7 @@ public class GenerateLinkAddressesTests
         {
             TestData.CreateAs(
                 networksSpaceV6: IPNetwork.Parse("2001:db8::/32"),
-                ipVersion: IpVersion.Ipv6,
+                ipVersion: IpVersion.IPv6,
                 routers:
                 [
                     TestData.CreateRouter(name: "Router1", external: true, interfaces: [intf1]),
@@ -101,7 +101,7 @@ public class GenerateLinkAddressesTests
         {
             TestData.CreateAs(
                 networksSpaceV6: IPNetwork.Parse("2001:db8::/32"),
-                ipVersion: IpVersion.Ipv6,
+                ipVersion: IpVersion.IPv6,
                 routers:
                 [
                     TestData.CreateRouter(name: "Router1", external: true, interfaces: [intf1]),
@@ -132,7 +132,7 @@ public class GenerateLinkAddressesTests
         {
             TestData.CreateAs(
                 networksSpaceV6: IPNetwork.Parse("2001:db8::/32"),
-                ipVersion: IpVersion.Ipv6,
+                ipVersion: IpVersion.IPv6,
                 routers:
                 [
                     TestData.CreateRouter(name: "Router1", external: true, interfaces: [intf1]),
@@ -157,7 +157,7 @@ public class GenerateLinkAddressesTests
         {
             TestData.CreateAs(
                 networksSpaceV6: null,
-                ipVersion: IpVersion.Ipv6,
+                ipVersion: IpVersion.IPv6,
                 routers:
                 [
                     TestData.CreateRouter(name: "Router1", external: false, interfaces: [intf1]),

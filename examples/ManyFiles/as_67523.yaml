@@ -1,7 +1,8 @@
 67523:
-  brand: "cisco"
-  loopback_space: "2001:0:0::/48"
-  networks_space: "2001:1:0::/48"
+  loopback_space_v4: "10.2.0.0/16"
+  networks_space_v4: "10.3.0.0/16"
+  loopback_space_v6: "2001:1:2::/48"
+  networks_space_v6: "2001:1:3::/48"
   routers:
     Rx1:
       interfaces:
