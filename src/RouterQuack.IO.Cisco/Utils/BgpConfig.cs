@@ -72,6 +72,7 @@ internal static class BgpConfig
         in List<string> ipv4AddressFamily,
         in List<string> ipv6AddressFamily)
     {
+        // Only configure all routers in the core if the igp is iBGP
         if (igp != IgpType.iBGP)
             neighbours = neighbours.Where(n => n.BorderRouter).ToArray();
 
