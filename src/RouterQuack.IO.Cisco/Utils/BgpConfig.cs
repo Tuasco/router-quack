@@ -18,7 +18,10 @@ internal static class BgpConfig
         builder.AppendLine($" bgp router-id {router.Id}");
         builder.AppendLine(ConfigStart);
 
-        var ibgpNeighbours = router.ParentAs.Routers.ToArray();
+        var ibgpNeighbours = router.ParentAs.Routers
+            .Where(r => !r.Equals(router))
+            .ToArray();
+
         var ebgpNeighbours = router.Interfaces
             .Where(r => r.Bgp != BgpRelationship.None)
             .Select(i => i.Neighbour!)
