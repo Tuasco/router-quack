@@ -28,7 +28,7 @@ internal static class BgpConfig
         List<string> ipv6AddressFamily = [];
 
         ConfigureEbgp(builder, ebgpNeighbours, ipv4AddressFamily, ipv6AddressFamily);
-        ConfigureIbgp(builder, ibgpNeighbours, ipv4AddressFamily, ipv6AddressFamily);
+        ConfigureIbgp(builder, router.ParentAs.Igp, ibgpNeighbours, ipv4AddressFamily, ipv6AddressFamily);
         ConfigureAddressFamilies(builder, ipv4AddressFamily, ipv6AddressFamily);
     }
 
@@ -67,10 +67,14 @@ internal static class BgpConfig
     }
 
     private static void ConfigureIbgp(StringBuilder builder,
+        IgpType igp,
         Router[] neighbours,
         in List<string> ipv4AddressFamily,
         in List<string> ipv6AddressFamily)
     {
+        if (igp != IgpType.iBGP)
+            neighbours = neighbours.Where(n => n.BorderRouter).ToArray();
+
         foreach (var neighbour in neighbours)
         {
             var addressV4 = neighbour.LoopbackAddressV4;

@@ -3,6 +3,7 @@
   networks_space_v4: "10.1.0.0/16"
   loopback_space_v6: "2001:1:0::/48"
   networks_space_v6: "2001:1:1::/48"
+  igp: "OSPF"
   routers:
     Ry1:
       interfaces:

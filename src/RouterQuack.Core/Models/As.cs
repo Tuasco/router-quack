@@ -49,7 +49,8 @@ public sealed class As
 [SuppressMessage("ReSharper", "InconsistentNaming")]
 public enum IgpType
 {
-    iBGP
+    iBGP,
+    OSPF
 }
 
 [SuppressMessage("ReSharper", "InconsistentNaming")]
