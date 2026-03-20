@@ -72,23 +72,23 @@ Here is a minimal example with two ASes peering over BGP:
 
 ```yaml
 111:
-    loopback_space_v4: "10.10.10.0/24"
+  loopback_space_v4: "10.10.10.0/24"
   networks_space_v4: "192.168.1.0/24"
-    loopback_space_v6: "2001:1:1:1::/64"
-    networks_space_v6: "2001:db8:1:1::/64"
-    brand: "Cisco"
+  loopback_space_v6: "2001:1:1:1::/64"
+  networks_space_v6: "2001:db8:1:1::/64"
+  brand: "Cisco"
   routers:
     R1:
       interfaces:
-          GigabitEthernet1/0:
+        GigabitEthernet1/0:
           neighbour: "112:R2"   # Cross-AS neighbour (AS 112, router R2)
           bgp: "peer"
-          GigabitEthernet2/0:
+        GigabitEthernet2/0:
           neighbour: "R3"       # Same-AS neighbour
 
     R3:
       interfaces:
-          GigabitEthernet1/0:
+        GigabitEthernet1/0:
           neighbour: "R1"
 
 112:
@@ -96,7 +96,7 @@ Here is a minimal example with two ASes peering over BGP:
     R2:
       external: true
       interfaces:
-          GigabitEthernet1/0:
+        GigabitEthernet1/0:
           neighbour: "111:R1"
           bgp: "peer"
 ```
