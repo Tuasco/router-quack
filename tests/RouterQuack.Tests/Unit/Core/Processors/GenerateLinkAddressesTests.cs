@@ -13,13 +13,14 @@ public class GenerateLinkAddressesTests
     private readonly NetworkUtils _networkUtils = new();
 
     [Test]
-    public async Task Process_LinkWithoutAddress_GeneratesAddressesV4()
+    public async Task Process_LinkWithoutAddress_GeneratesV4AddressOnly()
     {
         var (intf1, intf2) = CreateLinkedInterfaces();
         var asses = new List<As>
         {
             TestData.CreateAs(
                 networksSpaceV4: IPNetwork.Parse("192.168.1.0/24"),
+                networksSpaceV6: IPNetwork.Parse("2001:db8::/64"),
                 ipVersion: IpVersion.IPv4,
                 routers:
                 [
@@ -36,16 +37,21 @@ public class GenerateLinkAddressesTests
         await Assert.That(intf2.Ipv4Address).IsNotNull();
         await Assert.That(intf1.Ipv4Address!.NetworkAddress).IsEqualTo(intf2.Ipv4Address!.NetworkAddress);
         await Assert.That(intf1.Ipv4Address!.IpAddress).IsNotEqualTo(intf2.Ipv4Address!.IpAddress);
+        await Assert.That(intf1.Ipv6Address).IsNull();
+        await Assert.That(intf2.Ipv6Address).IsNull();
+        await Assert.That(intf1.Addresses.Count).EqualTo(0);
+        await Assert.That(intf2.Addresses.Count).EqualTo(0);
         await Assert.That(processor.Context.ErrorsOccurred).IsFalse();
     }
 
     [Test]
-    public async Task Process_LinkWithoutAddress_GeneratesAddressesV6()
+    public async Task Process_LinkWithoutAddress_GeneratesV6AddressOnly()
     {
         var (intf1, intf2) = CreateLinkedInterfaces();
         var asses = new List<As>
         {
             TestData.CreateAs(
+                networksSpaceV4: IPNetwork.Parse("192.168.1.0/24"),
                 networksSpaceV6: IPNetwork.Parse("2001:db8::/64"),
                 ipVersion: IpVersion.IPv6,
                 routers:
@@ -63,6 +69,10 @@ public class GenerateLinkAddressesTests
         await Assert.That(intf2.Ipv6Address).IsNotNull();
         await Assert.That(intf1.Ipv6Address!.NetworkAddress).IsEqualTo(intf2.Ipv6Address!.NetworkAddress);
         await Assert.That(intf1.Ipv6Address!.IpAddress).IsNotEqualTo(intf2.Ipv6Address!.IpAddress);
+        await Assert.That(intf1.Ipv4Address).IsNull();
+        await Assert.That(intf2.Ipv4Address).IsNull();
+        await Assert.That(intf1.Addresses.Count).EqualTo(0);
+        await Assert.That(intf2.Addresses.Count).EqualTo(0);
         await Assert.That(processor.Context.ErrorsOccurred).IsFalse();
     }
 
@@ -74,8 +84,9 @@ public class GenerateLinkAddressesTests
         var asses = new List<As>
         {
             TestData.CreateAs(
+                networksSpaceV4: IPNetwork.Parse("192.168.0.0/16"),
                 networksSpaceV6: IPNetwork.Parse("2001:db8::/32"),
-                ipVersion: IpVersion.IPv6,
+                ipVersion: IpVersion.IPv4 | IpVersion.IPv6,
                 routers:
                 [
                     TestData.CreateRouter(name: "Router1", external: true, interfaces: [intf1]),
@@ -101,7 +112,8 @@ public class GenerateLinkAddressesTests
         {
             TestData.CreateAs(
                 networksSpaceV6: IPNetwork.Parse("2001:db8::/32"),
-                ipVersion: IpVersion.IPv6,
+                networksSpaceV4: IPNetwork.Parse("10.10.0.0/16"),
+                ipVersion: IpVersion.IPv4 | IpVersion.IPv6,
                 routers:
                 [
                     TestData.CreateRouter(name: "Router1", external: true, interfaces: [intf1]),
@@ -113,15 +125,25 @@ public class GenerateLinkAddressesTests
         var processor = new GenerateLinkAddresses(_logger, context, _networkUtils);
         processor.Process();
 
+        await Assert.That(processor.Context.ErrorsOccurred).IsTrue();
         await Assert.That(intf1.Addresses).Count().IsEqualTo(0);
         await Assert.That(intf2.Addresses).Count().IsEqualTo(0);
-        await Assert.That(processor.Context.ErrorsOccurred).IsTrue();
+        await Assert.That(intf1.Ipv4Address).IsNull()
+            .And.EqualTo(intf1.Ipv6Address)
+            .And.EqualTo(intf2.Ipv4Address)
+            .And.EqualTo(intf1.Ipv6Address);
     }
 
     [Test]
-    [Arguments("2001:db8::/127", "2001:db8::/126")]
-    [Arguments("2001:db8:1::/127", "2001:db8:2::/127")]
-    public async Task Process_ExternalRouterWithInvalidIps_SetsErrorsOccurred(string address1, string address2)
+    [Arguments(IpVersion.IPv4, "192.168.1.0/31", "192.168.1.1/30")]
+    [Arguments(IpVersion.IPv4, "192.168.1.0/31", "192.168.2.0/31")]
+    [Arguments(IpVersion.IPv4, "192.168.1.0/31", "192.168.1.2/31")]
+    [Arguments(IpVersion.IPv6, "2001:db8::/127", "2001:db8::/126")]
+    [Arguments(IpVersion.IPv6, "2001:db8:1::/127", "2001:db8:2::/127")]
+    [Arguments(IpVersion.IPv6, "2001:db8:1::/127", "2001:db8:1::2/127")]
+    public async Task Process_ExternalRouterWithInvalidIps_SetsErrorsOccurred(IpVersion addressFamilies,
+        string address1,
+        string address2)
     {
         var (intf1, intf2) = CreateLinkedInterfaces();
 
@@ -131,8 +153,7 @@ public class GenerateLinkAddressesTests
         var asses = new List<As>
         {
             TestData.CreateAs(
-                networksSpaceV6: IPNetwork.Parse("2001:db8::/32"),
-                ipVersion: IpVersion.IPv6,
+                ipVersion: addressFamilies,
                 routers:
                 [
                     TestData.CreateRouter(name: "Router1", external: true, interfaces: [intf1]),
@@ -147,17 +168,24 @@ public class GenerateLinkAddressesTests
         await Assert.That(intf1.Addresses).Count().IsEqualTo(1);
         await Assert.That(intf2.Addresses).Count().IsEqualTo(1);
         await Assert.That(processor.Context.ErrorsOccurred).IsTrue();
+        await Assert.That(intf1.Ipv4Address).IsNull()
+            .And.EqualTo(intf1.Ipv6Address)
+            .And.IsEqualTo(intf2.Ipv4Address)
+            .And.IsEqualTo(intf2.Ipv6Address);
     }
 
     [Test]
-    public async Task Process_NoNetworkSpace_SetsErrorsOccurred()
+    [Arguments(IpVersion.IPv4)]
+    [Arguments(IpVersion.IPv6)]
+    [Arguments(IpVersion.IPv4 | IpVersion.IPv6)]
+    public async Task Process_NoNetworkSpace_SetsErrorsOccurred(IpVersion addressFamilies)
     {
         var (intf1, intf2) = CreateLinkedInterfaces();
         var asses = new List<As>
         {
             TestData.CreateAs(
                 networksSpaceV6: null,
-                ipVersion: IpVersion.IPv6,
+                ipVersion: addressFamilies,
                 routers:
                 [
                     TestData.CreateRouter(name: "Router1", external: false, interfaces: [intf1]),
@@ -172,7 +200,8 @@ public class GenerateLinkAddressesTests
         await Assert.That(processor.Context.ErrorsOccurred).IsTrue();
     }
 
-    private static (Interface, Interface) CreateLinkedInterfaces(bool withValidLinkAddresses = false)
+    private static (Interface, Interface) CreateLinkedInterfaces(
+        bool withValidLinkAddresses = false)
     {
         var interface1 = TestData.CreateInterface();
         var interface2 = TestData.CreateInterface();
@@ -180,12 +209,15 @@ public class GenerateLinkAddressesTests
         interface1.Neighbour = interface2;
         interface2.Neighbour = interface1;
 
-        // ReSharper disable once InvertIf
         if (withValidLinkAddresses)
         {
-            var network = IPNetwork.Parse("2001:db8::/127");
-            interface1.Addresses.Add(new(network, IPAddress.Parse("2001:db8::")));
-            interface2.Addresses.Add(new(network, IPAddress.Parse("2001:db8::1")));
+            var networkV4 = IPNetwork.Parse("192.168.1.0/31");
+            interface1.Addresses.Add(new(networkV4, IPAddress.Parse("192.168.1.0")));
+            interface2.Addresses.Add(new(networkV4, IPAddress.Parse("192.168.1.1")));
+
+            var networkV6 = IPNetwork.Parse("2001:db8::/127");
+            interface1.Addresses.Add(new(networkV6, IPAddress.Parse("2001:db8::")));
+            interface2.Addresses.Add(new(networkV6, IPAddress.Parse("2001:db8::1")));
         }
 
         return (interface1, interface2);

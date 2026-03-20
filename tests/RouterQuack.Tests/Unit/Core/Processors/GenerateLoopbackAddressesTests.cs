@@ -13,13 +13,17 @@ public class GenerateLoopbackAddressesTests
     private readonly NetworkUtils _networkUtils = new();
 
     [Test]
-    public async Task Process_RouterWithoutLoopbackV4_GeneratesAddress()
+    public async Task Process_RouterWithoutLoopbackV4_GeneratesV4AddressOnly()
     {
-        var routers = new List<Router> { TestData.CreateRouter(loopbackAddressV4: null, external: false) };
+        var routers = new List<Router>
+        {
+            TestData.CreateRouter(loopbackAddressV4: null, loopbackAddressV6: null, external: false)
+        };
         var asses = new List<As>
         {
             TestData.CreateAs(
                 loopbackSpaceV4: IPNetwork.Parse("10.0.0.0/24"),
+                loopbackSpaceV6: IPNetwork.Parse("2001:db8::/64"),
                 ipVersion: IpVersion.IPv4,
                 routers: routers)
         };
@@ -34,12 +38,16 @@ public class GenerateLoopbackAddressesTests
     }
 
     [Test]
-    public async Task Process_RouterWithoutLoopbackV6_GeneratesAddress()
+    public async Task Process_RouterWithoutLoopbackV6_GeneratesV6AddressOnly()
     {
-        var routers = new List<Router> { TestData.CreateRouter(loopbackAddressV6: null, external: false) };
+        var routers = new List<Router>
+        {
+            TestData.CreateRouter(loopbackAddressV4: null, loopbackAddressV6: null, external: false)
+        };
         var asses = new List<As>
         {
             TestData.CreateAs(
+                loopbackSpaceV4: IPNetwork.Parse("10.0.0.0/24"),
                 loopbackSpaceV6: IPNetwork.Parse("2001:db8::/64"),
                 ipVersion: IpVersion.IPv6,
                 routers: routers)
@@ -52,6 +60,64 @@ public class GenerateLoopbackAddressesTests
         await Assert.That(routers[0].LoopbackAddressV6).IsNotNull();
         await Assert.That(routers[0].LoopbackAddressV4).IsNull();
         await Assert.That(processor.Context.ErrorsOccurred).IsFalse();
+    }
+
+    [Test]
+    [DependsOn(nameof(Process_RouterWithoutLoopbackV4_GeneratesV4AddressOnly))]
+    public async Task Process_MultipleRouters_GeneratesUniqueAddressesV4()
+    {
+        var routers = new List<Router>
+        {
+            TestData.CreateRouter(name: "Router1", loopbackAddressV4: null, external: false),
+            TestData.CreateRouter(name: "Router2", loopbackAddressV4: null, external: false)
+        };
+        var asses = new List<As>
+        {
+            TestData.CreateAs(
+                loopbackSpaceV4: IPNetwork.Parse("10.0.0.0/24"),
+                loopbackSpaceV6: IPNetwork.Parse("2001:db8::/64"),
+                ipVersion: IpVersion.IPv4,
+                routers: routers)
+        };
+
+        var context = ContextFactory.Create(asses: asses);
+        var processor = new GenerateLoopbackAddresses(_logger, context, _networkUtils);
+        processor.Process();
+
+        await Assert.That(routers[0].LoopbackAddressV4!)
+            .IsNotEqualTo(routers[1].LoopbackAddressV4!);
+
+        await Assert.That(routers[0].LoopbackAddressV6).IsNull();
+        await Assert.That(routers[1].LoopbackAddressV6).IsNull();
+    }
+
+    [Test]
+    [DependsOn(nameof(Process_RouterWithoutLoopbackV6_GeneratesV6AddressOnly))]
+    public async Task Process_MultipleRouters_GeneratesUniqueAddressesV6()
+    {
+        var routers = new List<Router>
+        {
+            TestData.CreateRouter(name: "Router1", loopbackAddressV6: null, external: false),
+            TestData.CreateRouter(name: "Router2", loopbackAddressV6: null, external: false)
+        };
+        var asses = new List<As>
+        {
+            TestData.CreateAs(
+                loopbackSpaceV4: IPNetwork.Parse("10.0.0.0/24"),
+                loopbackSpaceV6: IPNetwork.Parse("2001:db8::/64"),
+                ipVersion: IpVersion.IPv6,
+                routers: routers)
+        };
+
+        var context = ContextFactory.Create(asses: asses);
+        var processor = new GenerateLoopbackAddresses(_logger, context, _networkUtils);
+        processor.Process();
+
+        await Assert.That(routers[0].LoopbackAddressV6!)
+            .IsNotEqualTo(routers[1].LoopbackAddressV6!);
+
+        await Assert.That(routers[0].LoopbackAddressV4).IsNull();
+        await Assert.That(routers[1].LoopbackAddressV4).IsNull();
     }
 
     [Test]
@@ -114,59 +180,5 @@ public class GenerateLoopbackAddressesTests
 
         await Assert.That(routers[0].LoopbackAddressV4).IsNull();
         await Assert.That(routers[0].LoopbackAddressV6).IsNull();
-    }
-
-    [Test]
-    public async Task Process_MultipleRouters_GeneratesUniqueAddressesV4()
-    {
-        var routers = new List<Router>
-        {
-            TestData.CreateRouter(name: "Router1", loopbackAddressV4: null, external: false),
-            TestData.CreateRouter(name: "Router2", loopbackAddressV4: null, external: false)
-        };
-        var asses = new List<As>
-        {
-            TestData.CreateAs(
-                loopbackSpaceV4: IPNetwork.Parse("10.0.0.0/24"),
-                ipVersion: IpVersion.IPv4,
-                routers: routers)
-        };
-
-        var context = ContextFactory.Create(asses: asses);
-        var processor = new GenerateLoopbackAddresses(_logger, context, _networkUtils);
-        processor.Process();
-
-        await Assert.That(routers[0].LoopbackAddressV4!)
-            .IsNotEqualTo(routers[1].LoopbackAddressV4!);
-
-        await Assert.That(routers[0].LoopbackAddressV6).IsNull();
-        await Assert.That(routers[1].LoopbackAddressV6).IsNull();
-    }
-
-    [Test]
-    public async Task Process_MultipleRouters_GeneratesUniqueAddressesV6()
-    {
-        var routers = new List<Router>
-        {
-            TestData.CreateRouter(name: "Router1", loopbackAddressV6: null, external: false),
-            TestData.CreateRouter(name: "Router2", loopbackAddressV6: null, external: false)
-        };
-        var asses = new List<As>
-        {
-            TestData.CreateAs(
-                loopbackSpaceV6: IPNetwork.Parse("2001:db8::/64"),
-                ipVersion: IpVersion.IPv6,
-                routers: routers)
-        };
-
-        var context = ContextFactory.Create(asses: asses);
-        var processor = new GenerateLoopbackAddresses(_logger, context, _networkUtils);
-        processor.Process();
-
-        await Assert.That(routers[0].LoopbackAddressV6!)
-            .IsNotEqualTo(routers[1].LoopbackAddressV6!);
-
-        await Assert.That(routers[0].LoopbackAddressV4).IsNull();
-        await Assert.That(routers[1].LoopbackAddressV4).IsNull();
     }
 }
