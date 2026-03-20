@@ -177,7 +177,7 @@ The project includes an `.editorconfig` file that your IDE should automatically 
 - **Class Fields:** `_camelCase` (with underscore prefix)
 - **Interfaces:** Prefix with `I` (e.g., `IStep`, `IValidator`)
 - **Keywords as Variables:** Use `@` prefix (e.g., `@interface`, `@class`)
-- **Acronyms:** Treat as single words (e.g., `AsNumber` not `ASNumber`, `HttpClient` not `HTTPClient`)
+- **Acronyms:** Treat as single words, except for Enum Members (e.g., `AsNumber` not `ASNumber`, but `iBGP` not `Ibgp`)
 
 ### Code Organization
 
@@ -197,6 +197,17 @@ This project is licensed under the GNU General Public Licence v3.0 (GPL-3.0).
 See the [LICENCE](LICENCE) file for details.
 
 By contributing to router-quack, you agree that your contributions will be licensed under the same GPL-3.0 Licence.
+
+## Use of AI
+
+After experimenting with AI across different use cases,
+I came to the conclusion that it can be an amazing tool... for **learning**.
+In this project, I do not use AI to generate code, review code with no oversight or have any sort of responsibility.
+I am fine with it double-checking my work, nothing more.
+
+While this is my personal opinion, I do realise that I absolutely do not have a say on the way you should use AI.
+If you choose to do use it in your contributions to router-qauck,
+you will find a regurarly updated [AGENTS.md](AGENTS.md) file to make it as effective as possible.
 
 ## Questions?
 
