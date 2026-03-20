@@ -25,12 +25,11 @@ public class GenerateLoopbackAddresses(
     private void GenerateV4LoopbackAddresses()
     {
         var routers = Context.Asses
-            .Where(a => a.LoopbackSpaceV4 is not null)
+            .Where(a => (a.IpVersions & IpVersion.IPv4) == IpVersion.IPv4)
             .SelectMany(a => a.Routers)
             .Where(r => r is { External: false, LoopbackAddressV4: null });
 
         _usedAddresses = Context.Asses
-            .Where(a => a.LoopbackSpaceV4 is not null)
             .SelectMany(a => a.Routers)
             .Where(r => r.LoopbackAddressV4 != null)
             .Select(r => r.LoopbackAddressV4!)
@@ -67,12 +66,11 @@ public class GenerateLoopbackAddresses(
     private void GenerateV6LoopbackAddresses()
     {
         var routers = Context.Asses
-            .Where(a => a.LoopbackSpaceV6 is not null)
+            .Where(a => (a.IpVersions & IpVersion.IPv6) == IpVersion.IPv6)
             .SelectMany(a => a.Routers)
             .Where(r => r is { External: false, LoopbackAddressV6: null });
 
         _usedAddresses = Context.Asses
-            .Where(a => a.LoopbackSpaceV6 is not null)
             .SelectMany(a => a.Routers)
             .Where(r => r.LoopbackAddressV6 != null)
             .Select(r => r.LoopbackAddressV6!)
