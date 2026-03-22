@@ -38,7 +38,7 @@ public class ResolveNeighbours(ILogger<ResolveNeighbours> logger, Context contex
         if (@interface.Neighbour!.Neighbour is not null)
             return;
 
-        var neighbourReference = ParseNeighbourReference(@interface.Neighbour!.Name, @interface);
+        var neighbourReference = ParseNeighbourReference(candidate.Neighbour?.Name, candidate);
         var neighbour = ResolveNeighbour(asses, @interface, neighbourReference);
         @interface.Neighbour = neighbour;
     }
@@ -119,11 +119,22 @@ public class ResolveNeighbours(ILogger<ResolveNeighbours> logger, Context contex
                 return false;
         }
 
+        // Only keep unresolved neighbours
         bool FilterResolvedNeighbours(Interface i)
         {
             return i.Neighbour is not null && (
                 (i.Neighbour.Neighbour is null && ReferencePointsToInterface(i, @interface))
                 || (i.Neighbour.Neighbour is not null && i.Neighbour == @interface));
+        }
+
+        // Determine whether an unresolved neighbour declaration points to the current interface.
+        [Pure]
+        static bool ReferencePointsToInterface(Interface candidate, Interface current)
+        {
+            var neighbourReference = ParseNeighbourReference(candidate.Neighbour?.Name, candidate);
+            return neighbourReference.AsNumber == current.ParentRouter.ParentAs.Number
+                   && neighbourReference.RouterName == current.ParentRouter.Name
+                   && (neighbourReference.InterfaceName is null || neighbourReference.InterfaceName == current.Name);
         }
     }
 
@@ -186,18 +197,6 @@ public class ResolveNeighbours(ILogger<ResolveNeighbours> logger, Context contex
             3 when int.TryParse(segments[0], out var asNumber) => new(asNumber, segments[1], segments[2]),
             _ => new(0, string.Empty, null)
         };
-    }
-
-    /// <summary>
-    /// Determine whether an unresolved neighbour declaration points to the current interface.
-    /// </summary>
-    [Pure]
-    private static bool ReferencePointsToInterface(Interface candidate, Interface current)
-    {
-        var neighbourReference = ParseNeighbourReference(candidate.Neighbour?.Name, candidate);
-        return neighbourReference.AsNumber == current.ParentRouter.ParentAs.Number
-               && neighbourReference.RouterName == current.ParentRouter.Name
-               && (neighbourReference.InterfaceName is null || neighbourReference.InterfaceName == current.Name);
     }
 
     /// <summary>
