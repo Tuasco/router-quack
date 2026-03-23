@@ -116,6 +116,11 @@ public class GenerateLinkAddresses(
             return;
         }
 
+        // Check that routers are not in the same AS
+        if (link.Item1.ParentRouter.ParentAs.Number != link.Item2.ParentRouter.ParentAs.Number)
+            this.Log(link.Item1, $"Routers are in different ASes, " +
+                                 $"yet no valid {ipVersion.ToString()} link addresses were assigned", LogLevel.Warning);
+
         // Check space is valid
         if (space is null)
         {
