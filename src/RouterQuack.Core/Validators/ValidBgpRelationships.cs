@@ -12,6 +12,8 @@ public class ValidBgpRelationships(ILogger<ValidBgpRelationships> logger, Contex
     public ILogger Logger { get; } = logger;
     public Context Context { get; } = context;
 
+    private static readonly BgpRelationship[] NoEbgp = [BgpRelationship.Internal, BgpRelationship.None];
+
 
     public void Validate()
     {
@@ -20,11 +22,11 @@ public class ValidBgpRelationships(ILogger<ValidBgpRelationships> logger, Contex
         foreach (var link in links)
         {
             // Check if our neighbour's BGP strategy matches ours
-            if (link
-                is not ({ Item1.Bgp: BgpRelationship.None, Item2.Bgp: BgpRelationship.None }
-                or { Item1.Bgp: BgpRelationship.Peer, Item2.Bgp: BgpRelationship.Peer }
-                or { Item1.Bgp: BgpRelationship.Client, Item2.Bgp: BgpRelationship.Provider }
-                or { Item1.Bgp: BgpRelationship.Provider, Item2.Bgp: BgpRelationship.Client }))
+            if (!(NoEbgp.Contains(link.Item1.Bgp) && NoEbgp.Contains(link.Item2.Bgp))
+                && link
+                    is not ({ Item1.Bgp: BgpRelationship.Peer, Item2.Bgp: BgpRelationship.Peer }
+                    or { Item1.Bgp: BgpRelationship.Client, Item2.Bgp: BgpRelationship.Provider }
+                    or { Item1.Bgp: BgpRelationship.Provider, Item2.Bgp: BgpRelationship.Client }))
                 this.Log(link.Item1, "Invalid BGP relationship with neighbour");
 
             // Check if BGP is off when our neighbour is in a different AS

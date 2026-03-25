@@ -10,9 +10,16 @@ public class ValidBgpRelationshipsTests
     private readonly ILogger<ValidBgpRelationships> _logger = Substitute.For<ILogger<ValidBgpRelationships>>();
 
     [Test]
-    public async Task Validate_BothNone_NoErrors()
+    [Arguments(BgpRelationship.None, BgpRelationship.None)]
+    [Arguments(BgpRelationship.Peer, BgpRelationship.Peer)]
+    [Arguments(BgpRelationship.Provider, BgpRelationship.Client)]
+    [Arguments(BgpRelationship.Client, BgpRelationship.Provider)]
+    [Arguments(BgpRelationship.Internal, BgpRelationship.Internal)]
+    [Arguments(BgpRelationship.Internal, BgpRelationship.None)]
+    [Arguments(BgpRelationship.None, BgpRelationship.Internal)]
+    public async Task Validate_MatchedRelationships_NoErrors(BgpRelationship bgp1, BgpRelationship bgp2)
     {
-        var (intf1, intf2) = CreateLinkedInterfaces();
+        var (intf1, intf2) = CreateLinkedInterfaces(bgp1, bgp2);
 
         var context = ContextFactory.Create(asses: [intf1.ParentRouter.ParentAs, intf2.ParentRouter.ParentAs]);
         var validator = new ValidBgpRelationships(_logger, context);
@@ -22,45 +29,17 @@ public class ValidBgpRelationshipsTests
     }
 
     [Test]
-    public async Task Validate_BothPeer_NoErrors()
+    [Arguments(BgpRelationship.None, BgpRelationship.Client)]
+    [Arguments(BgpRelationship.None, BgpRelationship.Provider)]
+    [Arguments(BgpRelationship.None, BgpRelationship.Peer)]
+    [Arguments(BgpRelationship.Internal, BgpRelationship.Client)]
+    [Arguments(BgpRelationship.Internal, BgpRelationship.Provider)]
+    [Arguments(BgpRelationship.Internal, BgpRelationship.Peer)]
+    [Arguments(BgpRelationship.Client, BgpRelationship.Client)]
+    [Arguments(BgpRelationship.Provider, BgpRelationship.Provider)]
+    public async Task Validate_MismatchedRelationships_SetsErrorsOccurred(BgpRelationship bgp1, BgpRelationship bgp2)
     {
-        var (intf1, intf2) = CreateLinkedInterfaces(BgpRelationship.Peer, BgpRelationship.Peer);
-
-        var context = ContextFactory.Create(asses: [intf1.ParentRouter.ParentAs, intf2.ParentRouter.ParentAs]);
-        var validator = new ValidBgpRelationships(_logger, context);
-        validator.Validate();
-
-        await Assert.That(validator.Context.ErrorsOccurred).IsFalse();
-    }
-
-    [Test]
-    public async Task Validate_ClientProvider_NoErrors()
-    {
-        var (intf1, intf2) = CreateLinkedInterfaces(BgpRelationship.Client, BgpRelationship.Provider);
-
-        var context = ContextFactory.Create(asses: [intf1.ParentRouter.ParentAs, intf2.ParentRouter.ParentAs]);
-        var validator = new ValidBgpRelationships(_logger, context);
-        validator.Validate();
-
-        await Assert.That(validator.Context.ErrorsOccurred).IsFalse();
-    }
-
-    [Test]
-    public async Task Validate_ProviderClient_NoErrors()
-    {
-        var (intf1, intf2) = CreateLinkedInterfaces(BgpRelationship.Provider, BgpRelationship.Client);
-
-        var context = ContextFactory.Create(asses: [intf1.ParentRouter.ParentAs, intf2.ParentRouter.ParentAs]);
-        var validator = new ValidBgpRelationships(_logger, context);
-        validator.Validate();
-
-        await Assert.That(validator.Context.ErrorsOccurred).IsFalse();
-    }
-
-    [Test]
-    public async Task Validate_MismatchedRelationships_SetsErrorsOccurred()
-    {
-        var (intf1, intf2) = CreateLinkedInterfaces(BgpRelationship.Client, BgpRelationship.Client);
+        var (intf1, intf2) = CreateLinkedInterfaces(bgp1, bgp2);
 
         var context = ContextFactory.Create(asses: [intf1.ParentRouter.ParentAs, intf2.ParentRouter.ParentAs]);
         var validator = new ValidBgpRelationships(_logger, context);
