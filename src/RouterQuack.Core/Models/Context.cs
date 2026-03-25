@@ -1,3 +1,4 @@
+using RouterQuack.Core.ConfigDeployers;
 using RouterQuack.Core.ConfigFileWriters;
 using RouterQuack.Core.IntentFileParsers;
 using RouterQuack.Core.Processors;
@@ -53,6 +54,10 @@ public class Context
 
             case IConfigFileWriter configFileWriter:
                 configFileWriter.WriteFiles(OutputDirectoryPath);
+                break;
+
+            case IConfigDeployer configDeployer:
+                configDeployer.DeployConfigs(OutputDirectoryPath);
                 break;
 
             default:

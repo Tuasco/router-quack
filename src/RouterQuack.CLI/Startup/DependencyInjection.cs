@@ -1,11 +1,13 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using RouterQuack.Core.ConfigDeployers;
 using RouterQuack.Core.ConfigFileWriters;
 using RouterQuack.Core.IntentFileParsers;
 using RouterQuack.Core.Processors;
 using RouterQuack.Core.Utils;
 using RouterQuack.Core.Validators;
 using RouterQuack.IO.Cisco;
+using RouterQuack.IO.Gns3;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
@@ -82,6 +84,10 @@ public static class DependencyInjection
 
         builder.Services
             .AddKeyedSingleton<IConfigFileWriter, CiscoWriter>(RouterBrand.Cisco);
+
+        builder.Services
+            .AddSingleton<Gns3ApiClient>()
+            .AddSingleton<IConfigDeployer, Gns3Deployer>();
 
         return builder.Build().Services.CreateScope();
     }

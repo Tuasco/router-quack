@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using RouterQuack.CLI.Startup;
 using RouterQuack.Core;
+using RouterQuack.Core.ConfigDeployers;
 using RouterQuack.Core.ConfigFileWriters;
 using RouterQuack.Core.Extensions;
 using RouterQuack.Core.IntentFileParsers;
@@ -57,7 +58,8 @@ try
 
     context.ExecuteStep(di.GetRequiredKeyedService<IConfigFileWriter>(RouterBrand.Cisco));
 
-    Log.Information("Processing complete.");
+    // Deploy configurations to GNS3 if any AS has deploy info
+    context.ExecuteStep(di.GetRequiredService<IConfigDeployer>());
 }
 catch (StepException)
 {
