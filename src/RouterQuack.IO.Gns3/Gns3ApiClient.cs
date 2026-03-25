@@ -27,8 +27,16 @@ public class Gns3ApiClient : IDisposable
     /// </summary>
     public void Initialize(Uri server)
     {
-        _httpClient.BaseAddress = server;
-        _logger.LogDebug("GNS3 API client initialized for {Server}", server);
+        // Only set BaseAddress if it hasn't been set or if it's different
+        if (_httpClient.BaseAddress == null || !_httpClient.BaseAddress.Equals(server))
+        {
+            _httpClient.BaseAddress = server;
+            _logger.LogDebug("GNS3 API client initialized for {Server}", server);
+        }
+        else
+        {
+            _logger.LogDebug("GNS3 API client already initialized for {Server}", server);
+        }
     }
 
     /// <summary>

@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using RouterQuack.Core.ConfigDeployers;
 using RouterQuack.IO.Gns3.Exceptions;
 using RouterQuack.IO.Gns3.Models;
@@ -107,18 +108,27 @@ public class Gns3Deployer : IConfigDeployer
         var nodes = await _apiClient.GetProjectNodesAsync(project.ProjectId);
         _logger.LogDebug("Found {Count} node(s) in project", nodes.Count);
 
-        // Track deployed nodes for potential rollback
-        var deployedNodes = new List<(string NodeId, string RouterName)>();
+        // Track deployed nodes for potential rollback (thread-safe collection)
+        var deployedNodes = new ConcurrentBag<(string NodeId, string RouterName)>();
 
         try
         {
-            // Deploy each router
-            foreach (var router in @as.Routers.Where(r => !r.External))
+            // Deploy routers concurrently
+            var routersToDeploy = @as.Routers.Where(r => !r.External).ToList();
+            
+            if (routersToDeploy.Count == 0)
             {
-                await DeployRouterAsync(project.ProjectId, @as, router, nodes, configDirectory, deployedNodes);
+                _logger.LogInformation("AS {AsNumber} has no non-external routers to deploy. Skipping.", @as.Number);
+                return;
             }
+            
+            var deploymentTasks = routersToDeploy.Select(router =>
+                DeployRouterAsync(project.ProjectId, @as, router, nodes, configDirectory, deployedNodes)
+            );
 
-            _logger.LogInformation("Successfully deployed {Count} router(s) for AS {AsNumber}", 
+            await Task.WhenAll(deploymentTasks);
+
+            _logger.LogInformation("Successfully deployed {Count} router(s) for AS {AsNumber}",
                 deployedNodes.Count, @as.Number);
         }
         catch (Exception)
@@ -139,7 +149,7 @@ public class Gns3Deployer : IConfigDeployer
         Router router,
         List<Gns3Node> nodes,
         string configDirectory,
-        List<(string NodeId, string RouterName)> deployedNodes)
+        ConcurrentBag<(string NodeId, string RouterName)> deployedNodes)
     {
         // Find matching node by name
         var node = nodes.FirstOrDefault(n =>
@@ -201,7 +211,7 @@ public class Gns3Deployer : IConfigDeployer
     /// </summary>
     private async Task RollbackDeploymentAsync(
         string projectId,
-        List<(string NodeId, string RouterName)> deployedNodes)
+        ConcurrentBag<(string NodeId, string RouterName)> deployedNodes)
     {
         foreach (var (nodeId, routerName) in deployedNodes)
         {
