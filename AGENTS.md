@@ -42,6 +42,9 @@ dotnet test
 The project uses **TUnit** as the testing framework with **NSubstitute** for mocking.
 Tests are located in the `tests/RouterQuack.Tests/` directory.
 
+Never try to filter or subset tests (e.g., `--filter` or `--tree-filter`). Always run the full test suite.
+The tests are very fast, so there is no benefit to running a subset, and filtering can accidentally hide regressions.
+
 ## 3. Project Structure
 
 ```

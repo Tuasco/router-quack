@@ -2,6 +2,9 @@ using RouterQuack.Core.Utils;
 
 namespace RouterQuack.Core.Processors;
 
+/// <summary>
+/// Populate router non-configured IDs with IPv4 loopback address, or a default fallback ID from the router's name.
+/// </summary>
 public class PopulateRouterIds(
     ILogger<PopulateRouterIds> logger,
     Context context,

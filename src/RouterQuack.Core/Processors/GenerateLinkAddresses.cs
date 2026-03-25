@@ -5,6 +5,9 @@ using RouterQuack.Core.Utils;
 
 namespace RouterQuack.Core.Processors;
 
+/// <summary>
+/// Generate link addresses from networks space for selected IP versions (skip if already configured).
+/// </summary>
 public class GenerateLinkAddresses(
     ILogger<GenerateLinkAddresses> logger,
     Context context,

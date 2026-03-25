@@ -1,11 +1,11 @@
-using RouterQuack.Core.Utils;
-
 namespace RouterQuack.Core.Processors;
 
+/// <summary>
+/// Enable iBGP on routers in an iBGP AS, or just using eBGP.
+/// </summary>
 public class ToggleIbgp(
     ILogger<ToggleIbgp> logger,
-    Context context,
-    RouterUtils routerUtils) : IProcessor
+    Context context) : IProcessor
 {
     public string BeginMessage => "Toggling iBGP for configured routers";
     public ILogger Logger { get; } = logger;
@@ -14,7 +14,7 @@ public class ToggleIbgp(
     public void Process()
     {
         foreach (var router in Context.Asses.SelectMany(a => a.Routers))
-            if (router.ParentAs.Igp == IgpType.iBGP)
+            if (router.ParentAs.Igp == IgpType.iBGP || router.BorderRouter)
                 router.Bgp.Ibgp = true;
     }
 }

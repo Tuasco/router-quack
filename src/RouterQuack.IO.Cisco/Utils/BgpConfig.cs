@@ -17,10 +17,12 @@ internal static class BgpConfig
         builder.AppendLine($" bgp router-id {router.Id}");
         builder.AppendLine(ConfigStart);
 
+        // Routers with iBGP enabled (except self)
         var ibgpNeighbours = router.ParentAs.Routers
             .Where(r => r.Bgp.Ibgp && !r.Equals(router))
             .ToArray();
 
+        // Neighbour interfaces with BGP relationships other than none
         var ebgpNeighbours = router.Interfaces
             .Where(i => i.Bgp != BgpRelationship.None)
             .Select(i => i.Neighbour!)
@@ -32,7 +34,7 @@ internal static class BgpConfig
         ConfigureEbgp(builder, ebgpNeighbours, ipv4AddressFamily, ipv6AddressFamily);
         ConfigureIbgp(builder, ibgpNeighbours, ipv4AddressFamily, ipv6AddressFamily);
         ConfigureNetworks(router, ipv4AddressFamily, ipv6AddressFamily);
-        ConfigureAddressFamilies(builder, ipv4AddressFamily, ipv6AddressFamily);
+        WriteAddressFamilies(builder, ipv4AddressFamily, ipv6AddressFamily);
     }
 
     private const string ConfigHeader = "! ================= BGP =================";
@@ -116,7 +118,7 @@ internal static class BgpConfig
         }
     }
 
-    private static void ConfigureAddressFamilies(StringBuilder builder,
+    private static void WriteAddressFamilies(StringBuilder builder,
         in List<string> ipv4AddressFamily,
         in List<string> ipv6AddressFamily)
     {

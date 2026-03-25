@@ -4,6 +4,9 @@ using RouterQuack.Core.Utils;
 
 namespace RouterQuack.Core.Processors;
 
+/// <summary>
+/// Generate loopback addresses from loopback space for selected IP versions (skip if already configured).
+/// </summary>
 public class GenerateLoopbackAddresses(
     ILogger<GenerateLoopbackAddresses> logger,
     Context context,
