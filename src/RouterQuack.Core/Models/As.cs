@@ -20,6 +20,7 @@ public sealed class As
     public IPNetwork? NetworksSpaceV6 { get; init; }
 
     public required IpVersion IpVersions { get; init; }
+    public DeployInfo? Deploy {get; init; }
 
     public DeployInfo? Deploy { get; init; }
 
