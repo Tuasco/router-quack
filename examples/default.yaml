@@ -30,14 +30,17 @@
           neighbour: "R1"
 
 112:
+  networks_space_v4: "192.168.1.0/24"
+  networks_space_v6: "2001:db8:1::/48"
+  networks: "IPv4, IPv6"
   deploy:
-      gns3:
-        server: "http://localhost:3080"
-        project: "Quack"
-
-  routers:
+    gns3:
+      server: "http://localhost:3080"
+      project: "Quack"
+  routers: 
     R2:
-      external: true
+      loopback_v4: "192.168.2.1"
+      loopback_v6: "2001:2:2:2::1"
       interfaces:
         GigabitEthernet1/0:
           neighbour: "111:R1"
