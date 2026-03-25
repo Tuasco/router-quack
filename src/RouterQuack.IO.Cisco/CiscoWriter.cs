@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using RouterQuack.Core.ConfigFileWriters;
 using RouterQuack.Core.Models;
 using RouterQuack.IO.Cisco.Utils;
+using BgpConfig = RouterQuack.IO.Cisco.Utils.BgpConfig;
 
 namespace RouterQuack.IO.Cisco;
 

@@ -29,7 +29,6 @@ public sealed class Interface
 public enum BgpRelationship
 {
     None,
-    Internal,
     Client,
     Peer,
     Provider

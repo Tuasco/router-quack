@@ -16,12 +16,17 @@ public sealed class Router
 
     public IPAddress? LoopbackAddressV6 { get; set; }
 
+    public required BgpConfig Bgp { get; init; }
+
     public required bool External { get; init; }
 
     public required ICollection<Interface> Interfaces { get; set; }
 
     public required As ParentAs { get; init; }
 
+    /// <summary>
+    /// <c>true</c> if at least one interface has an eBGP neighbour
+    /// </summary>
     public bool BorderRouter => Interfaces.Any(i => i.Bgp != BgpRelationship.None);
 
     [Pure]
@@ -35,6 +40,13 @@ public sealed class Router
 
         return str.ToString().TrimEnd('\n');
     }
+}
+
+public sealed class BgpConfig
+{
+    public bool Ibgp { get; set; } = false;
+
+    public IPNetwork[] Networks { get; init; } = [];
 }
 
 public enum RouterBrand

@@ -15,6 +15,8 @@ public class Router
 
     public IPAddress? LoopbackV6 { get; init; }
 
+    public BgpConfig Bgp { get; init; } = new();
+
     public bool? External { get; init; }
 
     public required IDictionary<string, Interface> Interfaces { get; init; }

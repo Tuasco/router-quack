@@ -7,10 +7,8 @@ internal static class BgpConfig
 {
     internal static void ApplyBgpConfig(StringBuilder builder, Router router)
     {
-        var isBorderRouter = router.BorderRouter;
-
         // Neither eBGP nor iBGP.
-        if (!isBorderRouter && router.ParentAs.Igp != IgpType.iBGP)
+        if (!router.BorderRouter && router.ParentAs.Igp != IgpType.iBGP)
             return;
 
         builder.AppendLine(ConfigHeader);
@@ -23,7 +21,7 @@ internal static class BgpConfig
             .ToArray();
 
         var ebgpNeighbours = router.Interfaces
-            .Where(i => i.Bgp != BgpRelationship.None && i.Bgp != BgpRelationship.Internal)
+            .Where(i => i.Bgp != BgpRelationship.None)
             .Select(i => i.Neighbour!)
             .ToArray();
 

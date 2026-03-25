@@ -43,10 +43,14 @@ public class YamlRouterMapper(ILogger<YamlRouterMapper> logger, YamlInterfaceMap
                 Brand = value.Brand ?? defaultBrand,
                 LoopbackAddressV4 = value.LoopbackV4,
                 LoopbackAddressV6 = value.LoopbackV6,
+                Bgp = value.Bgp,
                 Interfaces = [],
                 ParentAs = parentAs,
                 External = value.External ?? externalAs
             };
+
+            Console.WriteLine(value.Bgp.Ibgp);
+            Console.WriteLine(value.Bgp.Networks.Length);
 
             router.Interfaces = yamlInterfaceMapper.Map(value.Interfaces, router, context);
             routers.Add(router);

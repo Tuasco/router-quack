@@ -57,6 +57,7 @@ internal static class TestData
             Brand = brand,
             LoopbackAddressV4 = loopbackAddressV4,
             LoopbackAddressV6 = loopbackAddressV6,
+            Bgp = new(),
             External = external,
             Interfaces = interfaceList,
             ParentAs = parentAs!
