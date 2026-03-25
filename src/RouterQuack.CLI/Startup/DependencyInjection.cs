@@ -77,7 +77,8 @@ public static class DependencyInjection
             .AddKeyedSingleton<IProcessor, ResolveNeighbours>(nameof(ResolveNeighbours))
             .AddKeyedSingleton<IProcessor, GenerateLinkAddresses>(nameof(GenerateLinkAddresses))
             .AddKeyedSingleton<IProcessor, GenerateLoopbackAddresses>(nameof(GenerateLoopbackAddresses))
-            .AddKeyedSingleton<IProcessor, PopulateRouterIds>(nameof(PopulateRouterIds));
+            .AddKeyedSingleton<IProcessor, PopulateRouterIds>(nameof(PopulateRouterIds))
+            .AddKeyedSingleton<IProcessor, ToggleIbgp>(nameof(ToggleIbgp));
 
         builder.Services
             .AddKeyedSingleton<IConfigFileWriter, CiscoWriter>(RouterBrand.Cisco);

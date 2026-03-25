@@ -8,7 +8,7 @@ internal static class BgpConfig
     internal static void ApplyBgpConfig(StringBuilder builder, Router router)
     {
         // Neither eBGP nor iBGP.
-        if (!router.BorderRouter && router.ParentAs.Igp != IgpType.iBGP)
+        if (router is { BorderRouter: false, Bgp.Ibgp: false })
             return;
 
         builder.AppendLine(ConfigHeader);
@@ -17,7 +17,7 @@ internal static class BgpConfig
         builder.AppendLine(ConfigStart);
 
         var ibgpNeighbours = router.ParentAs.Routers
-            .Where(r => !r.Equals(router))
+            .Where(r => r.Bgp.Ibgp && !r.Equals(router))
             .ToArray();
 
         var ebgpNeighbours = router.Interfaces
@@ -74,10 +74,6 @@ internal static class BgpConfig
         in List<string> ipv4AddressFamily,
         in List<string> ipv6AddressFamily)
     {
-        // Only configure all routers in the core if the igp is iBGP
-        if (igp != IgpType.iBGP)
-            neighbours = neighbours.Where(n => n.BorderRouter).ToArray();
-
         foreach (var neighbour in neighbours)
         {
             var addressV4 = neighbour.LoopbackAddressV4;

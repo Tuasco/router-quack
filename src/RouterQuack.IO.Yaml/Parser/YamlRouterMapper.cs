@@ -49,9 +49,6 @@ public class YamlRouterMapper(ILogger<YamlRouterMapper> logger, YamlInterfaceMap
                 External = value.External ?? externalAs
             };
 
-            Console.WriteLine(value.Bgp.Ibgp);
-            Console.WriteLine(value.Bgp.Networks.Length);
-
             router.Interfaces = yamlInterfaceMapper.Map(value.Interfaces, router, context);
             routers.Add(router);
         }
