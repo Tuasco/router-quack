@@ -66,42 +66,6 @@ public class ValidNetworkSpacesTests
     }
 
     [Test]
-    public async Task Validate_MissingV4Space_SetsErrorsOccurred()
-    {
-        var asses = new List<As>
-        {
-            TestData.CreateAs(
-                routers: [TestData.CreateRouter()],
-                networksSpaceV4: null,
-                ipVersion: IpVersion.IPv4)
-        };
-
-        var context = ContextFactory.Create(asses: asses);
-        var validator = new ValidNetworkSpaces(_logger, context);
-        validator.Validate();
-
-        await Assert.That(validator.Context.ErrorsOccurred).IsTrue();
-    }
-
-    [Test]
-    public async Task Validate_MissingV6Space_SetsErrorsOccurred()
-    {
-        var asses = new List<As>
-        {
-            TestData.CreateAs(
-                routers: [TestData.CreateRouter()],
-                networksSpaceV6: null,
-                ipVersion: IpVersion.IPv6)
-        };
-
-        var context = ContextFactory.Create(asses: asses);
-        var validator = new ValidNetworkSpaces(_logger, context);
-        validator.Validate();
-
-        await Assert.That(validator.Context.ErrorsOccurred).IsTrue();
-    }
-
-    [Test]
     public async Task Validate_FullyExternalAs_NoErrorsWhenMissingSpace()
     {
         var asses = new List<As>

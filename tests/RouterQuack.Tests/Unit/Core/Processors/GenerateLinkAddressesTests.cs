@@ -200,6 +200,38 @@ public class GenerateLinkAddressesTests
         await Assert.That(processor.Context.ErrorsOccurred).IsTrue();
     }
 
+    [Test]
+    [Arguments(IpVersion.IPv4)]
+    [Arguments(IpVersion.IPv6)]
+    [Arguments(IpVersion.IPv4 | IpVersion.IPv6)]
+    public async Task Process_NoNetworkSpace_AcrossASes_SetsErrorsOccurred(IpVersion addressFamilies)
+    {
+        var (intf1, intf2) = CreateLinkedInterfaces();
+        var asses = new List<As>
+        {
+            TestData.CreateAs(
+                networksSpaceV6: null,
+                ipVersion: addressFamilies,
+                routers:
+                [
+                    TestData.CreateRouter(name: "R1", external: false, interfaces: [intf1])
+                ]),
+            TestData.CreateAs(
+                networksSpaceV6: null,
+                ipVersion: addressFamilies,
+                routers:
+                [
+                    TestData.CreateRouter(name: "R2", external: false, interfaces: [intf2])
+                ])
+        };
+
+        var context = ContextFactory.Create(asses: asses);
+        var processor = new GenerateLinkAddresses(_logger, context, _networkUtils);
+        processor.Process();
+
+        await Assert.That(processor.Context.ErrorsOccurred).IsTrue();
+    }
+
     private static (Interface, Interface) CreateLinkedInterfaces(
         bool withValidLinkAddresses = false)
     {

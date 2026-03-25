@@ -4,15 +4,13 @@ using RouterQuack.Core.Extensions;
 namespace RouterQuack.Core.Validators;
 
 /// <summary>
-/// Generate an error if there is a mismatch in the configured networks version per AS
+/// Log an error if there is a mismatch in the configured networks version per AS
 /// </summary>
 public class ValidNetworkSpaces(ILogger<ValidNetworkSpaces> logger, Context context) : IValidator
 {
     public string BeginMessage => "Ensuring network spaces are valid";
     public ILogger Logger { get; } = logger;
     public Context Context { get; } = context;
-
-    private const IpVersion BothVersions = IpVersion.IPv6 | IpVersion.IPv4;
 
     public void Validate()
     {
@@ -25,12 +23,6 @@ public class ValidNetworkSpaces(ILogger<ValidNetworkSpaces> logger, Context cont
             if (@as.NetworksSpaceV6 is not null
                 && @as.NetworksSpaceV6?.BaseAddress.AddressFamily != AddressFamily.InterNetworkV6)
                 this.Log(@as, "Invalid networks space v6");
-
-            if (!@as.FullyExternal
-                && @as
-                    is { NetworksSpaceV4: null, IpVersions: IpVersion.IPv4 or BothVersions }
-                    or { NetworksSpaceV6: null, IpVersions: IpVersion.IPv6 or BothVersions })
-                this.Log(@as, "The chosen networks version doesn't have a provided space");
         }
     }
 }
