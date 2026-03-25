@@ -40,6 +40,7 @@ internal static class BgpConfig
     private const string ConfigStart =
         """
          bgp log-neighbor-changes
+         bgp graceful-restart
          no bgp default ipv4-unicast
         """;
 
