@@ -21,6 +21,7 @@ public sealed class As
     public IpVersion Networks { get; init; } = IpVersion.IPv4 | IpVersion.IPv6;
 
     public RouterBrand Brand { get; init; } = RouterBrand.Cisco;
+
     public DeployInfo? Deploy {get; init; }
 
     public bool External { get; init; } = false;
