@@ -23,6 +23,7 @@ public sealed class YamlAsMapper(YamlRouterMapper yamlRouterMapper)
                 NetworksSpaceV4 = value.NetworksSpaceV4,
                 NetworksSpaceV6 = value.NetworksSpaceV6,
                 IpVersions = value.Networks,
+                Deploy =  value.Deploy,
                 Routers = []
             };
 

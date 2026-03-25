@@ -1,4 +1,4 @@
-namespace RouterQuack.IO.Yaml.Models;
+namespace RouterQuack.Core.Models;
 
 public class DeployInfo
 {
@@ -7,6 +7,15 @@ public class DeployInfo
 
 public class Gns3Info
 {
-    public required Uri ServerUrl { get; init; }
-    public required string ProjectName { get; init; }
+    /// <summary>
+    /// GNS3 server URL (e.g., http://localhost:3080).
+    /// YAML property: server
+    /// </summary>
+    public required Uri Server { get; init; }
+    
+    /// <summary>
+    /// Name of the GNS3 project to deploy to.
+    /// YAML property: project
+    /// </summary>
+    public required string Project { get; init; }
 }

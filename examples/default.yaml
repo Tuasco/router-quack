@@ -6,6 +6,11 @@
   networks_space_v6: "2001:db8:1::/48"
   networks: "IPv4, IPv6"
   brand: "cisco"
+  deploy:
+    gns3:
+      server: "http://localhost:3080"
+      project: "Quack"
+
   routers:
     R1:
       id: "1.1.1.1"
@@ -25,6 +30,11 @@
           neighbour: "R1"
 
 112:
+  deploy:
+      gns3:
+        server: "http://localhost:3080"
+        project: "Quack"
+
   routers:
     R2:
       external: true
