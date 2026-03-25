@@ -59,7 +59,8 @@ internal static class InterfacesConfig
         if (ipv4Address is not null)
         {
             builder.AppendLine(
-                $" ip address {ipv4Address.IpAddress} {GetV4Mask(ipv4Address.NetworkAddress.PrefixLength)}");
+                $" ip address {ipv4Address.IpAddress} " +
+                $"{Ipv4AddressUtils.GetV4Mask(ipv4Address.NetworkAddress.PrefixLength)}");
 
             if (@interface.Bgp == BgpRelationship.None)
                 builder.AppendLine(" ip ospf 1 area 0");
@@ -85,14 +86,6 @@ internal static class InterfacesConfig
             builder.AppendLine(" ipv6 ospf 1 area 0");
 
         builder.AppendLine("!\n!");
-        return;
-
-        static string GetV4Mask(int subnet)
-        {
-            var mask = (0xffffffffL << (32 - subnet)) & 0xffffffffL;
-            mask = IPAddress.HostToNetworkOrder((int)mask);
-            return new IPAddress((uint)mask).ToString();
-        }
     }
 
     private const string InterfaceConfigStart =

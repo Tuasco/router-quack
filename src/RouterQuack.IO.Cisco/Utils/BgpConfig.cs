@@ -1,3 +1,4 @@
+using System.Net.Sockets;
 using System.Text;
 using RouterQuack.Core.Models;
 
@@ -29,7 +30,8 @@ internal static class BgpConfig
         List<string> ipv6AddressFamily = [];
 
         ConfigureEbgp(builder, ebgpNeighbours, ipv4AddressFamily, ipv6AddressFamily);
-        ConfigureIbgp(builder, router.ParentAs.Igp, ibgpNeighbours, ipv4AddressFamily, ipv6AddressFamily);
+        ConfigureIbgp(builder, ibgpNeighbours, ipv4AddressFamily, ipv6AddressFamily);
+        ConfigureNetworks(router, ipv4AddressFamily, ipv6AddressFamily);
         ConfigureAddressFamilies(builder, ipv4AddressFamily, ipv6AddressFamily);
     }
 
@@ -69,7 +71,6 @@ internal static class BgpConfig
     }
 
     private static void ConfigureIbgp(StringBuilder builder,
-        IgpType igp,
         Router[] neighbours,
         in List<string> ipv4AddressFamily,
         in List<string> ipv6AddressFamily)
@@ -95,6 +96,22 @@ internal static class BgpConfig
                 builder.AppendLine($" neighbor {addressV6} update-source Loopback0");
                 ipv6AddressFamily.Add($"  neighbor {addressV6} activate");
                 ipv6AddressFamily.Add($"  neighbor {addressV6} next-hop-self");
+            }
+        }
+    }
+
+    private static void ConfigureNetworks(Router router,
+        List<string> ipv4AddressFamily,
+        List<string> ipv6AddressFamily)
+    {
+        foreach (var network in router.Bgp.Networks)
+        {
+            if (network.BaseAddress.AddressFamily == AddressFamily.InterNetwork)
+                ipv4AddressFamily.Add($"  network {network.BaseAddress} " +
+                                      $"{Ipv4AddressUtils.GetV4Mask(network.PrefixLength)}");
+            else
+            {
+                ipv6AddressFamily.Add($"  network {network.BaseAddress}/{network.PrefixLength}");
             }
         }
     }
