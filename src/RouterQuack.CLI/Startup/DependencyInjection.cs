@@ -62,6 +62,9 @@ public static class DependencyInjection
             .AddSingleton<YamlRouterMapper>()
             .AddSingleton<YamlAsMapper>();
 
+        builder.Services
+            .AddSingleton<Gns3ApiClient>();
+
         // Register steps
         builder.Services.AddSingleton<IIntentFileParser, YamlParser>();
 
@@ -87,7 +90,6 @@ public static class DependencyInjection
             .AddKeyedSingleton<IConfigFileWriter, CiscoWriter>(RouterBrand.Cisco);
 
         builder.Services
-            .AddSingleton<Gns3ApiClient>()
             .AddSingleton<IConfigDeployer, Gns3Deployer>();
 
         return builder.Build().Services.CreateScope();

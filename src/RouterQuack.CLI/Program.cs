@@ -59,8 +59,10 @@ try
 
     context.ExecuteStep(di.GetRequiredKeyedService<IConfigFileWriter>(RouterBrand.Cisco));
 
-    // Deploy configurations to GNS3 if any AS has deploy info
+    // Deploy configurations to GNS3 if any AS has "deploy" info
     context.ExecuteStep(di.GetRequiredService<IConfigDeployer>());
+
+    Log.Information("Processing complete.");
 }
 catch (StepException)
 {
