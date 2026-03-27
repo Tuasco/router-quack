@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
-using RouterQuack.Core.Models;
 
 namespace RouterQuack.IO.Yaml.Models;
 
@@ -22,7 +21,7 @@ public sealed class As
 
     public RouterBrand Brand { get; init; } = RouterBrand.Cisco;
 
-    public DeployInfo? Deploy {get; init; }
+    public DeployInfo? Deploy { get; init; }
 
     public DeployInfo? Deploy { get; init; }
 
