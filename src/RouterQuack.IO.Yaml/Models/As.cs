@@ -5,7 +5,7 @@ namespace RouterQuack.IO.Yaml.Models;
 
 [SuppressMessage("ReSharper", "ClassNeverInstantiated.Global")]
 [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
-public class As
+public sealed class As
 {
     public IgpType Igp { get; init; } = IgpType.iBGP;
 
