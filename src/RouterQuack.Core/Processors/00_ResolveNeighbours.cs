@@ -35,10 +35,11 @@ public class ResolveNeighbours(ILogger<ResolveNeighbours> logger, Context contex
     /// <remarks>Will generate an error if the neighbour is in an unknown AS or incorrectly formatted.</remarks>
     private void ReplaceNeighbour(ICollection<As> asses, Interface @interface)
     {
+        // Already replaced
         if (@interface.Neighbour!.Neighbour is not null)
             return;
 
-        var neighbourReference = new NeighbourReference(@interface.Neighbour!.Name, @interface);
+        var neighbourReference = new NeighbourReference(@interface.Neighbour!.Name);
         var neighbour = ResolveNeighbour(asses, @interface, neighbourReference);
         @interface.Neighbour = neighbour;
     }
@@ -63,8 +64,8 @@ public class ResolveNeighbours(ILogger<ResolveNeighbours> logger, Context contex
          * to avoid O(n) FirstOrDefault calls.
          * Using lookups would bring us down from O(R * I) to O(R + I).
          */
-        var router = asses.FirstOrDefault(a => a.Number == neighbourReference.AsNumber)
-            ?.Routers.FirstOrDefault(r => r.Name == neighbourReference.RouterName);
+        var router = asses.FirstOrDefault(a => a.Number == neighbourReference.AsNumber)?
+            .Routers.FirstOrDefault(r => r.Name == neighbourReference.RouterName);
         if (router is null)
         {
             this.Log(@interface, "Could not resolve neighbour");
@@ -72,8 +73,8 @@ public class ResolveNeighbours(ILogger<ResolveNeighbours> logger, Context contex
         }
 
         var candidates = router.Interfaces
-            .Where(i => neighbourReference.InterfaceName is null || i.Name == neighbourReference.InterfaceName)
-            .ToArray();
+            .Where(i => string.IsNullOrEmpty(neighbourReference.InterfaceName)
+                        || i.Name == neighbourReference.InterfaceName).ToArray();
         if (TryGetResolvedCandidate(candidates, @interface, neighbourReference, out var resolvedCandidate))
             return resolvedCandidate;
         if (TryGetGuessedCandidate(candidates, @interface, neighbourReference, out var guessedCandidate))
@@ -132,10 +133,11 @@ public class ResolveNeighbours(ILogger<ResolveNeighbours> logger, Context contex
         [Pure]
         static bool ReferencePointsToInterface(Interface candidate, Interface current)
         {
-            var neighbourReference = new NeighbourReference(candidate.Neighbour?.Name, candidate);
+            var neighbourReference = new NeighbourReference(candidate.Neighbour!.Name);
             return neighbourReference.AsNumber == current.ParentRouter.ParentAs.Number
                    && neighbourReference.RouterName == current.ParentRouter.Name
-                   && (neighbourReference.InterfaceName is null || neighbourReference.InterfaceName == current.Name);
+                   && (string.IsNullOrEmpty(neighbourReference.InterfaceName)
+                       || neighbourReference.InterfaceName == current.Name);
         }
     }
 
