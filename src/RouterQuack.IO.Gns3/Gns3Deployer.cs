@@ -1,34 +1,25 @@
 using System.Collections.Concurrent;
 using RouterQuack.Core.ConfigDeployers;
+using RouterQuack.Core.Extensions;
 using RouterQuack.IO.Gns3.Exceptions;
 using RouterQuack.IO.Gns3.Models;
+using RouterQuack.IO.Gns3.Utils;
 
 namespace RouterQuack.IO.Gns3;
 
 /// <summary>
 /// Deploys generated router configurations to GNS3 projects.
 /// </summary>
-public class Gns3Deployer : IConfigDeployer
+public sealed class Gns3Deployer(
+    Gns3ApiClient apiClient,
+    ILogger<Gns3Deployer> logger,
+    Context context) : IConfigDeployer
 {
-    private readonly Gns3ApiClient _apiClient;
-    private readonly ILogger<Gns3Deployer> _logger;
-    private readonly Context _context;
-
-    public Gns3Deployer(
-        Gns3ApiClient apiClient,
-        ILogger<Gns3Deployer> logger,
-        Context context)
-    {
-        _apiClient = apiClient;
-        _logger = logger;
-        _context = context;
-    }
+    private readonly Gns3ApiClient _apiClient = apiClient;
+    public ILogger Logger { get; } = logger;
+    public Context Context { get; } = context;
 
     public string? BeginMessage => "Deploying configurations to GNS3";
-
-    public ILogger Logger => _logger;
-
-    public Context Context => _context;
 
     /// <summary>
     /// Deploy configurations to GNS3 for all ASes that have deploy info.
@@ -36,114 +27,73 @@ public class Gns3Deployer : IConfigDeployer
     public void DeployConfigs(string configDirectory)
     {
         // Find ASes with GNS3 deploy info
-        var assesToDeploy = _context.Asses
+        var assesToDeploy = context.Asses
             .Where(a => a.Deploy?.Gns3 != null)
             .ToList();
 
         if (assesToDeploy.Count == 0)
         {
-            _logger.LogInformation("No ASes configured for GNS3 deployment. Skipping.");
+            Logger.LogInformation("No ASes configured for GNS3 deployment. Skipping.");
             return;
         }
 
-        _logger.LogInformation("Found {Count} AS(es) configured for GNS3 deployment", assesToDeploy.Count);
+        Logger.LogInformation("Found {Count} AS(es) configured for GNS3 deployment", assesToDeploy.Count);
 
         foreach (var @as in assesToDeploy)
         {
-            try
-            {
-                DeployAsAsync(@as, configDirectory).GetAwaiter().GetResult();
-            }
-            catch (Gns3Exception ex)
-            {
-                _logger.LogError("Failed to deploy AS {AsNumber}: {Message}", @as.Number, ex.Message);
-                _context.ErrorsOccurred = true;
-                
-                if (_context.Strict)
-                {
-                    _logger.LogError("Stopping deployment due to error (strict mode)");
-                    return;
-                }
-            }
-        }
+            var success = DeployAsAsync(@as, configDirectory).GetAwaiter().GetResult();
 
-        if (_context.ErrorsOccurred)
-        {
-            _logger.LogWarning("Deployment completed with errors");
-        }
-        else
-        {
-            _logger.LogInformation("All configurations deployed successfully");
+            if (!success && Context.Strict)
+                return;
         }
     }
 
     /// <summary>
     /// Deploy a single AS to GNS3.
     /// </summary>
-    private async Task DeployAsAsync(As @as, string configDirectory)
+    private async Task<bool> DeployAsAsync(As @as, string configDirectory)
     {
         var gns3Info = @as.Deploy!.Gns3!;
-        
-        _logger.LogInformation("Deploying AS {AsNumber} to GNS3 project '{Project}'",
-            @as.Number, gns3Info.Project);
 
-        // Initialize API client
         _apiClient.Initialize(gns3Info.Server);
 
-        // Get project
-        Gns3Project project;
-        try
+        var project = await _apiClient.GetProjectByNameAsync(gns3Info.Project);
+        if (project is null)
         {
-            project = await _apiClient.GetProjectByNameAsync(gns3Info.Project);
-            _logger.LogDebug("Found project {ProjectName} (ID: {ProjectId})", 
-                project.Name, project.ProjectId);
-        }
-        catch (Gns3ProjectNotFoundException ex)
-        {
-            _logger.LogError("{Message}", ex.Message);
-            throw;
+            this.LogError("Project '{ProjectName}' not found on GNS3 server at {Server}.",
+                gns3Info.Project, gns3Info.Server);
+            return false;
         }
 
-        // Get all nodes in project
         var nodes = await _apiClient.GetProjectNodesAsync(project.ProjectId);
-        _logger.LogDebug("Found {Count} node(s) in project", nodes.Count);
-
-        // Track deployed nodes for potential rollback (thread-safe collection)
         var deployedNodes = new ConcurrentBag<(string NodeId, string RouterName)>();
 
-        try
+        var routersToDeploy = @as.Routers.Where(r => !r.External).ToList();
+        if (routersToDeploy.Count == 0)
         {
-            // Deploy routers concurrently
-            var routersToDeploy = @as.Routers.Where(r => !r.External).ToList();
-            
-            if (routersToDeploy.Count == 0)
-            {
-                _logger.LogInformation("AS {AsNumber} has no non-external routers to deploy. Skipping.", @as.Number);
-                return;
-            }
-            
-            var deploymentTasks = routersToDeploy.Select(router =>
-                DeployRouterAsync(project.ProjectId, @as, router, nodes, configDirectory, deployedNodes)
-            );
-
-            await Task.WhenAll(deploymentTasks);
-
-            _logger.LogInformation("Successfully deployed {Count} router(s) for AS {AsNumber}",
-                deployedNodes.Count, @as.Number);
+            Logger.LogInformation("AS {AsNumber} has no non-external routers to deploy. Skipping.", @as.Number);
+            return true;
         }
-        catch (Exception)
+
+        var deploymentTasks = routersToDeploy.Select(router =>
+            DeployRouterAsync(project.ProjectId, @as, router, nodes, configDirectory, deployedNodes));
+
+        var results = await Task.WhenAll(deploymentTasks);
+        if (results.Any(success => !success))
         {
-            // Rollback on failure
-            _logger.LogWarning("Deployment failed, attempting rollback...");
             await RollbackDeploymentAsync(project.ProjectId, deployedNodes);
-            throw;
+            return false;
         }
+
+        Logger.LogInformation("Successfully deployed {Count} router(s) for AS {AsNumber}",
+            deployedNodes.Count, @as.Number);
+        return true;
     }
 
     /// <summary>
     /// Deploy a single router configuration.
     /// </summary>
-    private async Task DeployRouterAsync(
+    private async Task<bool> DeployRouterAsync(
         string projectId,
         As @as,
         Router router,
@@ -158,13 +108,10 @@ public class Gns3Deployer : IConfigDeployer
         if (node == null)
         {
             var availableNodes = string.Join(", ", nodes.Select(n => $"'{n.Name}'"));
-            throw new Gns3NodeNotFoundException(
-                $"Router '{router.Name}' not found in GNS3 project. " +
-                $"Available nodes: {(availableNodes.Length > 0 ? availableNodes : "none")}");
+            this.LogError("router '{routerName}' not found in GNS3 project. Available nodes: {availableNodes}",
+                router.Name, availableNodes);
+            return false;
         }
-
-        _logger.LogDebug("Deploying config for router {RouterName} (Node ID: {NodeId})",
-            router.Name, node.NodeId);
 
         // Read config file - files are organized by AS number in subdirectories
         var configPath = Path.Combine(configDirectory, @as.Number.ToString(), $"{router.Name}.cfg");
@@ -178,12 +125,10 @@ public class Gns3Deployer : IConfigDeployer
 
         // For Dynamips routers, we need to stop them before uploading config
         var wasRunning = node.Status == "started";
-        
+
         if (wasRunning)
         {
-            _logger.LogDebug("Stopping router {RouterName} before config upload", router.Name);
-            await _apiClient.StopNodeAsync(projectId, node.NodeId);
-            
+            await _apiClient.ControlNodeAsync(projectId, node.NodeId, Gns3ApiClient.NodeOperation.Stop);
             // Wait a bit for the router to fully stop
             await Task.Delay(2000);
         }
@@ -194,16 +139,17 @@ public class Gns3Deployer : IConfigDeployer
         // Start the router if it was running before
         if (wasRunning)
         {
-            _logger.LogDebug("Starting router {RouterName} with new config", router.Name);
-            await _apiClient.StartNodeAsync(projectId, node.NodeId);
+            await _apiClient.ControlNodeAsync(projectId, node.NodeId, Gns3ApiClient.NodeOperation.Start);
         }
 
         // Track for rollback
         deployedNodes.Add((node.NodeId, router.Name));
 
-        _logger.LogInformation("Deployed config for router {RouterName}{Status}",
+        Logger.LogDebug("Deployed config for router {RouterName}{Status}",
             router.Name,
             wasRunning ? " (restarted)" : " (stopped, start manually)");
+
+        return true;
     }
 
     /// <summary>
@@ -217,16 +163,14 @@ public class Gns3Deployer : IConfigDeployer
         {
             try
             {
-                _logger.LogDebug("Rolling back router {RouterName}", routerName);
-                await _apiClient.ReloadNodeAsync(projectId, nodeId);
+                await _apiClient.ControlNodeAsync(projectId, nodeId, Gns3ApiClient.NodeOperation.Reload);
             }
-            catch (Exception ex)
+            catch (Gns3Exception)
             {
-                _logger.LogWarning("Failed to rollback router {RouterName}: {Message}", 
-                    routerName, ex.Message);
+                Logger.LogWarning("Failed to rollback router {RouterName}.", routerName);
             }
         }
 
-        _logger.LogInformation("Rollback completed for {Count} router(s)", deployedNodes.Count);
+        Logger.LogInformation("Rollback completed for {Count} router(s)", deployedNodes.Count);
     }
 }

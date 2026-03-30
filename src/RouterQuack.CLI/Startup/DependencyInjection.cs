@@ -8,6 +8,7 @@ using RouterQuack.Core.Utils;
 using RouterQuack.Core.Validators;
 using RouterQuack.IO.Cisco;
 using RouterQuack.IO.Gns3;
+using RouterQuack.IO.Gns3.Utils;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;

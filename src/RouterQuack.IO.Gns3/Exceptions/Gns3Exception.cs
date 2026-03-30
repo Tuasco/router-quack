@@ -27,23 +27,3 @@ public class Gns3ConnectionException : Gns3Exception
     {
     }
 }
-
-/// <summary>
-/// Exception thrown when a GNS3 project is not found.
-/// </summary>
-public class Gns3ProjectNotFoundException : Gns3Exception
-{
-    public Gns3ProjectNotFoundException(string message) : base(message)
-    {
-    }
-}
-
-/// <summary>
-/// Exception thrown when a GNS3 node is not found.
-/// </summary>
-public class Gns3NodeNotFoundException : Gns3Exception
-{
-    public Gns3NodeNotFoundException(string message) : base(message)
-    {
-    }
-}

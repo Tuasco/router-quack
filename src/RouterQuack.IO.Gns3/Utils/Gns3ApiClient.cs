@@ -4,12 +4,12 @@ using System.Text.Json;
 using RouterQuack.IO.Gns3.Exceptions;
 using RouterQuack.IO.Gns3.Models;
 
-namespace RouterQuack.IO.Gns3;
+namespace RouterQuack.IO.Gns3.Utils;
 
 /// <summary>
 /// Simplified HTTP client for communicating with GNS3 REST API.
 /// </summary>
-public class Gns3ApiClient : IDisposable
+public sealed class Gns3ApiClient : IDisposable
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<Gns3ApiClient> _logger;
@@ -28,16 +28,10 @@ public class Gns3ApiClient : IDisposable
     /// </summary>
     public void Initialize(Uri server)
     {
-        // Only set BaseAddress if it hasn't been set or if it's different
-        if (_httpClient.BaseAddress == null || !_httpClient.BaseAddress.Equals(server))
-        {
-            _httpClient.BaseAddress = server;
-            _logger.LogDebug("GNS3 API client initialized for {Server}", server);
-        }
-        else
-        {
-            _logger.LogDebug("GNS3 API client already initialized for {Server}", server);
-        }
+        if (_httpClient.BaseAddress != null && _httpClient.BaseAddress.Equals(server))
+            return;
+
+        _httpClient.BaseAddress = server;
     }
 
     /// <summary>
@@ -64,19 +58,11 @@ public class Gns3ApiClient : IDisposable
     /// <summary>
     /// Get a project by name.
     /// </summary>
-    public async Task<Gns3Project> GetProjectByNameAsync(string projectName)
+    public async Task<Gns3Project?> GetProjectByNameAsync(string projectName)
     {
         var projects = await GetProjectsAsync();
-        var project = projects.FirstOrDefault(p => p.Name.Equals(projectName, StringComparison.OrdinalIgnoreCase));
-
-        if (project == null)
-        {
-            var availableProjects = string.Join(", ", projects.Select(p => $"'{p.Name}'"));
-            throw new Gns3ProjectNotFoundException(
-                $"Project '{projectName}' not found on GNS3 server. " +
-                $"Available projects: {(availableProjects.Length > 0 ? availableProjects : "none")}");
-        }
-
+        Gns3Project? project = projects.FirstOrDefault(p =>
+            p.Name.Equals(projectName, StringComparison.OrdinalIgnoreCase));
         return project;
     }
 
@@ -160,67 +146,29 @@ public class Gns3ApiClient : IDisposable
             throw new Gns3Exception($"Failed to upload config to node {nodeId} at {filePath}: {error}");
         }
     }
+    public enum NodeOperation { Start, Stop, Reload }
 
-    /// <summary>
-    /// Stop a node.
-    /// </summary>
-    public async Task StopNodeAsync(string projectId, string nodeId)
+    public async Task ControlNodeAsync(string projectId, string nodeId, NodeOperation operation)
     {
+        var action = operation switch
+        {
+            NodeOperation.Start  => "start",
+            NodeOperation.Stop   => "stop",
+            NodeOperation.Reload => "reload",
+            _ => throw new ArgumentOutOfRangeException(nameof(operation))
+        };
+
         try
         {
             var response = await _httpClient.PostAsync(
-                $"/v2/projects/{projectId}/nodes/{nodeId}/stop",
+                $"/v2/projects/{projectId}/nodes/{nodeId}/{action}",
                 null);
 
             response.EnsureSuccessStatusCode();
-            _logger.LogDebug("Stopped node {NodeId}", nodeId);
         }
         catch (HttpRequestException ex)
         {
-            throw new Gns3Exception(
-                $"Failed to stop node {nodeId}.", ex);
-        }
-    }
-
-    /// <summary>
-    /// Start a node.
-    /// </summary>
-    public async Task StartNodeAsync(string projectId, string nodeId)
-    {
-        try
-        {
-            var response = await _httpClient.PostAsync(
-                $"/v2/projects/{projectId}/nodes/{nodeId}/start",
-                null);
-
-            response.EnsureSuccessStatusCode();
-            _logger.LogDebug("Started node {NodeId}", nodeId);
-        }
-        catch (HttpRequestException ex)
-        {
-            throw new Gns3Exception(
-                $"Failed to start node {nodeId}.", ex);
-        }
-    }
-
-    /// <summary>
-    /// Reload a node to apply new configuration.
-    /// </summary>
-    public async Task ReloadNodeAsync(string projectId, string nodeId)
-    {
-        try
-        {
-            var response = await _httpClient.PostAsync(
-                $"/v2/projects/{projectId}/nodes/{nodeId}/reload",
-                null);
-
-            response.EnsureSuccessStatusCode();
-            _logger.LogDebug("Reloaded node {NodeId}", nodeId);
-        }
-        catch (HttpRequestException ex)
-        {
-            throw new Gns3Exception(
-                $"Failed to reload node {nodeId}.", ex);
+            throw new Gns3Exception($"Failed to {action} node {nodeId}.", ex);
         }
     }
 
