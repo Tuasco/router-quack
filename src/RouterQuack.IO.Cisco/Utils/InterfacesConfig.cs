@@ -85,6 +85,13 @@ internal static class InterfacesConfig
         if (ipv6Addresses.Any() && @interface.Bgp == BgpRelationship.None)
             builder.AppendLine(" ipv6 ospf 1 area 0");
 
+        // Write additional config is specified
+        if (@interface.AdditionalConfig is not null)
+        {
+            builder.AppendLine("!");
+            builder.AppendLine(' ' + @interface.AdditionalConfig.Replace("\n", "\n ").TrimEnd());
+        }
+
         builder.AppendLine("!\n!");
     }
 

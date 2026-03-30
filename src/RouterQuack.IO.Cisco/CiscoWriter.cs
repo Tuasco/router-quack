@@ -42,6 +42,7 @@ public class CiscoWriter(ILogger<CiscoWriter> logger, Context context) : IConfig
                 BgpConfig.ApplyBgpConfig(builder, router);
                 UnusedServicesConfig.ApplyUnusedServicesConfig(builder);
                 LoggingConfig.ApplyLoggingConfig(builder);
+                AdditionalRouterConfig.ApplyAdditionalRouterConfig(builder, router);
                 builder.Append("end");
 
                 using var file = new FileStream(Path.Join(path, $"{router.Name}.cfg"), FileMode.Create);
