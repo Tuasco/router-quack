@@ -5,7 +5,7 @@ namespace RouterQuack.Tests.Unit.TestHelpers;
 
 internal static class TestData
 {
-    private static readonly RouterUtils RouterUtils = new RouterUtils();
+    private static readonly RouterUtils RouterUtils = new();
 
     internal static As CreateAs(
         int number = 1,
@@ -60,7 +60,8 @@ internal static class TestData
             Bgp = new(),
             External = external,
             Interfaces = interfaceList,
-            ParentAs = parentAs!
+            ParentAs = parentAs!,
+            AdditionalConfig = null
         };
 
         if (useDefaultId)
@@ -85,7 +86,8 @@ internal static class TestData
             Neighbour = neighbour,
             Bgp = bgp,
             Addresses = addresses?.ToList() ?? [],
-            ParentRouter = parentRouter!
+            ParentRouter = parentRouter!,
+            AdditionalConfig = null
         };
     }
 

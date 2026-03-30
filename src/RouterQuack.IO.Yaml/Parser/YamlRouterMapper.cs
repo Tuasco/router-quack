@@ -44,6 +44,7 @@ public class YamlRouterMapper(ILogger<YamlRouterMapper> logger, YamlInterfaceMap
                 LoopbackAddressV4 = value.LoopbackV4,
                 LoopbackAddressV6 = value.LoopbackV6,
                 Bgp = value.Bgp,
+                AdditionalConfig = value.AdditionalConfig,
                 Interfaces = [],
                 ParentAs = parentAs,
                 External = value.External ?? externalAs

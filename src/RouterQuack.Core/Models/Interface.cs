@@ -18,6 +18,8 @@ public sealed class Interface
 
     public required ICollection<Address> Addresses { get; init; }
 
+    public required string? AdditionalConfig { get; init; }
+
     public required Router ParentRouter { get; init; }
 
 

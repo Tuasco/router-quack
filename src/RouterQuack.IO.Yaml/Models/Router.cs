@@ -19,5 +19,7 @@ public sealed class Router
 
     public bool? External { get; init; }
 
-    public required IDictionary<string, Interface> Interfaces { get; init; }
+    public string? AdditionalConfig { get; init; }
+
+    public required IDictionary<string, YamlInterface> Interfaces { get; init; }
 }

@@ -35,6 +35,7 @@ public class YamlInterfaceMapper(ILogger<YamlInterfaceMapper> logger)
                 Name = name ?? string.Empty,
                 ParentRouter = parentRouter,
                 Neighbour = null,
+                AdditionalConfig = null,
                 Addresses = []
             };
 
@@ -59,8 +60,8 @@ public class YamlInterfaceMapper(ILogger<YamlInterfaceMapper> logger)
                 Name = key,
                 Neighbour = dummyNeighbour, // Populate it now, will resolve it later in Step 1
                 ParentRouter = parentRouter,
+                AdditionalConfig = value.AdditionalConfig,
                 Addresses = addresses,
-                Bgp = value.Bgp
             });
         }
 

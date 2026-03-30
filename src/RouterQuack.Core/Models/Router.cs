@@ -8,17 +8,19 @@ public sealed class Router
 {
     public required string Name { get; init; }
 
-    public IPAddress? Id { get; set; }
+    public required IPAddress? Id { get; set; }
 
     public required RouterBrand Brand { get; init; }
 
-    public IPAddress? LoopbackAddressV4 { get; set; }
+    public required IPAddress? LoopbackAddressV4 { get; set; }
 
-    public IPAddress? LoopbackAddressV6 { get; set; }
+    public required IPAddress? LoopbackAddressV6 { get; set; }
 
     public required BgpConfig Bgp { get; init; }
 
     public required bool External { get; init; }
+
+    public required string? AdditionalConfig { get; init; }
 
     public required ICollection<Interface> Interfaces { get; set; }
 
