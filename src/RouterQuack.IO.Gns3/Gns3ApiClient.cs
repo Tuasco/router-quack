@@ -125,8 +125,8 @@ public class Gns3ApiClient : IDisposable
         }
     }
     /// <summary>
-    /// Upload a configuration file to a node.
-    /// For Cisco Dynamips routers, we try all detected adapter slots.
+    /// Upload a configuration file to a Dynamips node using the correct
+    /// startup-config path derived from the node's <c>dynamips_id</c> property.
     /// </summary>
     public async Task UploadConfigFileAsync(string projectId, string nodeId, string configContent, Gns3Node node)
     {

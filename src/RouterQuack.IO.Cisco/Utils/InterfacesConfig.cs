@@ -49,6 +49,8 @@ internal static class InterfacesConfig
     private static void ApplyInterfaceConfig(StringBuilder builder, Interface @interface)
     {
         builder.AppendLine($"interface {@interface.Name}");
+        if (@interface.Vrf is not null)
+            builder.AppendLine($" vrf forwarding {@interface.Vrf}");  // ← must be before IP config
         builder.AppendLine(InterfaceConfigStart);
 
         // IPv4

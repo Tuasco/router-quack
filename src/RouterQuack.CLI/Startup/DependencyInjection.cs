@@ -4,6 +4,7 @@ using RouterQuack.Core.ConfigDeployers;
 using RouterQuack.Core.ConfigFileWriters;
 using RouterQuack.Core.IntentFileParsers;
 using RouterQuack.Core.Processors;
+using RouterQuack.Core.Processors.Models;
 using RouterQuack.Core.Utils;
 using RouterQuack.Core.Validators;
 using RouterQuack.IO.Cisco;
@@ -80,6 +81,7 @@ public static class DependencyInjection
             .AddKeyedSingleton<IProcessor, GenerateLinkAddresses>(nameof(GenerateLinkAddresses))
             .AddKeyedSingleton<IProcessor, GenerateLoopbackAddresses>(nameof(GenerateLoopbackAddresses))
             .AddKeyedSingleton<IProcessor, PopulateRouterIds>(nameof(PopulateRouterIds))
+            .AddKeyedSingleton<IProcessor, PopulateVrfRdRt>(nameof(PopulateVrfRdRt))
             .AddKeyedSingleton<IProcessor, ToggleIbgp>(nameof(ToggleIbgp));
 
         builder.Services

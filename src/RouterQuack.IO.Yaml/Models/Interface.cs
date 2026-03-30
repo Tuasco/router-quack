@@ -11,4 +11,6 @@ public class Interface
     public BgpRelationship Bgp { get; init; } = BgpRelationship.None;
 
     public ICollection<string>? Addresses { get; init; }
+
+    public string? Vrf { get; init; }
 }

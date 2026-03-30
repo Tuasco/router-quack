@@ -46,7 +46,14 @@ public class YamlRouterMapper(ILogger<YamlRouterMapper> logger, YamlInterfaceMap
                 Bgp = value.Bgp,
                 Interfaces = [],
                 ParentAs = parentAs,
-                External = value.External ?? externalAs
+                External = value.External ?? externalAs,
+                Vrfs = value.Vrfs?.Select(vrf => new Vrf
+                {
+                    Name = vrf.Key,
+                    RouteDistinguisher = vrf.Value.RouteDistinguisher,
+                    ImportTargets = vrf.Value.ImportTargets,
+                    ExportTargets = vrf.Value.ExportTargets
+                }).ToList() ?? []
             };
 
             router.Interfaces = yamlInterfaceMapper.Map(value.Interfaces, router, context);

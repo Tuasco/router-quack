@@ -48,7 +48,8 @@ public class YamlInterfaceMapper(ILogger<YamlInterfaceMapper> logger)
                 Neighbour = dummyNeighbour, // Populate it now, will resolve it later in Step 1
                 ParentRouter = parentRouter,
                 Addresses = addresses,
-                Bgp = value.Bgp
+                Bgp = value.Bgp,
+                Vrf = value.Vrf
             });
         }
 
