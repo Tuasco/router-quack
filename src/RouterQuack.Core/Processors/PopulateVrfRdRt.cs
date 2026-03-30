@@ -21,16 +21,12 @@ public class PopulateVrfRdRt(ILogger<PopulateVrfRdRt> logger, Context context) :
                 .Distinct()
                 .OrderBy(n => n) // deterministic ordering
                 .ToList();
-            Console.WriteLine($"Router count: {@as.Routers.Count}");
             foreach (var router in @as.Routers)
             {
-                Console.WriteLine($"Router name: {router.Name} has {router.Vrfs.Count} vrfs");
                 foreach (var vrf in router.Vrfs)
                 {
                     var vrfIndex = vrfNames.IndexOf(vrf.Name) + 1; // 1-based
-
                     vrf.RouteDistinguisher ??= $"{@as.Number}:{vrfIndex}";
-                    Console.WriteLine($"{vrf.Name}: {vrf.RouteDistinguisher} writing !");
                     if (vrf.ImportTargets == null || !vrf.ImportTargets.Any())
                         vrf.ImportTargets = [$"{@as.Number}:{vrfIndex * 100}"];
 

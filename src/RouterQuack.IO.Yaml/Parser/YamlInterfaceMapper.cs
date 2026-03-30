@@ -23,9 +23,17 @@ public class YamlInterfaceMapper(ILogger<YamlInterfaceMapper> logger)
 
         foreach (var (key, value) in interfaceDict)
         {
+
+            var name = ParseNeighbour(value.Neighbour, parentRouter.ParentAs.Number)?.ToString();
+
+            if (name is null)
+                LogInterfaceError(context, "Invalid neighbour format", parentRouter, key);
+
+            // This dummy neighbour is only there to hold a reference path (name) to the actual neighbour
+            // which is resolved in the first processor (00_ResolveNeighbours).
             var dummyNeighbour = new Interface
             {
-                Name = key ?? string.Empty,
+                Name = name ?? string.Empty,
                 ParentRouter = parentRouter,
                 Bgp = BgpRelationship.None,
                 Neighbour = null,

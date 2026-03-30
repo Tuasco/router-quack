@@ -39,6 +39,7 @@ try
     context.ExecuteStep(di.GetRequiredKeyedService<IProcessor>(nameof(GenerateLinkAddresses)))
         .ExecuteStep(di.GetRequiredKeyedService<IProcessor>(nameof(GenerateLoopbackAddresses)))
         .ExecuteStep(di.GetRequiredKeyedService<IProcessor>(nameof(PopulateRouterIds)))
+        .ExecuteStep(di.GetRequiredKeyedService<IProcessor>(nameof(PopulateVrfRdRt)))
         .ExecuteStep(di.GetRequiredKeyedService<IProcessor>(nameof(ToggleIbgp)));
 
     // Stop here if dry run
