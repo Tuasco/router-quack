@@ -62,7 +62,7 @@ internal static class InterfacesConfig
                 $" ip address {ipv4Address.IpAddress} " +
                 $"{Ipv4AddressUtils.GetV4Mask(ipv4Address.NetworkAddress.PrefixLength)}");
 
-            if (@interface.Bgp == BgpRelationship.None)
+            if (@interface.Neighbour!.ParentRouter.ParentAs == @interface.ParentRouter.ParentAs)
                 builder.AppendLine(" ip ospf 1 area 0");
         }
         else
@@ -82,7 +82,7 @@ internal static class InterfacesConfig
         foreach (var address in ipv6Addresses)
             builder.AppendLine($" ipv6 address {address.IpAddress}/{address.NetworkAddress.PrefixLength}");
 
-        if (ipv6Addresses.Any() && @interface.Bgp == BgpRelationship.None)
+        if (ipv6Addresses.Any() && @interface.Neighbour!.ParentRouter.ParentAs == @interface.ParentRouter.ParentAs)
             builder.AppendLine(" ipv6 ospf 1 area 0");
 
         // Write additional config is specified
