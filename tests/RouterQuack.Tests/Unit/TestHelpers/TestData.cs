@@ -46,7 +46,8 @@ internal static class TestData
         bool external = false,
         ICollection<Interface>? interfaces = null,
         As? parentAs = null,
-        bool useDefaultId = true)
+        bool useDefaultId = true,
+        string? additionalConfig = null)
     {
         var interfaceList = interfaces?.ToList() ?? [];
 
@@ -61,7 +62,7 @@ internal static class TestData
             External = external,
             Interfaces = interfaceList,
             ParentAs = parentAs!,
-            AdditionalConfig = null
+            AdditionalConfig = additionalConfig
         };
 
         if (useDefaultId)
@@ -78,7 +79,8 @@ internal static class TestData
         Interface? neighbour = null,
         BgpRelationship bgp = BgpRelationship.None,
         ICollection<Address>? addresses = null,
-        Router? parentRouter = null)
+        Router? parentRouter = null,
+        string? additionalConfig = null)
     {
         return new()
         {
@@ -87,7 +89,7 @@ internal static class TestData
             Bgp = bgp,
             Addresses = addresses?.ToList() ?? [],
             ParentRouter = parentRouter!,
-            AdditionalConfig = null
+            AdditionalConfig = additionalConfig
         };
     }
 
