@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
+using System.Data.SqlTypes;
 using RouterQuack.Core.ConfigDeployers;
 using RouterQuack.Core.Extensions;
-using RouterQuack.IO.Gns3.Exceptions;
 using RouterQuack.IO.Gns3.Models;
 using RouterQuack.IO.Gns3.Utils;
 
@@ -65,6 +65,12 @@ public sealed class Gns3Deployer(
         }
 
         var nodes = await apiClient.GetProjectNodesAsync(project.ProjectId);
+        if (nodes is null)
+        {
+            this.LogError("Failed to retrieve nodes for project '{ProjectName}'.", gns3Info.Project);
+            return false;
+        }
+
         var deployedNodes = new ConcurrentBag<(string NodeId, string RouterName)>();
 
         var routersToDeploy = @as.Routers.Where(r => !r.External).ToList();
@@ -111,7 +117,10 @@ public sealed class Gns3Deployer(
         // Read config file - files are organised by AS number in subdirectories
         var configPath = Path.Combine(configDirectory, @as.Number.ToString(), $"{router.Name}.cfg");
         if (!File.Exists(configPath))
-            throw new FileNotFoundException($"Configuration file not found: {configPath}");
+        {
+            this.LogError("Configuration file not found: {ConfigPath}", configPath);
+            return false;
+        }
 
         var configContent = await File.ReadAllTextAsync(configPath);
 
@@ -119,16 +128,32 @@ public sealed class Gns3Deployer(
         var wasRunning = node.Status == "started";
         if (wasRunning)
         {
-            await apiClient.ControlNodeAsync(projectId, node.NodeId, NodeOperation.Stop);
+            var stopped = await apiClient.ControlNodeAsync(projectId, node.NodeId, NodeOperation.Stop);
+            if (!stopped)
+            {
+                this.LogError("Failed to stop router '{RouterName}' before config upload.", router.Name);
+                return false;
+            }
             await Task.Delay(2000); // Wait a bit for the router to fully stop
         }
 
         // Upload config to all detected slots
-        await apiClient.UploadConfigFileAsync(projectId, node.NodeId, configContent, node);
-
+        var uploaded = await apiClient.UploadConfigFileAsync(projectId, node.NodeId, configContent, node);
+        if (!uploaded)
+        {
+            this.LogError("Failed to upload config to router '{RouterName}'.", router.Name);
+            return false;
+        }
         // Start the router if it was running before
         if (wasRunning)
-            await apiClient.ControlNodeAsync(projectId, node.NodeId, NodeOperation.Start);
+        {
+            var started = await apiClient.ControlNodeAsync(projectId, node.NodeId, NodeOperation.Start);
+            if (!started)
+            {
+                this.LogError("Failed to start router '{RouterName}' after config upload.", router.Name);
+                return false;
+            }
+        }
 
         // Track for rollback
         deployedNodes.Add((node.NodeId, router.Name));
@@ -149,14 +174,9 @@ public sealed class Gns3Deployer(
     {
         foreach (var (nodeId, routerName) in deployedNodes)
         {
-            try
-            {
-                await apiClient.ControlNodeAsync(projectId, nodeId, NodeOperation.Reload);
-            }
-            catch (Gns3Exception)
-            {
-                Logger.LogWarning("Failed to rollback router {RouterName}.", routerName);
-            }
+            var reloaded = await apiClient.ControlNodeAsync(projectId, nodeId, NodeOperation.Reload);
+            if (!reloaded)
+                this.LogWarning("Failed to rollback router {RouterName}", routerName);
         }
 
         Logger.LogInformation("Rollback completed for {Count} router(s)", deployedNodes.Count);
