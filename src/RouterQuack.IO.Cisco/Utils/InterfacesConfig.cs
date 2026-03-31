@@ -85,15 +85,16 @@ internal static class InterfacesConfig
         if (ipv6Addresses.Any() && @interface.Neighbour!.ParentRouter.ParentAs == @interface.ParentRouter.ParentAs)
             builder.AppendLine(" ipv6 ospf 1 area 0");
 
+        // Write MPLS config
+        if (@interface.ParentRouter.ParentAs.Igp == IgpType.MPLS)
+            builder.AppendLine(" mpls ip");
+
         // Write additional config is specified
         if (@interface.AdditionalConfig is not null)
         {
             builder.AppendLine("!");
             builder.AppendLine(' ' + @interface.AdditionalConfig.Replace("\n", "\n ").TrimEnd());
         }
-
-        if (@interface.ParentRouter.ParentAs.Igp == IgpType.MPLS)
-            builder.AppendLine(" mpls ip");
 
         builder.AppendLine("!\n!");
     }
