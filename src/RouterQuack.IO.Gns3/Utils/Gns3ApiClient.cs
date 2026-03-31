@@ -9,22 +9,15 @@ namespace RouterQuack.IO.Gns3.Utils;
 /// <summary>
 /// Simplified HTTP client for communicating with GNS3 REST API.
 /// </summary>
-public sealed class Gns3ApiClient : IDisposable
+public sealed class Gns3ApiClient(ILogger<Gns3ApiClient> logger) : IDisposable
 {
-    private readonly HttpClient _httpClient;
-    private readonly ILogger<Gns3ApiClient> _logger;
-
-    public Gns3ApiClient(ILogger<Gns3ApiClient> logger)
+    private readonly HttpClient _httpClient = new()
     {
-        _logger = logger;
-        _httpClient = new HttpClient
-        {
-            Timeout = TimeSpan.FromSeconds(30)
-        };
-    }
+        Timeout = TimeSpan.FromSeconds(30)
+    };
 
     /// <summary>
-    /// Initialize the client with server URI.
+    /// Initialise the client with server URI.
     /// </summary>
     public void Initialize(Uri server)
     {
@@ -35,9 +28,91 @@ public sealed class Gns3ApiClient : IDisposable
     }
 
     /// <summary>
+    /// Get a project by name.
+    /// </summary>
+    public async Task<Gns3Project?> GetProjectByNameAsync(string projectName)
+    {
+        var projects = await GetProjectsAsync();
+        return projects.FirstOrDefault(p => p.Name.Equals(projectName, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
+    /// Get all nodes in a project.
+    /// </summary>
+    public async Task<List<Gns3Node>> GetProjectNodesAsync(string projectId)
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync($"/v2/projects/{projectId}/nodes");
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<List<Gns3Node>>() ?? [];
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new Gns3ConnectionException($"Failed to retrieve nodes for project {projectId}.", ex);
+        }
+    }
+
+    /// <summary>
+    /// Start, stop or reload a node
+    /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
+    /// <exception cref="Gns3Exception"></exception>
+    public async Task ControlNodeAsync(string projectId, string nodeId, NodeOperation operation)
+    {
+        var action = operation.ToString().ToLowerInvariant();
+
+        try
+        {
+            var response = await _httpClient.PostAsync(
+                $"/v2/projects/{projectId}/nodes/{nodeId}/{action}",
+                null);
+
+            response.EnsureSuccessStatusCode();
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new Gns3Exception($"Failed to {action} node {nodeId}.", ex);
+        }
+    }
+
+    /// <summary>
+    /// Upload a configuration file to a node.
+    /// For Cisco Dynamips routers, we try all detected adapter slots.
+    /// </summary>
+    public async Task UploadConfigFileAsync(string projectId, string nodeId, string configContent, Gns3Node node)
+    {
+        var detailedNode = await GetNodeAsync(projectId, nodeId);
+
+        string filePath;
+        if (detailedNode is { NodeType: "dynamips", Properties: not null }
+            && detailedNode.Properties.TryGetValue("dynamips_id", out var dynamipsIdObj))
+        {
+            // dynamips_id is the global instance counter → matches the i{n} prefix
+            var dynamipsId = ((JsonElement)dynamipsIdObj).GetInt32();
+            filePath = $"configs/i{dynamipsId}_startup-config.cfg";
+        }
+        else
+            // Fallback for non-Dynamips nodes
+            filePath = "configs/startup-config.cfg";
+
+        logger.LogDebug("Uploading config to {FilePath} for node {NodeName}", filePath, node.Name);
+
+        var response = await _httpClient.PostAsync(
+            $"/v2/projects/{projectId}/nodes/{nodeId}/files/{filePath}",
+            new StringContent(configContent, Encoding.UTF8, "application/octet-stream"));
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            throw new Gns3Exception($"Failed to upload config to node {nodeId} at {filePath}: {error}");
+        }
+    }
+
+    /// <summary>
     /// Get all projects from the GNS3 server.
     /// </summary>
-    public async Task<List<Gns3Project>> GetProjectsAsync()
+    private async Task<List<Gns3Project>> GetProjectsAsync()
     {
         try
         {
@@ -56,40 +131,9 @@ public sealed class Gns3ApiClient : IDisposable
     }
 
     /// <summary>
-    /// Get a project by name.
-    /// </summary>
-    public async Task<Gns3Project?> GetProjectByNameAsync(string projectName)
-    {
-        var projects = await GetProjectsAsync();
-        Gns3Project? project = projects.FirstOrDefault(p =>
-            p.Name.Equals(projectName, StringComparison.OrdinalIgnoreCase));
-        return project;
-    }
-
-    /// <summary>
-    /// Get all nodes in a project.
-    /// </summary>
-    public async Task<List<Gns3Node>> GetProjectNodesAsync(string projectId)
-    {
-        try
-        {
-            var response = await _httpClient.GetAsync($"/v2/projects/{projectId}/nodes");
-            response.EnsureSuccessStatusCode();
-
-            var nodes = await response.Content.ReadFromJsonAsync<List<Gns3Node>>();
-            return nodes ?? [];
-        }
-        catch (HttpRequestException ex)
-        {
-            throw new Gns3ConnectionException(
-                $"Failed to retrieve nodes for project {projectId}.", ex);
-        }
-    }
-
-    /// <summary>
     /// Get detailed information about a specific node.
     /// </summary>
-    public async Task<Gns3Node> GetNodeAsync(string projectId, string nodeId)
+    private async Task<Gns3Node> GetNodeAsync(string projectId, string nodeId)
     {
         try
         {
@@ -110,70 +154,13 @@ public sealed class Gns3ApiClient : IDisposable
                 $"Failed to retrieve node {nodeId} details.", ex);
         }
     }
-    /// <summary>
-    /// Upload a configuration file to a node.
-    /// For Cisco Dynamips routers, we try all detected adapter slots.
-    /// </summary>
-    public async Task UploadConfigFileAsync(string projectId, string nodeId, string configContent, Gns3Node node)
-    {
-        var detailedNode = await GetNodeAsync(projectId, nodeId);
 
-        string filePath;
-        if (detailedNode.NodeType == "dynamips" &&
-            detailedNode.Properties != null &&
-            detailedNode.Properties.TryGetValue("dynamips_id", out var dynamipsIdObj) &&
-            dynamipsIdObj != null)
-        {
-            // dynamips_id is the global instance counter → matches the i{n} prefix
-            var dynamipsId = ((JsonElement)dynamipsIdObj).GetInt32();
-            filePath = $"configs/i{dynamipsId}_startup-config.cfg";
-        }
-        else
-        {
-            // Fallback for non-Dynamips nodes
-            filePath = "configs/startup-config.cfg";
-        }
+    public void Dispose() => _httpClient.Dispose();
+}
 
-        _logger.LogDebug("Uploading config to {FilePath} for node {NodeName}", filePath, node.Name);
-
-        var response = await _httpClient.PostAsync(
-            $"/v2/projects/{projectId}/nodes/{nodeId}/files/{filePath}",
-            new StringContent(configContent, Encoding.UTF8, "application/octet-stream"));
-
-        if (!response.IsSuccessStatusCode)
-        {
-            var error = await response.Content.ReadAsStringAsync();
-            throw new Gns3Exception($"Failed to upload config to node {nodeId} at {filePath}: {error}");
-        }
-    }
-    public enum NodeOperation { Start, Stop, Reload }
-
-    public async Task ControlNodeAsync(string projectId, string nodeId, NodeOperation operation)
-    {
-        var action = operation switch
-        {
-            NodeOperation.Start  => "start",
-            NodeOperation.Stop   => "stop",
-            NodeOperation.Reload => "reload",
-            _ => throw new ArgumentOutOfRangeException(nameof(operation))
-        };
-
-        try
-        {
-            var response = await _httpClient.PostAsync(
-                $"/v2/projects/{projectId}/nodes/{nodeId}/{action}",
-                null);
-
-            response.EnsureSuccessStatusCode();
-        }
-        catch (HttpRequestException ex)
-        {
-            throw new Gns3Exception($"Failed to {action} node {nodeId}.", ex);
-        }
-    }
-
-    public void Dispose()
-    {
-        _httpClient.Dispose();
-    }
+public enum NodeOperation
+{
+    Start,
+    Stop,
+    Reload
 }
