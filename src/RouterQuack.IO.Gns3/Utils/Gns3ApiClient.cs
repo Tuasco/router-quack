@@ -131,7 +131,8 @@ public sealed class Gns3ApiClient(ILogger<Gns3ApiClient> logger) : IDisposable
         }
         catch (HttpRequestException ex)
         {
-            logger.LogError(ex, "Failed to connect to GNS3 server at {Server}. Ensure the server is running.", _httpClient.BaseAddress);
+            logger.LogError("Failed to connect to GNS3 server at {Server}. Ensure the server is running. ({Message})",
+                _httpClient.BaseAddress, ex.Message);
             return null;
         }
     }
