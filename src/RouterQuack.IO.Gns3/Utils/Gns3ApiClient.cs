@@ -8,7 +8,7 @@ namespace RouterQuack.IO.Gns3.Utils;
 /// <summary>
 /// Simplified HTTP client for communicating with GNS3 REST API.
 /// </summary>
-public sealed class Gns3ApiClient(ILogger<Gns3ApiClient> logger) : IDisposable
+public sealed class Gns3ApiClient : IDisposable
 {
     private readonly HttpClient _httpClient = new()
     {
@@ -32,8 +32,7 @@ public sealed class Gns3ApiClient(ILogger<Gns3ApiClient> logger) : IDisposable
     public async Task<Gns3Project?> GetProjectByNameAsync(string projectName)
     {
         var projects = await GetProjectsAsync();
-        if (projects is null) return null;
-        return projects.FirstOrDefault(p => p.Name.Equals(projectName, StringComparison.OrdinalIgnoreCase));
+        return projects?.FirstOrDefault(p => p.Name.Equals(projectName, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>
@@ -47,9 +46,8 @@ public sealed class Gns3ApiClient(ILogger<Gns3ApiClient> logger) : IDisposable
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<List<Gns3Node>>() ?? [];
         }
-        catch (HttpRequestException ex)
+        catch (HttpRequestException)
         {
-            logger.LogDebug(ex, "Failed to retrieve nodes for project {ProjectId}.", projectId);
             return null;
         }
     }
@@ -68,9 +66,8 @@ public sealed class Gns3ApiClient(ILogger<Gns3ApiClient> logger) : IDisposable
             response.EnsureSuccessStatusCode();
             return true;
         }
-        catch (HttpRequestException ex)
+        catch (HttpRequestException)
         {
-            logger.LogDebug(ex, "Failed to {Action} node {NodeId}.", action, nodeId);
             return false;
         }
     }
@@ -82,7 +79,8 @@ public sealed class Gns3ApiClient(ILogger<Gns3ApiClient> logger) : IDisposable
     public async Task<bool> UploadConfigFileAsync(string projectId, string nodeId, string configContent, Gns3Node node)
     {
         var detailedNode = await GetNodeAsync(projectId, nodeId);
-        if (detailedNode is null) return false;
+        if (detailedNode is null)
+            return false;
 
         string filePath;
         if (detailedNode is { NodeType: "dynamips", Properties: not null }
@@ -96,24 +94,16 @@ public sealed class Gns3ApiClient(ILogger<Gns3ApiClient> logger) : IDisposable
             // Fallback for non-Dynamips nodes
             filePath = "configs/startup-config.cfg";
 
-        logger.LogDebug("Uploading config to {FilePath} for node {NodeName}", filePath, node.Name);
         try
         {
             var response = await _httpClient.PostAsync(
                 $"/v2/projects/{projectId}/nodes/{nodeId}/files/{filePath}",
                 new StringContent(configContent, Encoding.UTF8, "application/octet-stream"));
-            if (!response.IsSuccessStatusCode)
-            {
-                var error = await response.Content.ReadAsStringAsync();
-                logger.LogError("Failed to upload config to node {NodeId} at {FilePath}: {Error}", nodeId, filePath,
-                    error);
-                return false;
-            }
+            response.EnsureSuccessStatusCode();
             return true;
         }
-        catch (HttpRequestException ex)
+        catch (HttpRequestException)
         {
-            logger.LogError(ex, "HTTP error while uploading config to node {NodeId}.", nodeId);
             return false;
         }
     }
@@ -129,10 +119,8 @@ public sealed class Gns3ApiClient(ILogger<Gns3ApiClient> logger) : IDisposable
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<List<Gns3Project>>() ?? [];
         }
-        catch (HttpRequestException ex)
+        catch (HttpRequestException)
         {
-            logger.LogError("Failed to connect to GNS3 server at {Server}. Ensure the server is running. ({Message})",
-                _httpClient.BaseAddress, ex.Message);
             return null;
         }
     }
@@ -149,9 +137,8 @@ public sealed class Gns3ApiClient(ILogger<Gns3ApiClient> logger) : IDisposable
 
             return await response.Content.ReadFromJsonAsync<Gns3Node>();
         }
-        catch (HttpRequestException ex)
+        catch (HttpRequestException)
         {
-            logger.LogError(ex, "Failed to retrieve node {NodeId} details.", nodeId);
             return null;
         }
     }

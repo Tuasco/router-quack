@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Data.SqlTypes;
 using RouterQuack.Core.ConfigDeployers;
 using RouterQuack.Core.Extensions;
 using RouterQuack.IO.Gns3.Models;
@@ -38,6 +37,7 @@ public sealed class Gns3Deployer(
 
         Logger.LogInformation("Found {Count} AS(es) configured for GNS3 deployment", assesToDeploy.Count);
 
+        // ReSharper disable once ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator
         foreach (var @as in assesToDeploy)
         {
             var success = DeployAsAsync(@as, configDirectory).GetAwaiter().GetResult();
@@ -84,15 +84,11 @@ public sealed class Gns3Deployer(
             DeployRouterAsync(project.ProjectId, @as, router, nodes, configDirectory, deployedNodes));
 
         var results = await Task.WhenAll(deploymentTasks);
-        if (results.Any(success => !success))
-        {
-            await RollbackDeploymentAsync(project.ProjectId, deployedNodes);
-            return false;
-        }
+        if (results.All(success => success))
+            return true;
 
-        Logger.LogInformation("Successfully deployed {Count} router(s) for AS {AsNumber}",
-            deployedNodes.Count, @as.Number);
-        return true;
+        await RollbackDeploymentAsync(project.ProjectId, deployedNodes);
+        return false;
     }
 
     /// <summary>
@@ -134,16 +130,19 @@ public sealed class Gns3Deployer(
                 this.LogError("Failed to stop router '{RouterName}' before config upload.", router.Name);
                 return false;
             }
+
             await Task.Delay(2000); // Wait a bit for the router to fully stop
         }
 
         // Upload config to all detected slots
+        logger.LogDebug("Uploading config to {FilePath} for node {NodeName}", configPath, node.Name);
         var uploaded = await apiClient.UploadConfigFileAsync(projectId, node.NodeId, configContent, node);
         if (!uploaded)
         {
             this.LogError("Failed to upload config to router '{RouterName}'.", router.Name);
             return false;
         }
+
         // Start the router if it was running before
         if (wasRunning)
         {
