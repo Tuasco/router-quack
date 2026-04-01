@@ -1,7 +1,8 @@
 <Solution>
+    <Project Path="src/RouterQuack.CLI/RouterQuack.CLI.csproj"/>
     <Project Path="src/RouterQuack.Core/RouterQuack.Core.csproj"/>
     <Project Path="src/RouterQuack.IO.Yaml/RouterQuack.IO.Yaml.csproj"/>
     <Project Path="src/RouterQuack.IO.Cisco/RouterQuack.IO.Cisco.csproj"/>
-    <Project Path="src/RouterQuack.CLI/RouterQuack.CLI.csproj"/>
+    <Project Path="src/RouterQuack.IO.Gns3/RouterQuack.IO.Gns3.csproj"/>
     <Project Path="tests/RouterQuack.Tests/RouterQuack.Tests.csproj"/>
 </Solution>

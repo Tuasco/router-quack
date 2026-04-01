@@ -1,0 +1,183 @@
+using System.Collections.Concurrent;
+using RouterQuack.Core.ConfigDeployers;
+using RouterQuack.Core.Extensions;
+using RouterQuack.IO.Gns3.Models;
+using RouterQuack.IO.Gns3.Utils;
+
+namespace RouterQuack.IO.Gns3;
+
+/// <summary>
+/// Deploys generated router configurations to GNS3 projects.
+/// </summary>
+public sealed class Gns3Deployer(
+    Gns3ApiClient apiClient,
+    ILogger<Gns3Deployer> logger,
+    Context context) : IConfigDeployer
+{
+    public ILogger Logger { get; } = logger;
+    public Context Context { get; } = context;
+
+    public string BeginMessage => "Deploying configurations to GNS3";
+
+    /// <summary>
+    /// Deploy configurations to GNS3 for all ASes that have deploy info.
+    /// </summary>
+    public void DeployConfigs(string configDirectory)
+    {
+        // Find ASes with GNS3 deploy info
+        var assesToDeploy = Context.Asses
+            .Where(a => a.Deploy?.Gns3 != null)
+            .ToList();
+
+        if (assesToDeploy.Count == 0)
+        {
+            Logger.LogInformation("No ASes configured for GNS3 deployment. Skipping.");
+            return;
+        }
+
+        Logger.LogInformation("Found {Count} AS(es) configured for GNS3 deployment", assesToDeploy.Count);
+
+        // ReSharper disable once ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator
+        foreach (var @as in assesToDeploy)
+        {
+            var success = DeployAsAsync(@as, configDirectory).GetAwaiter().GetResult();
+
+            if (!success && Context.Strict)
+                return;
+        }
+    }
+
+    /// <summary>
+    /// Deploy a single AS to GNS3.
+    /// </summary>
+    private async Task<bool> DeployAsAsync(As @as, string configDirectory)
+    {
+        var gns3Info = @as.Deploy!.Gns3!;
+
+        apiClient.Initialize(gns3Info.Server);
+
+        var project = await apiClient.GetProjectByNameAsync(gns3Info.Project);
+        if (project is null)
+        {
+            this.LogError("Project '{ProjectName}' not found on GNS3 server at {Server}.",
+                gns3Info.Project, gns3Info.Server);
+            return false;
+        }
+
+        var nodes = await apiClient.GetProjectNodesAsync(project.ProjectId);
+        if (nodes is null)
+        {
+            this.LogError("Failed to retrieve nodes for project '{ProjectName}'.", gns3Info.Project);
+            return false;
+        }
+
+        var deployedNodes = new ConcurrentBag<(string NodeId, string RouterName)>();
+
+        var routersToDeploy = @as.Routers.Where(r => !r.External).ToList();
+        if (routersToDeploy.Count == 0)
+        {
+            Logger.LogInformation("AS {AsNumber} has no non-external routers to deploy. Skipping.", @as.Number);
+            return true;
+        }
+
+        var deploymentTasks = routersToDeploy.Select(router =>
+            DeployRouterAsync(project.ProjectId, @as, router, nodes, configDirectory, deployedNodes));
+
+        var results = await Task.WhenAll(deploymentTasks);
+        if (results.All(success => success))
+            return true;
+
+        await RollbackDeploymentAsync(project.ProjectId, deployedNodes);
+        return false;
+    }
+
+    /// <summary>
+    /// Deploy a single router configuration.
+    /// </summary>
+    private async Task<bool> DeployRouterAsync(
+        string projectId,
+        As @as,
+        Router router,
+        List<Gns3Node> nodes,
+        string configDirectory,
+        ConcurrentBag<(string NodeId, string RouterName)> deployedNodes)
+    {
+        // Find matching node by name
+        var node = nodes.FirstOrDefault(n => n.Name.Equals(router.Name, StringComparison.OrdinalIgnoreCase));
+        if (node == null)
+        {
+            this.LogError("router '{routerName}' not found in GNS3 project.", router.Name);
+            return false;
+        }
+
+        // Read config file - files are organised by AS number in subdirectories
+        var configPath = Path.Combine(configDirectory, @as.Number.ToString(), $"{router.Name}.cfg");
+        if (!File.Exists(configPath))
+        {
+            this.LogError("Configuration file not found: {ConfigPath}", configPath);
+            return false;
+        }
+
+        var configContent = await File.ReadAllTextAsync(configPath);
+
+        // For Dynamips routers, we need to stop them before uploading config
+        var wasRunning = node.Status == "started";
+        if (wasRunning)
+        {
+            var stopped = await apiClient.ControlNodeAsync(projectId, node.NodeId, NodeOperation.Stop);
+            if (!stopped)
+            {
+                this.LogError("Failed to stop router '{RouterName}' before config upload.", router.Name);
+                return false;
+            }
+
+            await Task.Delay(2000); // Wait a bit for the router to fully stop
+        }
+
+        // Upload config to all detected slots
+        logger.LogDebug("Uploading config to {FilePath} for node {NodeName}", configPath, node.Name);
+        var uploaded = await apiClient.UploadConfigFileAsync(projectId, node.NodeId, configContent, node);
+        if (!uploaded)
+        {
+            this.LogError("Failed to upload config to router '{RouterName}'.", router.Name);
+            return false;
+        }
+
+        // Start the router if it was running before
+        if (wasRunning)
+        {
+            var started = await apiClient.ControlNodeAsync(projectId, node.NodeId, NodeOperation.Start);
+            if (!started)
+            {
+                this.LogError("Failed to start router '{RouterName}' after config upload.", router.Name);
+                return false;
+            }
+        }
+
+        // Track for rollback
+        deployedNodes.Add((node.NodeId, router.Name));
+
+        Logger.LogDebug("Deployed config for router {RouterName}{Status}",
+            router.Name,
+            wasRunning ? " (restarted)" : " (stopped, start manually)");
+
+        return true;
+    }
+
+    /// <summary>
+    /// Rollback deployment by reloading nodes (they will revert to previous config).
+    /// </summary>
+    private async Task RollbackDeploymentAsync(
+        string projectId,
+        ConcurrentBag<(string NodeId, string RouterName)> deployedNodes)
+    {
+        foreach (var (nodeId, routerName) in deployedNodes)
+        {
+            var reloaded = await apiClient.ControlNodeAsync(projectId, nodeId, NodeOperation.Reload);
+            if (!reloaded)
+                this.LogWarning("Failed to rollback router {RouterName}", routerName);
+        }
+
+        Logger.LogInformation("Rollback completed for {Count} router(s)", deployedNodes.Count);
+    }
+}

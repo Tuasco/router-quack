@@ -21,6 +21,8 @@ public sealed class As
 
     public required IpVersion IpVersions { get; init; }
 
+    public DeployInfo? Deploy { get; init; }
+
     public required ICollection<Router> Routers { get; set; }
 
     /// <summary>

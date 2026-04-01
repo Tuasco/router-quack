@@ -1,0 +1,50 @@
+111:
+  igp: "iBGP"
+  loopback_space_v4: "10.10.10.0/24"
+  loopback_space_v6: "2001:1:1:1::/64"
+  networks_space_v4: "192.168.1.0/24"
+  networks_space_v6: "2001:db8:1::/48"
+  networks: "IPv4, IPv6"
+  brand: "cisco"
+  deploy:
+    gns3:
+      server: "http://localhost:3080"
+      project: "Quack"
+
+  routers:
+    R1:
+      id: "1.1.1.1"
+      loopback_v6: "2001:1:1:1::1"
+      interfaces:
+        GigabitEthernet1/0:
+          neighbour: "112:R2"
+          bgp: "peer"
+          addresses:
+            - "2001:db8:1::0/127"
+            - "192.168.1.0/31"
+        GigabitEthernet2/0:
+          neighbour: "R3"
+    R3:
+      interfaces:
+        GigabitEthernet1/0:
+          neighbour: "R1"
+
+112:
+  networks_space_v4: "192.168.1.0/24"
+  networks_space_v6: "2001:db8:1::/48"
+  networks: "IPv4, IPv6"
+  deploy:
+    gns3:
+      server: "http://localhost:3080"
+      project: "Quack"
+  routers: 
+    R2:
+      loopback_v4: "192.168.2.1"
+      loopback_v6: "2001:2:2:2::1"
+      interfaces:
+        GigabitEthernet1/0:
+          neighbour: "111:R1"
+          bgp: "peer"
+          addresses:
+            - "2001:db8:1::1/127"
+            - "192.168.1.1/31"

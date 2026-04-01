@@ -21,6 +21,8 @@ public sealed class As
 
     public RouterBrand Brand { get; init; } = RouterBrand.Cisco;
 
+    public DeployInfo? Deploy { get; init; }
+
     public bool External { get; init; } = false;
 
     public required IDictionary<string, YamlRouter> Routers { get; init; }

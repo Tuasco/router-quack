@@ -109,7 +109,7 @@ internal static class BgpConfig
         foreach (var network in router.Bgp.Networks)
         {
             if (network.BaseAddress.AddressFamily == AddressFamily.InterNetwork)
-                ipv4AddressFamily.Add($"  network {network.BaseAddress} " +
+                ipv4AddressFamily.Add($"  network {network.BaseAddress} mask " +
                                       $"{Ipv4AddressUtils.GetV4Mask(network.PrefixLength)}");
             else
             {
