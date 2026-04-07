@@ -25,6 +25,7 @@ public class GenerateLoopbackAddresses(
         GenerateV6LoopbackAddresses();
     }
 
+    // TODO : skip V4 loopback generation when LDP is set
     private void GenerateV4LoopbackAddresses()
     {
         var routers = Context.Asses

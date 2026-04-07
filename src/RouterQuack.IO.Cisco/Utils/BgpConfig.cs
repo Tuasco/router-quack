@@ -32,7 +32,7 @@ internal static class BgpConfig
         List<string> ipv6AddressFamily = [];
 
         ConfigureEbgp(builder, ebgpNeighbours, ipv4AddressFamily, ipv6AddressFamily);
-        ConfigureIbgp(builder, ibgpNeighbours, ipv4AddressFamily, ipv6AddressFamily);
+        ConfigureIbgp(builder, ibgpNeighbours, router.ParentAs.Igp, ipv4AddressFamily, ipv6AddressFamily);
         ConfigureNetworks(router, ipv4AddressFamily, ipv6AddressFamily);
         WriteAddressFamilies(builder, ipv4AddressFamily, ipv6AddressFamily);
     }
@@ -93,6 +93,7 @@ internal static class BgpConfig
 
     private static void ConfigureIbgp(StringBuilder builder,
         Router[] neighbours,
+        IgpType igp,
         in List<string> ipv4AddressFamily,
         in List<string> ipv6AddressFamily)
     {
@@ -107,6 +108,15 @@ internal static class BgpConfig
                 builder.AppendLine($" neighbor {addressV4} send-community both");
                 ipv4AddressFamily.Add($"  neighbor {addressV4} activate");
                 ipv4AddressFamily.Add($"  neighbor {addressV4} next-hop-self");
+
+                // 6PE for the win
+                // TODO : add condition to check whether IPv6 af is set
+                if (igp == IgpType.MPLS)
+                {
+                    ipv6AddressFamily.Add($"  neighbor {addressV4} activate");
+                    ipv6AddressFamily.Add($"  neighbor {addressV4} next-hop-self");
+                    ipv6AddressFamily.Add($"  neighbor {addressV4} send-label");
+                }
             }
 
             var addressV6 = neighbour.LoopbackAddressV6;
@@ -130,12 +140,13 @@ internal static class BgpConfig
         foreach (var network in router.Bgp.Networks)
         {
             if (network.BaseAddress.AddressFamily == AddressFamily.InterNetwork)
-                ipv4AddressFamily.Add($"  network {network.BaseAddress} mask " +
-                                      $"{Ipv4AddressUtils.GetV4Mask(network.PrefixLength)} route-map {BgpPolicyConfig.SetLocalRouteMapName}");
+                ipv4AddressFamily.Add($"  network {network.BaseAddress} " +
+                                      $"mask {Ipv4AddressUtils.GetV4Mask(network.PrefixLength)} " +
+                                      $"route-map {BgpPolicyConfig.SetLocalRouteMapName}");
             else
             {
-                ipv6AddressFamily.Add(
-                    $"  network {network.BaseAddress}/{network.PrefixLength} route-map {BgpPolicyConfig.SetLocalRouteMapName}");
+                ipv6AddressFamily.Add($"  network {network.BaseAddress}/{network.PrefixLength} " +
+                                      $"route-map {BgpPolicyConfig.SetLocalRouteMapName}");
             }
         }
     }

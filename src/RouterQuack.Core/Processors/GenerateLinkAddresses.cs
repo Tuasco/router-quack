@@ -21,6 +21,7 @@ public class GenerateLinkAddresses(
     private HashSet<IPAddress> _usedAddresses = null!;
     private const IpVersion BothVersions = IpVersion.IPv6 | IpVersion.IPv4;
 
+    // TODO : skip core links IPv6 generation when LDP is set
     public void Process()
     {
         _usedAddresses = Context.Asses
