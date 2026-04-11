@@ -1,5 +1,5 @@
 111:
-  af: "both"
+  address_family: "both"
   igp: "OSPF"
   core: "iBGP"
   brand: "cisco"
