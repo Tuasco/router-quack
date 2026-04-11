@@ -23,7 +23,7 @@ public class ToggleIbgpTests
         var asses = new List<As>
         {
             TestData.CreateAs(
-                igp: IgpType.iBGP,
+                core: CoreType.iBGP,
                 routers: routers)
         };
 
@@ -137,8 +137,8 @@ public class ToggleIbgpTests
 
         var asses = new List<As>
         {
-            TestData.CreateAs(number: 1, igp: IgpType.iBGP, routers: routersAs1),
-            TestData.CreateAs(number: 2, igp: IgpType.OSPF, routers: routersAs2)
+            TestData.CreateAs(number: 1, core: CoreType.iBGP, routers: routersAs1),
+            TestData.CreateAs(number: 2, core: CoreType.None, routers: routersAs2)
         };
 
         var context = ContextFactory.Create(asses: asses);

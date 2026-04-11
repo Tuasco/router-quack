@@ -62,7 +62,8 @@ internal static class InterfacesConfig
                 $" ip address {ipv4Address.IpAddress} " +
                 $"{Ipv4AddressUtils.GetV4Mask(ipv4Address.NetworkAddress.PrefixLength)}");
 
-            if (@interface.Neighbour!.ParentRouter.ParentAs == @interface.ParentRouter.ParentAs)
+            if (@interface.Neighbour!.ParentRouter.ParentAs == @interface.ParentRouter.ParentAs
+                && @interface.Neighbour!.ParentRouter.ParentAs.Igp.HasFlag(IgpType.OSPF))
                 builder.AppendLine(" ip ospf 1 area 0");
         }
         else
@@ -77,16 +78,19 @@ internal static class InterfacesConfig
             ipv6Addresses.Insert(0, @interface.Ipv6Address);
 
         if (ipv6Addresses.Any())
+        {
             builder.AppendLine(" ipv6 enable");
 
-        foreach (var address in ipv6Addresses)
-            builder.AppendLine($" ipv6 address {address.IpAddress}/{address.NetworkAddress.PrefixLength}");
+            foreach (var address in ipv6Addresses)
+                builder.AppendLine($" ipv6 address {address.IpAddress}/{address.NetworkAddress.PrefixLength}");
 
-        if (ipv6Addresses.Any() && @interface.Neighbour!.ParentRouter.ParentAs == @interface.ParentRouter.ParentAs)
-            builder.AppendLine(" ipv6 ospf 1 area 0");
+            if (@interface.Neighbour!.ParentRouter.ParentAs == @interface.ParentRouter.ParentAs
+                && @interface.Neighbour!.ParentRouter.ParentAs.Igp.HasFlag(IgpType.OSPF))
+                builder.AppendLine(" ipv6 ospf 1 area 0");
+        }
 
         // Write MPLS config
-        if (@interface.ParentRouter.ParentAs.Igp == IgpType.MPLS)
+        if (@interface.ParentRouter.ParentAs.Core.HasFlag(CoreType.LDP))
             builder.AppendLine(" mpls ip");
 
         // Write additional config is specified

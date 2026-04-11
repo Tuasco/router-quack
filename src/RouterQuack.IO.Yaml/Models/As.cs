@@ -1,13 +1,14 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Net;
 
 namespace RouterQuack.IO.Yaml.Models;
 
-[SuppressMessage("ReSharper", "ClassNeverInstantiated.Global")]
-[SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
+// ReSharper disable once ClassNeverInstantiated
+// ReSharper disable all UnusedAutoPropertyAccessor
 public sealed class As
 {
-    public IgpType Igp { get; init; } = IgpType.iBGP;
+    public IgpType Igp { get; init; } = IgpType.OSPF;
+
+    public CoreType Core { get; init; } = CoreType.iBGP;
 
     public IPNetwork? LoopbackSpaceV4 { get; init; }
 
@@ -17,7 +18,7 @@ public sealed class As
 
     public IPNetwork? NetworksSpaceV6 { get; init; }
 
-    public IpVersion Networks { get; init; } = IpVersion.IPv4 | IpVersion.IPv6;
+    public IpVersion AddressFamily { get; init; } = IpVersion.Both;
 
     public RouterBrand Brand { get; init; } = RouterBrand.Cisco;
 

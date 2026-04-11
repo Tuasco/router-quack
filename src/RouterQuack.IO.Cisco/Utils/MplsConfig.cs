@@ -7,7 +7,7 @@ internal static class MplsConfig
 {
     internal static void ApplyMplsConfigs(StringBuilder builder, Router router)
     {
-        if (router.ParentAs.Igp != IgpType.MPLS)
+        if (!router.ParentAs.Core.HasFlag(CoreType.LDP))
             return;
 
         builder.AppendLine(MplsConfigHeader);

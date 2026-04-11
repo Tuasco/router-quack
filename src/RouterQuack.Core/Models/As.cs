@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using System.Net;
 using System.Text;
@@ -11,6 +10,8 @@ public sealed class As
 
     public required IgpType Igp { get; init; }
 
+    public required CoreType Core { get; init; }
+
     public IPNetwork? LoopbackSpaceV4 { get; init; }
 
     public IPNetwork? LoopbackSpaceV6 { get; init; }
@@ -19,7 +20,7 @@ public sealed class As
 
     public IPNetwork? NetworksSpaceV6 { get; init; }
 
-    public required IpVersion IpVersions { get; init; }
+    public required IpVersion AddressFamily { get; init; }
 
     public DeployInfo? Deploy { get; init; }
 
@@ -39,7 +40,7 @@ public sealed class As
         if (Routers.Any(r => r.External))
             str.AppendLine($"(external):");
         else
-            str.AppendLine($"using {Igp.ToString()} ({IpVersions}):");
+            str.AppendLine($"using {Igp.ToString()} ({AddressFamily}):");
 
         foreach (var router in Routers)
             str.AppendLine(router.ToString());
@@ -48,18 +49,32 @@ public sealed class As
     }
 }
 
-[SuppressMessage("ReSharper", "InconsistentNaming")]
+// ReSharper disable all InconsistentNaming
+[Flags]
 public enum IgpType
 {
-    iBGP,
-    OSPF,
-    MPLS
+    None = 0,
+    OSPF = 1
 }
 
-[SuppressMessage("ReSharper", "InconsistentNaming")]
+[Flags]
+public enum CoreType
+{
+    None = 0,
+    iBGP = 1,
+    LDP = 2
+}
+
 [Flags]
 public enum IpVersion
 {
+    #pragma warning disable CA1069
+    None = 0,
     IPv4 = 1,
-    IPv6 = 2
+    v4 = 1,
+    IPv6 = 2,
+    v6 = 2,
+    Both = 3,
+    Dual = 3
+    #pragma warning restore CA1069
 }
