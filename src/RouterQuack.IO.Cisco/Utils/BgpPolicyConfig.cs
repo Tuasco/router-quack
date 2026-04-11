@@ -1,4 +1,3 @@
-using System.Net;
 using System.Text;
 using RouterQuack.Core.Models;
 
@@ -22,24 +21,17 @@ internal static class BgpPolicyConfig
             if (@interface.Bgp == BgpRelationship.None)
                 continue;
 
-            if (@interface.Neighbour?.Ipv4Address?.IpAddress is { } neighbourV4)
-                AppendRouteMaps(builder, asNumber, @interface.Bgp, neighbourV4);
-
-            if (@interface.Neighbour?.Ipv6Address?.IpAddress is { } neighbourV6)
-                AppendRouteMaps(builder, asNumber, @interface.Bgp, neighbourV6);
+            AppendRouteMaps(builder, asNumber, @interface.Neighbour!.ParentRouter, @interface.Bgp);
         }
 
         builder.AppendLine("!");
     }
 
-    internal static string GetInboundRouteMapName(BgpRelationship relationship, IPAddress neighbourAddress)
-        => $"RM-IN-{relationship.ToString().ToUpperInvariant()}-{Sanitize(neighbourAddress)}";
+    internal static string GetInboundRouteMapName(BgpRelationship relationship, int asNumber, string neighbourName)
+        => $"RM-IN-{relationship.ToString().ToUpperInvariant()}-{asNumber}-{neighbourName}";
 
-    internal static string GetOutboundRouteMapName(BgpRelationship relationship, IPAddress neighbourAddress)
-        => $"RM-OUT-{relationship.ToString().ToUpperInvariant()}-{Sanitize(neighbourAddress)}";
-
-    private static string Sanitize(IPAddress address)
-        => address.ToString().Replace('.', '_').Replace(':', '_');
+    internal static string GetOutboundRouteMapName(BgpRelationship relationship, int asNumber, string neighbourName)
+        => $"RM-OUT-{relationship.ToString().ToUpperInvariant()}-{asNumber}-{neighbourName}";
 
     private static int GetLocalPreference(BgpRelationship relationship)
         => relationship switch
@@ -73,20 +65,20 @@ internal static class BgpPolicyConfig
     private static void AppendCommunityLists(StringBuilder builder, int asNumber)
     {
         foreach (var relationship in GetSourceRelationships())
-            builder.AppendLine(
-                $"ip community-list standard {GetSourceCommunityListName(relationship)} permit {GetCommunityValue(asNumber, relationship)}");
+            builder.AppendLine($"ip community-list standard {GetSourceCommunityListName(relationship)} " +
+                               $"permit {GetCommunityValue(asNumber, relationship)}");
 
-        builder.AppendLine(
-            $"ip community-list standard {InternalScrubListName} permit {GetCommunityValue(asNumber, null)}");
+        builder.AppendLine($"ip community-list standard {InternalScrubListName} " +
+                           $"permit {GetCommunityValue(asNumber, null)}");
         foreach (var relationship in GetNeighbourRelationships())
-            builder.AppendLine(
-                $"ip community-list standard {InternalScrubListName} permit {GetCommunityValue(asNumber, relationship)}");
+            builder.AppendLine($"ip community-list standard {InternalScrubListName} " +
+                               $"permit {GetCommunityValue(asNumber, relationship)}");
 
-        builder.AppendLine(
-            $"ip community-list standard {InternalStripListName} permit {GetCommunityValue(asNumber, null)}");
+        builder.AppendLine($"ip community-list standard {InternalStripListName} " +
+                           $"permit {GetCommunityValue(asNumber, null)}");
         foreach (var relationship in GetNeighbourRelationships())
-            builder.AppendLine(
-                $"ip community-list standard {InternalStripListName} permit {GetCommunityValue(asNumber, relationship)}");
+            builder.AppendLine($"ip community-list standard {InternalStripListName} " +
+                               $"permit {GetCommunityValue(asNumber, relationship)}");
 
         builder.AppendLine("!");
     }
@@ -98,16 +90,19 @@ internal static class BgpPolicyConfig
         builder.AppendLine("!");
     }
 
-    private static void AppendRouteMaps(StringBuilder builder, int asNumber, BgpRelationship relationship, IPAddress neighbourAddress)
+    private static void AppendRouteMaps(StringBuilder builder,
+        int asNumber,
+        Router neighbour,
+        BgpRelationship relationship)
     {
-        var inboundName = GetInboundRouteMapName(relationship, neighbourAddress);
+        var inboundName = GetInboundRouteMapName(relationship, neighbour.ParentAs.Number, neighbour.Name);
         builder.AppendLine($"route-map {inboundName} permit 10");
         builder.AppendLine($" set comm-list {InternalScrubListName} delete");
         builder.AppendLine($" set local-preference {GetLocalPreference(relationship)}");
         builder.AppendLine($" set community {GetCommunityValue(asNumber, relationship)} additive");
         builder.AppendLine("!");
 
-        var outboundName = GetOutboundRouteMapName(relationship, neighbourAddress);
+        var outboundName = GetOutboundRouteMapName(relationship, neighbour.ParentAs.Number, neighbour.Name);
         var sequence = 10;
 
         foreach (var allowedRelationship in GetAllowedExportRelationships(relationship))
@@ -134,8 +129,7 @@ internal static class BgpPolicyConfig
         => relationship switch
         {
             BgpRelationship.Client => [null, BgpRelationship.Client, BgpRelationship.Peer, BgpRelationship.Provider],
-            BgpRelationship.Peer => [null, BgpRelationship.Client],
-            BgpRelationship.Provider => [null, BgpRelationship.Client],
+            BgpRelationship.Peer or BgpRelationship.Provider => [null, BgpRelationship.Client],
             _ => throw new ArgumentOutOfRangeException(nameof(relationship), relationship, null)
         };
 }

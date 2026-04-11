@@ -33,7 +33,7 @@ internal static class OspfConfig
         }
     }
 
-    private const string ConfigHeader = "! ================= OSPFv3 =================";
+    private const string ConfigHeader = "! ================= OSPF =================";
 
     private const string ConfigV6 =
         """

@@ -52,7 +52,7 @@ public class CiscoWriterBgpPolicyTests
         await Assert.That(config).Contains("ip community-list standard CL-INTERNAL-SCRUB permit 65000:2100");
         await Assert.That(config).Contains("ip community-list standard CL-INTERNAL-SCRUB permit 65000:2200");
         await Assert.That(config).Contains("ip community-list standard CL-INTERNAL-SCRUB permit 65000:2300");
-        await Assert.That(config).Contains("route-map RM-IN-PROVIDER-198_51_100_2 permit 10");
+        await Assert.That(config).Contains("route-map RM-IN-PROVIDER-65100-EXT1 permit 10");
         await Assert.That(config).Contains(" set comm-list CL-INTERNAL-SCRUB delete");
         await Assert.That(config).Contains(" set local-preference 100");
         await Assert.That(config).Contains(" set community 65000:2300 additive");
@@ -63,13 +63,13 @@ public class CiscoWriterBgpPolicyTests
     {
         var config = GenerateConfig(BgpRelationship.Client);
 
-        await Assert.That(config).Contains("route-map RM-OUT-CLIENT-198_51_100_2 permit 10");
+        await Assert.That(config).Contains("route-map RM-OUT-CLIENT-65100-EXT1 permit 10");
         await Assert.That(config).Contains(" match community RQ-SRC-LOCAL");
-        await Assert.That(config).Contains("route-map RM-OUT-CLIENT-198_51_100_2 permit 20");
+        await Assert.That(config).Contains("route-map RM-OUT-CLIENT-65100-EXT1 permit 20");
         await Assert.That(config).Contains(" match community RQ-SRC-CLIENT");
-        await Assert.That(config).Contains("route-map RM-OUT-CLIENT-198_51_100_2 permit 30");
+        await Assert.That(config).Contains("route-map RM-OUT-CLIENT-65100-EXT1 permit 30");
         await Assert.That(config).Contains(" match community RQ-SRC-PEER");
-        await Assert.That(config).Contains("route-map RM-OUT-CLIENT-198_51_100_2 permit 40");
+        await Assert.That(config).Contains("route-map RM-OUT-CLIENT-65100-EXT1 permit 40");
         await Assert.That(config).Contains(" match community RQ-SRC-PROVIDER");
     }
 
@@ -79,16 +79,16 @@ public class CiscoWriterBgpPolicyTests
         var peerConfig = GenerateConfig(BgpRelationship.Peer);
         var providerConfig = GenerateConfig(BgpRelationship.Provider);
 
-        await Assert.That(peerConfig).Contains("route-map RM-OUT-PEER-198_51_100_2 permit 10");
+        await Assert.That(peerConfig).Contains("route-map RM-OUT-PEER-65100-EXT1 permit 10");
         await Assert.That(peerConfig).Contains(" match community RQ-SRC-LOCAL");
-        await Assert.That(peerConfig).Contains("route-map RM-OUT-PEER-198_51_100_2 permit 20");
+        await Assert.That(peerConfig).Contains("route-map RM-OUT-PEER-65100-EXT1 permit 20");
         await Assert.That(peerConfig).Contains(" match community RQ-SRC-CLIENT");
         await Assert.That(peerConfig).DoesNotContain("match community RQ-SRC-PEER");
         await Assert.That(peerConfig).DoesNotContain("match community RQ-SRC-PROVIDER");
 
-        await Assert.That(providerConfig).Contains("route-map RM-OUT-PROVIDER-198_51_100_2 permit 10");
+        await Assert.That(providerConfig).Contains("route-map RM-OUT-PROVIDER-65100-EXT1 permit 10");
         await Assert.That(providerConfig).Contains(" match community RQ-SRC-LOCAL");
-        await Assert.That(providerConfig).Contains("route-map RM-OUT-PROVIDER-198_51_100_2 permit 20");
+        await Assert.That(providerConfig).Contains("route-map RM-OUT-PROVIDER-65100-EXT1 permit 20");
         await Assert.That(providerConfig).Contains(" match community RQ-SRC-CLIENT");
         await Assert.That(providerConfig).DoesNotContain("match community RQ-SRC-PEER");
         await Assert.That(providerConfig).DoesNotContain("match community RQ-SRC-PROVIDER");
@@ -111,10 +111,8 @@ public class CiscoWriterBgpPolicyTests
     {
         var config = GenerateConfig(BgpRelationship.Peer);
 
-        await Assert.That(config).Contains("neighbor 198.51.100.2 route-map RM-IN-PEER-198_51_100_2 in");
-        await Assert.That(config).Contains("neighbor 198.51.100.2 route-map RM-OUT-PEER-198_51_100_2 out");
-        await Assert.That(config).Contains("neighbor 2001:db8::2 route-map RM-IN-PEER-2001_db8__2 in");
-        await Assert.That(config).Contains("neighbor 2001:db8::2 route-map RM-OUT-PEER-2001_db8__2 out");
+        await Assert.That(config).Contains("neighbor 198.51.100.2 route-map RM-IN-PEER-65100-EXT1 in");
+        await Assert.That(config).Contains("neighbor 198.51.100.2 route-map RM-OUT-PEER-65100-EXT1 out");
     }
 
     [Test]

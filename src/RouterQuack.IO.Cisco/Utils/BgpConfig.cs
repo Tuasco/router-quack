@@ -1,7 +1,6 @@
 using System.Net.Sockets;
 using System.Text;
 using RouterQuack.Core.Models;
-using RouterQuack.IO.Cisco.Utils.Models;
 
 namespace RouterQuack.IO.Cisco.Utils;
 
@@ -26,7 +25,7 @@ internal static class BgpConfig
         // Neighbour interfaces with BGP relationships other than none
         var ebgpNeighbours = router.Interfaces
             .Where(i => i.Bgp != BgpRelationship.None)
-            .Select(i => new EbgpNeighbour(i))
+            .Select(i => i.Neighbour!)
             .ToArray();
 
         List<string> ipv4AddressFamily = [];
@@ -48,33 +47,46 @@ internal static class BgpConfig
         """;
 
     private static void ConfigureEbgp(StringBuilder builder,
-        EbgpNeighbour[] neighbours,
+        Interface[] neighbours,
         in List<string> ipv4AddressFamily,
         in List<string> ipv6AddressFamily)
     {
         foreach (var neighbour in neighbours)
         {
-            if (neighbour.AddressV4 is not null)
+            if (neighbour.Ipv4Address is not null)
             {
-                builder.AppendLine($" neighbor {neighbour.AddressV4} remote-as {neighbour.RemoteAsNumber}");
-                builder.AppendLine($" neighbor {neighbour.AddressV4} send-community both");
-                ipv4AddressFamily.Add($"  neighbor {neighbour.AddressV4} activate");
-                ipv4AddressFamily.Add(
-                    $"  neighbor {neighbour.AddressV4} route-map {BgpPolicyConfig.GetInboundRouteMapName(neighbour.Relationship, neighbour.AddressV4)} in");
-                ipv4AddressFamily.Add(
-                    $"  neighbor {neighbour.AddressV4} route-map {BgpPolicyConfig.GetOutboundRouteMapName(neighbour.Relationship, neighbour.AddressV4)} out");
+                builder.AppendLine(
+                    $" neighbor {neighbour.Ipv4Address.IpAddress} " + $"remote-as {neighbour.AsNumber()}");
+                builder.AppendLine($" neighbor {neighbour.Ipv4Address.IpAddress} send-community both");
+                ipv4AddressFamily.Add($"  neighbor {neighbour.Ipv4Address.IpAddress} activate");
+
+                ipv4AddressFamily.Add($"  neighbor {neighbour.Ipv4Address.IpAddress} " +
+                                      $"route-map {BgpPolicyConfig.GetInboundRouteMapName(neighbour.Neighbour!.Bgp,
+                                          neighbour.AsNumber(),
+                                          neighbour.ParentRouter.Name)} in");
+
+                ipv4AddressFamily.Add($"  neighbor {neighbour.Ipv4Address.IpAddress} " +
+                                      $"route-map {BgpPolicyConfig.GetOutboundRouteMapName(neighbour.Neighbour!.Bgp,
+                                          neighbour.AsNumber(),
+                                          neighbour.ParentRouter.Name)} out");
             }
 
             // ReSharper disable once InvertIf
-            if (neighbour.AddressV6 is not null)
+            if (neighbour.Ipv6Address is not null)
             {
-                builder.AppendLine($" neighbor {neighbour.AddressV6} remote-as {neighbour.RemoteAsNumber}");
-                builder.AppendLine($" neighbor {neighbour.AddressV6} send-community both");
-                ipv6AddressFamily.Add($"  neighbor {neighbour.AddressV6} activate");
-                ipv6AddressFamily.Add(
-                    $"  neighbor {neighbour.AddressV6} route-map {BgpPolicyConfig.GetInboundRouteMapName(neighbour.Relationship, neighbour.AddressV6)} in");
-                ipv6AddressFamily.Add(
-                    $"  neighbor {neighbour.AddressV6} route-map {BgpPolicyConfig.GetOutboundRouteMapName(neighbour.Relationship, neighbour.AddressV6)} out");
+                builder.AppendLine($" neighbor {neighbour.Ipv6Address.IpAddress} remote-as {neighbour.AsNumber()}");
+                builder.AppendLine($" neighbor {neighbour.Ipv6Address.IpAddress} send-community both");
+                ipv6AddressFamily.Add($"  neighbor {neighbour.Ipv6Address.IpAddress} activate");
+
+                ipv6AddressFamily.Add($"  neighbor {neighbour.Ipv6Address.IpAddress} " +
+                                      $"route-map {BgpPolicyConfig.GetInboundRouteMapName(neighbour.Neighbour!.Bgp,
+                                          neighbour.AsNumber(),
+                                          neighbour.ParentRouter.Name)} in");
+
+                ipv6AddressFamily.Add($"  neighbor {neighbour.Ipv6Address.IpAddress} " +
+                                      $"route-map {BgpPolicyConfig.GetOutboundRouteMapName(neighbour.Neighbour!.Bgp,
+                                          neighbour.AsNumber(),
+                                          neighbour.ParentRouter.Name)} out");
             }
         }
     }
@@ -122,7 +134,8 @@ internal static class BgpConfig
                                       $"{Ipv4AddressUtils.GetV4Mask(network.PrefixLength)} route-map {BgpPolicyConfig.SetLocalRouteMapName}");
             else
             {
-                ipv6AddressFamily.Add($"  network {network.BaseAddress}/{network.PrefixLength} route-map {BgpPolicyConfig.SetLocalRouteMapName}");
+                ipv6AddressFamily.Add(
+                    $"  network {network.BaseAddress}/{network.PrefixLength} route-map {BgpPolicyConfig.SetLocalRouteMapName}");
             }
         }
     }
