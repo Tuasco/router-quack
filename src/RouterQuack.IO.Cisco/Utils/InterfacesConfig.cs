@@ -52,9 +52,7 @@ internal static class InterfacesConfig
         builder.AppendLine(InterfaceConfigStart);
 
         // IPv4
-        var ipv4Address =
-            @interface.Addresses.FirstOrDefault(a => a.IpAddress.AddressFamily == AddressFamily.InterNetwork)
-            ?? @interface.Ipv4Address;
+        var ipv4Address = @interface.Ipv4Address;
 
         if (ipv4Address is not null)
         {

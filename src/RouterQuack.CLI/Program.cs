@@ -24,7 +24,6 @@ try
     context.ExecuteStep(di.GetRequiredKeyedService<IProcessor>(nameof(ResolveNeighbours)));
 
     // Execute validators
-    // TODO : validate that IPv4 is set when LDP is
     Log.Information("Validating intent...");
     context.ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(NoDuplicateIpAddress)))
         .ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(NoDuplicateLoopbackAddress)))
@@ -34,7 +33,8 @@ try
         .ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(ValidLoopbackAddresses)))
         .ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(ValidLoopbackSpaces)))
         .ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(ValidNetworkSpaces)))
-        .ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(WarningWhenAdditionalConfig)));
+        .ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(WarningWhenAdditionalConfig)))
+        .ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(Ipv4SetWhenLdpIs)));
 
     // Execute other processors
     context.ExecuteStep(di.GetRequiredKeyedService<IProcessor>(nameof(GenerateLinkAddresses)))

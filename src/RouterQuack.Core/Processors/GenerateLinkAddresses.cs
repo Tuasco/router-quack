@@ -21,7 +21,6 @@ public class GenerateLinkAddresses(
     private HashSet<IPAddress> _usedAddresses = null!;
     private const IpVersion BothVersions = IpVersion.IPv6 | IpVersion.IPv4;
 
-    // TODO : skip core links IPv6 generation when LDP is set
     public void Process()
     {
         _usedAddresses = Context.Asses
@@ -36,11 +35,12 @@ public class GenerateLinkAddresses(
             var addresses = GetLinkNetworks(link).ToArray();
 
             // If we need to generate IPv4 link addresses
-            if ((link.Item1.ParentRouter.ParentAs.AddressFamily & IpVersion.IPv4) == IpVersion.IPv4
-                || (link.Item2.ParentRouter.ParentAs.AddressFamily & IpVersion.IPv4) == IpVersion.IPv4)
+            if (link.Item1.ParentRouter.ParentAs.AddressFamily.HasFlag(IpVersion.IPv4)
+                || link.Item2.ParentRouter.ParentAs.AddressFamily.HasFlag(IpVersion.IPv4))
             {
                 var ipv4Addresses = addresses.Where(a
                     => a.address.NetworkAddress.BaseAddress.AddressFamily == AddressFamily.InterNetwork).ToArray();
+
                 switch (ipv4Addresses.Length)
                 {
                     case 0:
@@ -61,11 +61,17 @@ public class GenerateLinkAddresses(
             }
 
             // If we need to generate IPv6 link addresses
-            if ((link.Item1.ParentRouter.ParentAs.AddressFamily & IpVersion.IPv6) == IpVersion.IPv6
-                || (link.Item2.ParentRouter.ParentAs.AddressFamily & IpVersion.IPv6) == IpVersion.IPv6)
+            if (link.Item1.ParentRouter.ParentAs.AddressFamily.HasFlag(IpVersion.IPv6)
+                || link.Item2.ParentRouter.ParentAs.AddressFamily.HasFlag(IpVersion.IPv6))
             {
+                // Skip if this is an MPLS core link
+                if (link.Item1.ParentRouter.ParentAs == link.Item2.ParentRouter.ParentAs
+                    && link.Item1.ParentRouter.ParentAs.Core == CoreType.LDP)
+                    continue;
+
                 var ipv6Addresses = addresses.Where(a
                     => a.address.NetworkAddress.BaseAddress.AddressFamily == AddressFamily.InterNetworkV6).ToArray();
+
                 switch (ipv6Addresses.Length)
                 {
                     case 0:
