@@ -1,0 +1,29 @@
+111:
+  address_family: "IPv4"
+  core: "LDP"
+  loopback_space_v4: "10.10.10.0/24"
+  networks_space_v4: "192.168.1.0/24"
+  routers:
+    R1:
+      interfaces:
+        GigabitEthernet1/0:
+          neighbour: "R2"
+
+    R2:
+      interfaces:
+        GigabitEthernet1/0:
+          neighbour: "R1"
+        GigabitEthernet2/0:
+          neighbour: "R3"
+
+    R3:
+      interfaces:
+        GigabitEthernet1/0:
+          neighbour: "R2"
+        GigabitEthernet2/0:
+          neighbour: "R4"
+
+    R4:
+      interfaces:
+        GigabitEthernet1/0:
+          neighbour: "R3"

@@ -18,12 +18,13 @@ public sealed class YamlAsMapper(YamlRouterMapper yamlRouterMapper)
             {
                 Number = key,
                 Igp = value.Igp,
+                Core = value.Core,
                 LoopbackSpaceV4 = value.LoopbackSpaceV4,
                 LoopbackSpaceV6 = value.LoopbackSpaceV6,
                 NetworksSpaceV4 = value.NetworksSpaceV4,
                 NetworksSpaceV6 = value.NetworksSpaceV6,
-                IpVersions = value.Networks,
-                Deploy =  value.Deploy,
+                AddressFamily = value.AddressFamily,
+                Deploy = value.Deploy,
                 Routers = []
             };
 

@@ -79,6 +79,8 @@ public class Context
         switch (step)
         {
             case IValidator:
+            case IConfigFileWriter:
+            case IConfigDeployer:
                 step.Logger.LogDebug(step.BeginMessage + '.');
                 break;
 

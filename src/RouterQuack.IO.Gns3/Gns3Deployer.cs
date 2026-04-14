@@ -31,11 +31,11 @@ public sealed class Gns3Deployer(
 
         if (assesToDeploy.Count == 0)
         {
-            Logger.LogInformation("No ASes configured for GNS3 deployment. Skipping.");
+            Logger.LogDebug("No ASes configured for GNS3 deployment. Skipping.");
             return;
         }
 
-        Logger.LogInformation("Found {Count} AS(es) configured for GNS3 deployment", assesToDeploy.Count);
+        Logger.LogDebug("Found {Count} AS(es) configured for GNS3 deployment", assesToDeploy.Count);
 
         // ReSharper disable once ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator
         foreach (var @as in assesToDeploy)

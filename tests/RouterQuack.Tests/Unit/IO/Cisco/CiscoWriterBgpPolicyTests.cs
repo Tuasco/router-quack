@@ -182,7 +182,7 @@ public class CiscoWriterBgpPolicyTests
                 routers.Add(ibgpRouter);
             }
 
-            var localAs = TestData.CreateAs(number: 65000, igp: IgpType.iBGP, routers: routers);
+            var localAs = TestData.CreateAs(number: 65000, core: CoreType.iBGP, routers: routers);
             var remoteRouter = TestData.CreateRouter(
                 name: "EXT1",
                 id: IPAddress.Parse("3.3.3.3"),
