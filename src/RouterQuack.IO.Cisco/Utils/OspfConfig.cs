@@ -1,4 +1,3 @@
-using System.Net;
 using System.Text;
 using RouterQuack.Core.Models;
 
@@ -6,29 +5,30 @@ namespace RouterQuack.IO.Cisco.Utils;
 
 internal static class OspfConfig
 {
-    internal static void ApplyOspfConfig(StringBuilder builder, IPAddress routerId, IpVersion version)
+    internal static void ApplyOspfConfig(StringBuilder builder, Router router)
     {
         // To make sure header is inserted without being duplicated
         var headerSet = false;
 
-        if (version.HasFlag(IpVersion.IPv6))
+        // Make sure not to enable OSPF for IPv6 when LDP the core protocol.
+        if (router.ParentAs.AddressFamily.HasFlag(IpVersion.IPv6) && router.ParentAs.Core != CoreType.LDP)
         {
             builder.AppendLine(ConfigHeader);
             headerSet = true;
 
             builder.AppendLine(ConfigV6);
-            builder.AppendLine($" router-id {routerId}");
+            builder.AppendLine($" router-id {router.Id!}");
             builder.AppendLine("!");
         }
 
         // ReSharper disable once InvertIf
-        if (version.HasFlag(IpVersion.IPv4))
+        if (router.ParentAs.AddressFamily.HasFlag(IpVersion.IPv4))
         {
             if (!headerSet)
                 builder.AppendLine(ConfigHeader);
 
             builder.AppendLine(ConfigV4);
-            builder.AppendLine($" router-id {routerId}");
+            builder.AppendLine($" router-id {router.Id!}");
             builder.AppendLine("!\n!");
         }
     }

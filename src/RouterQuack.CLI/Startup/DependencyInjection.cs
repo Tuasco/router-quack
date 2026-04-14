@@ -78,7 +78,8 @@ public static class DependencyInjection
             .AddKeyedSingleton<IValidator, ValidLoopbackAddresses>(nameof(ValidLoopbackAddresses))
             .AddKeyedSingleton<IValidator, ValidLoopbackSpaces>(nameof(ValidLoopbackSpaces))
             .AddKeyedSingleton<IValidator, ValidNetworkSpaces>(nameof(ValidNetworkSpaces))
-            .AddKeyedSingleton<IValidator, WarningWhenAdditionalConfig>(nameof(WarningWhenAdditionalConfig));
+            .AddKeyedSingleton<IValidator, WarningWhenAdditionalConfig>(nameof(WarningWhenAdditionalConfig))
+            .AddKeyedSingleton<IValidator, Ipv4SetWhenLdpIs>(nameof(Ipv4SetWhenLdpIs));
 
         builder.Services
             .AddKeyedSingleton<IProcessor, ResolveNeighbours>(nameof(ResolveNeighbours))
