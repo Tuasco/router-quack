@@ -48,6 +48,7 @@ internal static class TestData
         BgpConfig? bgp = null,
         bool external = false,
         ICollection<Interface>? interfaces = null,
+        ICollection<Vrf>? vrfs = null,
         As? parentAs = null,
         bool useDefaultId = true,
         string? additionalConfig = null)
@@ -61,6 +62,7 @@ internal static class TestData
             Brand = brand,
             LoopbackAddressV4 = loopbackAddressV4,
             LoopbackAddressV6 = loopbackAddressV6,
+            Vrfs = vrfs?.ToArray() ?? [],
             Bgp = bgp ?? new(),
             External = external,
             Interfaces = interfaceList,
@@ -83,7 +85,8 @@ internal static class TestData
         BgpRelationship bgp = BgpRelationship.None,
         ICollection<Address>? addresses = null,
         Router? parentRouter = null,
-        string? additionalConfig = null)
+        string? additionalConfig = null,
+        string? vrf = null)
     {
         return new()
         {
@@ -92,7 +95,8 @@ internal static class TestData
             Bgp = bgp,
             Addresses = addresses?.ToList() ?? [],
             ParentRouter = parentRouter!,
-            AdditionalConfig = additionalConfig
+            AdditionalConfig = additionalConfig,
+            Vrf = vrf
         };
     }
 

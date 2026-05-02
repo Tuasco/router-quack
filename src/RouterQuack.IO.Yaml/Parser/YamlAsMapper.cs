@@ -28,7 +28,7 @@ public sealed class YamlAsMapper(YamlRouterMapper yamlRouterMapper)
                 Routers = []
             };
 
-            @as.Routers = yamlRouterMapper.Map(value.Routers, @as, value.Brand, value.External, context);
+            @as.Routers = yamlRouterMapper.Map(value.Routers, @as, value.Brand, value.External, value.Vrfs, context);
             context.Asses.Add(@as);
         }
     }

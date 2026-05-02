@@ -19,9 +19,13 @@ public class WriteConfigs(IServiceProvider di) : IPipeline
             Directory.CreateDirectory(_context.OutputDirectoryPath);
         }
 
-        // Delete all files in there
-        foreach (var file in Directory.EnumerateFiles(_context.OutputDirectoryPath))
-            File.Delete(file);
+        // Delete all files ASes directories
+        var paths = _context.Asses
+            .Select(a => Path.Combine(_context.OutputDirectoryPath, a.Number.ToString()));
+
+        foreach (var directory in paths)
+            foreach (var file in Directory.EnumerateFiles(directory))
+                File.Delete(file);
 
         // Generate and write config files
         _context.ExecuteStep(di.GetRequiredKeyedService<IConfigFileWriter>(RouterBrand.Cisco));

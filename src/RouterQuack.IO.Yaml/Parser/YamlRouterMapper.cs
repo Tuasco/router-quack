@@ -1,5 +1,6 @@
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
+using RouterQuack.IO.Yaml.Extensions;
 
 namespace RouterQuack.IO.Yaml.Parser;
 
@@ -15,12 +16,14 @@ public class YamlRouterMapper(ILogger<YamlRouterMapper> logger, YamlInterfaceMap
     /// <param name="parentAs"><see cref="As"/> definitions that owns the mapped routers.</param>
     /// <param name="defaultBrand">Default brand inherited from the parent <see cref="As"/>.</param>
     /// <param name="externalAs">Whether routers should default to external.</param>
+    /// <param name="vrfs">Default VRF collection.</param>
     /// <param name="context">Using execution context.</param>
     /// <returns>The mapped routers.</returns>
     public ICollection<Router> Map(IDictionary<string, YamlRouter> routerDict,
         As parentAs,
         RouterBrand defaultBrand,
         bool externalAs,
+        IDictionary<string, Vrf>? vrfs,
         Context context)
     {
         ICollection<Router> routers = [];
@@ -47,7 +50,8 @@ public class YamlRouterMapper(ILogger<YamlRouterMapper> logger, YamlInterfaceMap
                 AdditionalConfig = value.AdditionalConfig,
                 Interfaces = [],
                 ParentAs = parentAs,
-                External = value.External ?? externalAs
+                External = value.External ?? externalAs,
+                Vrfs = vrfs.ToEnumerable().Concat(value.Vrfs.ToEnumerable()).DistinctBy(v => v.Name).ToArray()
             };
 
             router.Interfaces = yamlInterfaceMapper.Map(value.Interfaces, router, context);

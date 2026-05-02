@@ -63,7 +63,8 @@ public class YamlInterfaceMapper(ILogger<YamlInterfaceMapper> logger)
                 Bgp = value.Bgp,
                 ParentRouter = parentRouter,
                 AdditionalConfig = value.AdditionalConfig,
-                Addresses = addresses
+                Addresses = addresses,
+                Vrf = value.Vrf
             });
         }
 

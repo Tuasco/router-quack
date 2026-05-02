@@ -21,5 +21,7 @@ public sealed class Router
 
     public string? AdditionalConfig { get; init; }
 
+    public IDictionary<string, Vrf>? Vrfs { get; init; }
+
     public required IDictionary<string, YamlInterface> Interfaces { get; init; }
 }

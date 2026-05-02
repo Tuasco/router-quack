@@ -11,4 +11,10 @@
         <PackageReference Include="Humanizer" Version="3.0.1"/>
         <PackageReference Include="JetBrains.Annotations" Version="2025.2.4"/>
     </ItemGroup>
+
+    <ItemGroup>
+        <Reference Include="YamlDotNet">
+            <HintPath>..\..\..\..\.nuget\packages\yamldotnet\16.3.0\lib\net8.0\YamlDotNet.dll</HintPath>
+        </Reference>
+    </ItemGroup>
 </Project>

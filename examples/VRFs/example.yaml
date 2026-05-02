@@ -1,0 +1,143 @@
+# VRF example: MPLS L3VPN with two customer VRFs (CUSTOMER_A, CUSTOMER_B)
+# Topology:
+#   CE-A1 (AS 200) ─── PE1 ══ P1 ══ P2 ══ P3 ══ PE2 ─── CE-A2 (AS 200)
+#   CE-B1 (AS 300) ─┘                                └─ CE-B2 (AS 300)
+#
+# PE1 and PE2 are in AS 111 (MPLS core), along with P-routers P1, P2, P3.
+# CEs are external routers in their own ASes.
+
+111:
+  core: "LDP"
+  brand: "cisco"
+  loopback_space_v4: "10.0.0.0/29"
+  networks_space_v4: "192.168.1.0/24"
+  address_family: "IPv4"
+  vrfs:
+    CUSTOMER_A: { }
+    CUSTOMER_B: { }
+  routers:
+    PE1:
+      loopback_v4: "10.0.0.1"
+      interfaces:
+        GigabitEthernet1/0:
+          neighbour: "P1"
+          addresses:
+            - "192.168.1.0/31"
+        GigabitEthernet2/0:
+          neighbour: "200:CE-A1"
+          bgp: "peer"
+          vrf: "CUSTOMER_A"
+          addresses:
+            - "192.168.1.8/31"
+        GigabitEthernet3/0:
+          neighbour: "300:CE-B1"
+          bgp: "peer"
+          vrf: "CUSTOMER_B"
+          addresses:
+            - "192.168.1.10/31"
+
+    P1:
+      loopback_v4: "10.0.0.2"
+      interfaces:
+        GigabitEthernet1/0:
+          neighbour: "PE1"
+          addresses:
+            - "192.168.1.1/31"
+        GigabitEthernet2/0:
+          neighbour: "P2"
+          addresses:
+            - "192.168.1.2/31"
+
+    P2:
+      loopback_v4: "10.0.0.3"
+      interfaces:
+        GigabitEthernet2/0:
+          neighbour: "P1"
+          addresses:
+            - "192.168.1.3/31"
+        GigabitEthernet1/0:
+          neighbour: "P3"
+          addresses:
+            - "192.168.1.4/31"
+
+    P3:
+      loopback_v4: "10.0.0.4"
+      interfaces:
+        GigabitEthernet2/0:
+          neighbour: "P2"
+          addresses:
+            - "192.168.1.5/31"
+        GigabitEthernet1/0:
+          neighbour: "PE2"
+          addresses:
+            - "192.168.1.6/31"
+
+    PE2:
+      loopback_v4: "10.0.0.5"
+      interfaces:
+        GigabitEthernet1/0:
+          neighbour: "P3"
+          addresses:
+            - "192.168.1.7/31"
+        GigabitEthernet2/0:
+          neighbour: "200:CE-A2"
+          bgp: "peer"
+          vrf: "CUSTOMER_A"
+          addresses:
+            - "192.168.1.12/31"
+        GigabitEthernet3/0:
+          neighbour: "300:CE-B2"
+          bgp: "peer"
+          vrf: "CUSTOMER_B"
+          addresses:
+            - "192.168.1.14/31"
+
+200:
+  address_family: "IPv4"
+  brand: "cisco"
+  networks_space_v4: "192.168.2.0/24"
+  routers:
+    CE-A1:
+      loopback_v4: "10.0.1.1"
+      bgp:
+        networks:
+          - "192.168.1.8/31"
+      interfaces:
+        GigabitEthernet1/0:
+          neighbour: "111:PE1"
+          bgp: "peer"
+          addresses:
+            - "192.168.1.9/31"
+    CE-A2:
+      loopback_v4: "10.0.1.2"
+      bgp:
+        networks:
+          - "192.168.1.12/31"
+      interfaces:
+        GigabitEthernet1/0:
+          neighbour: "111:PE2"
+          bgp: "peer"
+          addresses:
+            - "192.168.1.13/31"
+
+300:
+  address_family: "IPv4"
+  brand: "cisco"
+  networks_space_v4: "192.168.3.0/24"
+  routers:
+    CE-B1:
+      loopback_v4: "10.0.2.1"
+      interfaces:
+        GigabitEthernet1/0:
+          neighbour: "111:PE1"
+          bgp: "peer"
+          addresses:
+            - "192.168.1.11/31"
+    CE-B2:
+      loopback_v4: "10.0.2.2"
+      interfaces:
+        GigabitEthernet1/0:
+          neighbour: "111:PE2"
+          bgp: "peer"
+          addresses:
+            - "192.168.1.15/31"

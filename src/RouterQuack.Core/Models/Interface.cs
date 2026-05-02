@@ -22,13 +22,15 @@ public sealed class Interface
 
     public required Router ParentRouter { get; init; }
 
+    /// <summary>VRF this interface belongs to, if any. Non-null = this intf is a CE-facing intf</summary>
+    public string? Vrf { get; init; }
+
 
     [Pure]
     public override string ToString()
         => $"  - Interface {Name} -> {Neighbour?.ParentRouter.Name}:{Neighbour?.Name}";
 
-    [Pure]
-    public int AsNumber() => ParentRouter.ParentAs.Number;
+    [Pure] public int AsNumber => ParentRouter.ParentAs.Number;
 }
 
 public enum BgpRelationship
