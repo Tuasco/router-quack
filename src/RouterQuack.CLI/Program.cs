@@ -1,12 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
+using RouterQuack.CLI.Pipeline;
 using RouterQuack.CLI.Startup;
 using RouterQuack.Core;
-using RouterQuack.Core.ConfigDeployers;
-using RouterQuack.Core.ConfigFileWriters;
-using RouterQuack.Core.Extensions;
-using RouterQuack.Core.IntentFileParsers;
 using RouterQuack.Core.Processors;
-using RouterQuack.Core.Validators;
 using Serilog;
 
 // Dependency injection
@@ -18,29 +14,16 @@ var context = di.GetRequiredService<Context>();
 try
 {
     // Read intent file
-    context.ExecuteStep(di.GetRequiredService<IIntentFileParser>());
+    new ReadIntentFiles(di).Next();
 
     // Resolve neighbours first
     context.ExecuteStep(di.GetRequiredKeyedService<IProcessor>(nameof(ResolveNeighbours)));
 
     // Execute validators
-    Log.Information("Validating intent...");
-    context.ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(NoDuplicateIpAddress)))
-        .ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(NoDuplicateLoopbackAddress)))
-        .ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(NoDuplicateRouterName)))
-        .ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(NoExternalRouterWithoutAddress)))
-        .ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(ValidBgpRelationships)))
-        .ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(ValidLoopbackAddresses)))
-        .ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(ValidLoopbackSpaces)))
-        .ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(ValidNetworkSpaces)))
-        .ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(WarningWhenAdditionalConfig)))
-        .ExecuteStep(di.GetRequiredKeyedService<IValidator>(nameof(Ipv4SetWhenLdpIs)));
+    new ExecuteValidators(di).Next();
 
     // Execute other processors
-    context.ExecuteStep(di.GetRequiredKeyedService<IProcessor>(nameof(GenerateLinkAddresses)))
-        .ExecuteStep(di.GetRequiredKeyedService<IProcessor>(nameof(GenerateLoopbackAddresses)))
-        .ExecuteStep(di.GetRequiredKeyedService<IProcessor>(nameof(PopulateRouterIds)))
-        .ExecuteStep(di.GetRequiredKeyedService<IProcessor>(nameof(ToggleIbgp)));
+    new ExecuteProcessors(di).Next();
 
     // Stop here if dry run
     if (context.DryRun)
@@ -49,37 +32,23 @@ try
         return;
     }
 
-    // Write config files to output folder
-    Log.Information("Generating configuration files...");
+    // Write configs
+    new WriteConfigs(di).Next();
 
-    if (!Directory.Exists(context.OutputDirectoryPath))
-    {
-        Log.Debug("Creating output directory.");
-        Directory.CreateDirectory(context.OutputDirectoryPath);
-    }
-
-    context.ExecuteStep(di.GetRequiredKeyedService<IConfigFileWriter>(RouterBrand.Cisco));
-
-    // Deploy configurations to GNS3 if any AS has "deploy" info
-    Log.Information("Deploying configurations...");
-    context.ExecuteStep(di.GetRequiredService<IConfigDeployer>());
+    // Deploy configs
+    new DeployConfigs(di).Next();
 
     Log.Information("Processing complete.");
 }
 catch (StepException)
 {
-    Log.Fatal("Exited with errors. Nothing changed.");
-    Environment.ExitCode = 1;
+    GracefulExit.OnStepException();
 }
 catch (Exception e)
 {
-    Log.Fatal("Unhandled exception occured.");
-    Log.Debug("Exception:\n{Exception}", e);
-    Log.Debug("ASs summary:\n{Summary}", context.Asses.Summary());
-    Environment.ExitCode = 2;
+    GracefulExit.OnUnhandledException(e, context);
 }
 finally
 {
-    if (context.DebugGraph)
-        Console.WriteLine("ASs summary: {0}", context.Asses.Summary());
+    GracefulExit.OnDebugEnabled(context);
 }
