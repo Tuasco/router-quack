@@ -22,7 +22,7 @@ public sealed class As
 
     public required IpVersion AddressFamily { get; init; }
 
-    public DeployInfo? Deploy {get; init; }
+    public DeployInfo? Deploy { get; init; }
 
     public required ICollection<Router> Routers { get; set; }
 

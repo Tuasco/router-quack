@@ -26,5 +26,7 @@ public sealed class As
 
     public bool External { get; init; } = false;
 
+    public IDictionary<string, Vrf>? Vrfs { get; init; }
+
     public required IDictionary<string, YamlRouter> Routers { get; init; }
 }

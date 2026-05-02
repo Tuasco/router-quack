@@ -54,7 +54,6 @@ internal static class TestData
         string? additionalConfig = null)
     {
         var interfaceList = interfaces?.ToList() ?? [];
-        var vrfList = vrfs?.ToList() ?? [];
 
         var router = new Router
         {
@@ -63,7 +62,7 @@ internal static class TestData
             Brand = brand,
             LoopbackAddressV4 = loopbackAddressV4,
             LoopbackAddressV6 = loopbackAddressV6,
-            Vrfs=vrfList,
+            Vrfs = vrfs?.ToArray() ?? [],
             Bgp = bgp ?? new(),
             External = external,
             Interfaces = interfaceList,

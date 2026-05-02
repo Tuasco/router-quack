@@ -50,7 +50,7 @@ internal static class InterfacesConfig
     {
         builder.AppendLine($"interface {@interface.Name}");
         if (@interface.Vrf is not null)
-            builder.AppendLine($" vrf forwarding {@interface.Vrf}");  // ← must be before IP config
+            builder.AppendLine($" vrf forwarding {@interface.Vrf}"); // ← must be before IP config
         builder.AppendLine(InterfaceConfigStart);
 
         // IPv4
@@ -90,7 +90,8 @@ internal static class InterfacesConfig
         }
 
         // Write MPLS config
-        if (@interface.ParentRouter.ParentAs.Core.HasFlag(CoreType.LDP))
+        if (@interface.ParentRouter.ParentAs.Core.HasFlag(CoreType.LDP)
+            && @interface.AsNumber == @interface.Neighbour!.AsNumber)
             builder.AppendLine(" mpls ip");
 
         // Write additional config is specified

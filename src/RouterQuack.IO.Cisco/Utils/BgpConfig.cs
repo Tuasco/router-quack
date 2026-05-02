@@ -45,7 +45,7 @@ internal static class BgpConfig
         ConfigureNetworks(router, ipv4AddressFamily, ipv6AddressFamily);
         WriteAddressFamilies(builder, ipv4AddressFamily, ipv6AddressFamily);
         WriteVpnv4AddressFamily(builder, ibgpNeighbours, vrfEbgpGroups);
-        WriteVrfAddressFamilies(builder,vrfEbgpGroups, router);
+        WriteVrfIpv4AddressFamilies(builder, vrfEbgpGroups, router);
         WriteVrfIpv6AddressFamilies(builder, vrfEbgpGroups, router);
 
         builder.AppendLine("!\n!");
@@ -70,36 +70,36 @@ internal static class BgpConfig
             if (neighbour.Ipv4Address is not null)
             {
                 builder.AppendLine(
-                    $" neighbor {neighbour.Ipv4Address.IpAddress} " + $"remote-as {neighbour.AsNumber()}");
+                    $" neighbor {neighbour.Ipv4Address.IpAddress} " + $"remote-as {neighbour.AsNumber}");
                 builder.AppendLine($" neighbor {neighbour.Ipv4Address.IpAddress} send-community both");
                 ipv4AddressFamily.Add($"  neighbor {neighbour.Ipv4Address.IpAddress} activate");
 
                 ipv4AddressFamily.Add($"  neighbor {neighbour.Ipv4Address.IpAddress} " +
                                       $"route-map {BgpPolicyConfig.GetInboundRouteMapName(neighbour.Neighbour!.Bgp,
-                                          neighbour.AsNumber(),
+                                          neighbour.AsNumber,
                                           neighbour.ParentRouter.Name)} in");
 
                 ipv4AddressFamily.Add($"  neighbor {neighbour.Ipv4Address.IpAddress} " +
                                       $"route-map {BgpPolicyConfig.GetOutboundRouteMapName(neighbour.Neighbour!.Bgp,
-                                          neighbour.AsNumber(),
+                                          neighbour.AsNumber,
                                           neighbour.ParentRouter.Name)} out");
             }
 
             // ReSharper disable once InvertIf
             if (neighbour.Ipv6Address is not null)
             {
-                builder.AppendLine($" neighbor {neighbour.Ipv6Address.IpAddress} remote-as {neighbour.AsNumber()}");
+                builder.AppendLine($" neighbor {neighbour.Ipv6Address.IpAddress} remote-as {neighbour.AsNumber}");
                 builder.AppendLine($" neighbor {neighbour.Ipv6Address.IpAddress} send-community both");
                 ipv6AddressFamily.Add($"  neighbor {neighbour.Ipv6Address.IpAddress} activate");
 
                 ipv6AddressFamily.Add($"  neighbor {neighbour.Ipv6Address.IpAddress} " +
                                       $"route-map {BgpPolicyConfig.GetInboundRouteMapName(neighbour.Neighbour!.Bgp,
-                                          neighbour.AsNumber(),
+                                          neighbour.AsNumber,
                                           neighbour.ParentRouter.Name)} in");
 
                 ipv6AddressFamily.Add($"  neighbor {neighbour.Ipv6Address.IpAddress} " +
                                       $"route-map {BgpPolicyConfig.GetOutboundRouteMapName(neighbour.Neighbour!.Bgp,
-                                          neighbour.AsNumber(),
+                                          neighbour.AsNumber,
                                           neighbour.ParentRouter.Name)} out");
             }
         }
@@ -151,21 +151,13 @@ internal static class BgpConfig
         List<string> ipv6AddressFamily)
     {
         foreach (var network in router.Bgp.Networks)
-        {
             if (network.BaseAddress.AddressFamily == AddressFamily.InterNetwork)
                 ipv4AddressFamily.Add($"  network {network.BaseAddress} " +
                                       $"mask {Ipv4AddressUtils.GetV4Mask(network.PrefixLength)} " +
                                       $"route-map {BgpPolicyConfig.SetLocalRouteMapName}");
             else
-            {
                 ipv6AddressFamily.Add($"  network {network.BaseAddress}/{network.PrefixLength} " +
                                       $"route-map {BgpPolicyConfig.SetLocalRouteMapName}");
-            }
-        }
-
-        // If no networks declared, auto-advertise the loopback
-        if (router.Bgp.Networks.Length == 0 && router.LoopbackAddressV4 is not null)
-            ipv4AddressFamily.Add($"  network {router.LoopbackAddressV4} mask 255.255.255.255");
     }
 
     private static void WriteAddressFamilies(StringBuilder builder,
@@ -215,14 +207,16 @@ internal static class BgpConfig
     /// Emits one "address-family ipv4 vrf NAME" block per VRF,
     /// containing the CE neighbour declarations for that VRF.
     /// </summary>
-    private static void WriteVrfAddressFamilies(StringBuilder builder,
+    private static void WriteVrfIpv4AddressFamilies(StringBuilder builder,
         IGrouping<string, Interface>[] vrfEbgpGroups,
         Router router)
     {
         foreach (var group in vrfEbgpGroups)
         {
+            // Only emit if the PE has an interface with the correct VRF
             var vrf = router.Vrfs.FirstOrDefault(v => v.Name == group.Key);
-            if (vrf is null) continue;
+            if (vrf is null || !router.ParentAs.AddressFamily.HasFlag(IpVersion.IPv4))
+                continue;
 
             builder.AppendLine(" !");
             builder.AppendLine($" address-family ipv4 vrf {group.Key}");
@@ -231,26 +225,41 @@ internal static class BgpConfig
             {
                 var neighbour = iface.Neighbour!;
                 var addressV4 = neighbour.Ipv4Address?.IpAddress;
-                if (addressV4 is null) continue;
 
-                builder.AppendLine($"  neighbor {addressV4} remote-as {neighbour.ParentRouter.ParentAs.Number}");
+                if (addressV4 is null)
+                    continue;
+
+                builder.AppendLine($"  neighbor {addressV4} remote-as {neighbour.AsNumber}");
                 builder.AppendLine($"  neighbor {addressV4} activate");
-                builder.AppendLine($"  neighbor {addressV4} as-override"); // needed for CE-to-CE same-AS scenarios
-                // TODO : remove as-override and find a solution for same-as CEs, because it breaks path selection
+
+                // Add Community Lists
+                builder.AppendLine($"  neighbor {addressV4} " +
+                                   $"route-map {BgpPolicyConfig.GetInboundRouteMapName(neighbour.Neighbour!.Bgp,
+                                       neighbour.AsNumber,
+                                       neighbour.ParentRouter.Name)} in");
+
+                builder.AppendLine($"  neighbor {addressV4} " +
+                                   $"route-map {BgpPolicyConfig.GetOutboundRouteMapName(neighbour.Neighbour!.Bgp,
+                                       neighbour.AsNumber,
+                                       neighbour.ParentRouter.Name)} out");
+
+                if (vrf.OverrideAs)
+                    builder.AppendLine($"  neighbor {addressV4} as-override"); // needed for CE-to-CE same-AS scenarios
             }
 
             builder.AppendLine("  exit-address-family");
         }
     }
+
     private static void WriteVrfIpv6AddressFamilies(StringBuilder builder,
         IGrouping<string, Interface>[] vrfEbgpGroups,
         Router router)
     {
         foreach (var group in vrfEbgpGroups)
         {
-            // Only emit if the VRF is actually configured for IPv6
+            // Only emit if the PE has an interface with the correct VRF
             var vrf = router.Vrfs.FirstOrDefault(v => v.Name == group.Key);
-            if (vrf is null || !vrf.AddressFamilies.Contains(VrfAddressFamily.Ipv6))
+            if (vrf is null || !router.ParentAs.AddressFamily.HasFlag(IpVersion.IPv6))
                 continue;
 
             // Only emit if at least one neighbour actually has an IPv6 address
@@ -265,10 +274,26 @@ internal static class BgpConfig
             {
                 var neighbour = iface.Neighbour!;
                 var addressV6 = neighbour.Ipv6Address?.IpAddress;
-                if (addressV6 is null) continue;
 
-                builder.AppendLine($"  neighbor {addressV6} remote-as {neighbour.ParentRouter.ParentAs.Number}");
+                if (addressV6 is null)
+                    continue;
+
+                builder.AppendLine($"  neighbor {addressV6} remote-as {neighbour.AsNumber}");
                 builder.AppendLine($"  neighbor {addressV6} activate");
+
+                // Add Community Lists
+                builder.AppendLine($"  neighbor {addressV6} " +
+                                   $"route-map {BgpPolicyConfig.GetInboundRouteMapName(neighbour.Neighbour!.Bgp,
+                                       neighbour.AsNumber,
+                                       neighbour.ParentRouter.Name)} in");
+
+                builder.AppendLine($"  neighbor {addressV6} " +
+                                   $"route-map {BgpPolicyConfig.GetOutboundRouteMapName(neighbour.Neighbour!.Bgp,
+                                       neighbour.AsNumber,
+                                       neighbour.ParentRouter.Name)} out");
+
+                if (vrf.OverrideAs)
+                    builder.AppendLine($"  neighbor {addressV6} as-override"); // needed for CE-to-CE same-AS scenarios
             }
 
             builder.AppendLine("  exit-address-family");

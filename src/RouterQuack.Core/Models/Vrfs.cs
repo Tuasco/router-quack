@@ -1,3 +1,5 @@
+using YamlDotNet.Serialization;
+
 namespace RouterQuack.Core.Models;
 
 /// <summary>
@@ -6,7 +8,8 @@ namespace RouterQuack.Core.Models;
 public sealed class Vrf
 {
     /// <summary>VRF name, e.g. "CUSTOMER_A".</summary>
-    public required string Name { get; init; }
+    [YamlIgnore]
+    public required string Name { get; set; }
 
     /// <summary>
     /// Route Distinguisher — makes VPN routes globally unique.
@@ -14,14 +17,11 @@ public sealed class Vrf
     /// </summary>
     public string? RouteDistinguisher { get; set; }
 
+    public bool OverrideAs { get; init; } = true;
+
     /// <summary>Route targets to import into this VRF.</summary>
     public ICollection<string>? ImportTargets { get; set; }
 
     /// <summary>Route targets to export from this VRF.</summary>
     public ICollection<string>? ExportTargets { get; set; }
-
-    public IReadOnlySet<VrfAddressFamily> AddressFamilies { get; init; }
-        = new HashSet<VrfAddressFamily> { VrfAddressFamily.Ipv4 };
 }
-
-public enum VrfAddressFamily { Ipv4, Ipv6 }

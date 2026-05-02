@@ -8,7 +8,7 @@ internal static class VrfConfig
 {
     internal static void ApplyVrfConfig(StringBuilder builder, Router router)
     {
-        if (router.Vrfs.Count == 0)
+        if (!router.Vrfs.Any() || !router.BorderRouter)
             return;
 
         builder.AppendLine(ConfigHeader);
@@ -19,7 +19,7 @@ internal static class VrfConfig
             builder.AppendLine($" rd {vrf.RouteDistinguisher}");
 
             // address-family ipv4
-            if (vrf.AddressFamilies.Contains(VrfAddressFamily.Ipv4))
+            if (router.ParentAs.AddressFamily.HasFlag(IpVersion.IPv4)) // Should always be true
             {
                 builder.AppendLine(" !");
                 builder.AppendLine(" address-family ipv4");
@@ -31,7 +31,7 @@ internal static class VrfConfig
             }
 
             // address-family ipv6
-            if (vrf.AddressFamilies.Contains(VrfAddressFamily.Ipv6))
+            if (router.ParentAs.AddressFamily.HasFlag(IpVersion.IPv6))
             {
                 builder.AppendLine(" !");
                 builder.AppendLine(" address-family ipv6");

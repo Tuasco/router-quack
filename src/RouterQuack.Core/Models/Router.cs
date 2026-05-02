@@ -26,7 +26,7 @@ public sealed class Router
 
     public required As ParentAs { get; init; }
 
-    public ICollection<Vrf> Vrfs { get; set; } = [];
+    public Vrf[] Vrfs { get; init; } = [];
 
     /// <summary>
     /// <c>true</c> if at least one interface has an eBGP neighbour

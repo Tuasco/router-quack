@@ -14,13 +14,7 @@ public class ToggleIbgp(
     public void Process()
     {
         foreach (var router in Context.Asses.SelectMany(a => a.Routers))
-        {
-            var isCoreMember = router.ParentAs.Core.HasFlag(CoreType.iBGP);
-            var hasBgpInterfaces = router.BorderRouter && router.Interfaces
-                .Any(i => i.Bgp != BgpRelationship.None);
-
-            if (isCoreMember || hasBgpInterfaces)
+            if (router.ParentAs.Core.HasFlag(CoreType.iBGP) || router.BorderRouter)
                 router.Bgp.Ibgp = true;
-        }
     }
 }

@@ -30,8 +30,7 @@ public sealed class Interface
     public override string ToString()
         => $"  - Interface {Name} -> {Neighbour?.ParentRouter.Name}:{Neighbour?.Name}";
 
-    [Pure]
-    public int AsNumber() => ParentRouter.ParentAs.Number;
+    [Pure] public int AsNumber => ParentRouter.ParentAs.Number;
 }
 
 public enum BgpRelationship

@@ -1,8 +1,6 @@
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using RouterQuack.Core.Models;
 using RouterQuack.Core.Processors;
-using RouterQuack.Core.Processors.Models;
 using RouterQuack.Tests.Unit.TestHelpers;
 
 namespace RouterQuack.Tests.Unit.Core.Processors;

@@ -34,7 +34,7 @@ public class PopulateVrfRdRt(ILogger<PopulateVrfRdRt> logger, Context context) :
                 {
                     var ceAsNumber = router.Interfaces
                                          .FirstOrDefault(i => i.Vrf == vrf.Name && i.Neighbour != null)
-                                         ?.Neighbour?.ParentRouter?.ParentAs?.Number
+                                         ?.Neighbour?.ParentRouter.ParentAs.Number
                                      ?? @as.Number;
 
                     var rtIndex = vrfIndexByName[vrf.Name];

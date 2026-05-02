@@ -38,7 +38,6 @@ public class CiscoWriter(ILogger<CiscoWriter> logger, Context context) : IConfig
                 InitialConfig.ApplyInitialConfig(builder, router.Name);
                 VrfConfig.ApplyVrfConfig(builder, router);
                 OspfConfig.ApplyOspfConfig(builder, router);
-                OspfConfig.ApplyOspfConfig(builder, router);
                 InterfacesConfig.ApplyInterfacesConfig(builder, router);
                 MplsConfig.ApplyMplsConfigs(builder, router);
                 BgpConfig.ApplyBgpConfig(builder, router);

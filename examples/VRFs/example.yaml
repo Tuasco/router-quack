@@ -1,7 +1,7 @@
 # VRF example: MPLS L3VPN with two customer VRFs (CUSTOMER_A, CUSTOMER_B)
 # Topology:
 #   CE-A1 (AS 200) ─── PE1 ══ P1 ══ P2 ══ P3 ══ PE2 ─── CE-A2 (AS 200)
-#   CE-B1 (AS 300) ─┘                                  └── CE-B2 (AS 300)
+#   CE-B1 (AS 300) ─┘                                └─ CE-B2 (AS 300)
 #
 # PE1 and PE2 are in AS 111 (MPLS core), along with P-routers P1, P2, P3.
 # CEs are external routers in their own ASes.
@@ -12,12 +12,12 @@
   loopback_space_v4: "10.0.0.0/29"
   networks_space_v4: "192.168.1.0/24"
   address_family: "IPv4"
+  vrfs:
+    CUSTOMER_A: { }
+    CUSTOMER_B: { }
   routers:
     PE1:
       loopback_v4: "10.0.0.1"
-      vrfs:
-        CUSTOMER_A: {}
-        CUSTOMER_B: {}
       interfaces:
         GigabitEthernet1/0:
           neighbour: "P1"
@@ -74,9 +74,6 @@
 
     PE2:
       loopback_v4: "10.0.0.5"
-      vrfs:
-        CUSTOMER_A: {}
-        CUSTOMER_B: {}
       interfaces:
         GigabitEthernet1/0:
           neighbour: "P3"
@@ -96,17 +93,15 @@
             - "192.168.1.14/31"
 
 200:
-  deploy:
-    gns3:
-      server: "http://localhost:3080"
-      project: "Quack-mpls"
   address_family: "IPv4"
   brand: "cisco"
-  loopback_space_v4: "10.0.1.0/30"
   networks_space_v4: "192.168.2.0/24"
   routers:
     CE-A1:
       loopback_v4: "10.0.1.1"
+      bgp:
+        networks:
+          - "192.168.1.8/31"
       interfaces:
         GigabitEthernet1/0:
           neighbour: "111:PE1"
@@ -115,6 +110,9 @@
             - "192.168.1.9/31"
     CE-A2:
       loopback_v4: "10.0.1.2"
+      bgp:
+        networks:
+          - "192.168.1.12/31"
       interfaces:
         GigabitEthernet1/0:
           neighbour: "111:PE2"
@@ -123,13 +121,8 @@
             - "192.168.1.13/31"
 
 300:
-  deploy:
-    gns3:
-      server: "http://localhost:3080"
-      project: "Quack-mpls"
   address_family: "IPv4"
   brand: "cisco"
-  loopback_space_v4: "10.0.2.0/30"
   networks_space_v4: "192.168.3.0/24"
   routers:
     CE-B1:
