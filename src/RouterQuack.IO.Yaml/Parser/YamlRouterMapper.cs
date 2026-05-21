@@ -12,23 +12,17 @@ public class YamlRouterMapper(ILogger<YamlRouterMapper> logger, YamlInterfaceMap
     /// <summary>
     /// Convert <see cref="YamlRouter"/> definitions of an AS into core router models.
     /// </summary>
-    /// <param name="routerDict"><see cref="YamlRouter"/> definitions keyed by router name.</param>
+    /// <param name="yamlAs"><see cref="YamlAs"/> containing default values.</param>
     /// <param name="parentAs"><see cref="As"/> definitions that owns the mapped routers.</param>
-    /// <param name="defaultBrand">Default brand inherited from the parent <see cref="As"/>.</param>
-    /// <param name="externalAs">Whether routers should default to external.</param>
-    /// <param name="vrfs">Default VRF collection.</param>
     /// <param name="context">Using execution context.</param>
     /// <returns>The mapped routers.</returns>
-    public ICollection<Router> Map(IDictionary<string, YamlRouter> routerDict,
+    public ICollection<Router> Map(YamlAs yamlAs,
         As parentAs,
-        RouterBrand defaultBrand,
-        bool externalAs,
-        IDictionary<string, Vrf>? vrfs,
         Context context)
     {
         ICollection<Router> routers = [];
 
-        foreach (var (key, value) in routerDict)
+        foreach (var (key, value) in yamlAs.Routers)
         {
             // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
             // When only the key is declared (no YAML body), value will be null.
@@ -43,18 +37,23 @@ public class YamlRouterMapper(ILogger<YamlRouterMapper> logger, YamlInterfaceMap
             {
                 Name = key,
                 Id = value.Id,
-                Brand = value.Brand ?? defaultBrand,
+                Brand = value.Brand ?? yamlAs.Brand,
                 LoopbackAddressV4 = value.LoopbackV4,
                 LoopbackAddressV6 = value.LoopbackV6,
                 Bgp = value.Bgp,
                 AdditionalConfig = value.AdditionalConfig,
                 Interfaces = [],
                 ParentAs = parentAs,
-                External = value.External ?? externalAs,
-                Vrfs = vrfs.ToEnumerable().Concat(value.Vrfs.ToEnumerable()).DistinctBy(v => v.Name).ToArray()
+                External = value.External ?? yamlAs.External,
+                Vrfs = yamlAs.Vrfs
+                    .ToEnumerable()
+                    .Concat(value.Vrfs.ToEnumerable()).DistinctBy(v => v.Name)
+                    .ToArray()
             };
 
-            router.Interfaces = yamlInterfaceMapper.Map(value.Interfaces, router, context);
+            value.Mtu ??= yamlAs.Mtu;
+
+            router.Interfaces = yamlInterfaceMapper.Map(value, router, context);
             routers.Add(router);
         }
 

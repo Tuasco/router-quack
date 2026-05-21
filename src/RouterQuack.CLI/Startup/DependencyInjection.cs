@@ -90,7 +90,8 @@ public static class DependencyInjection
             .AddKeyedSingleton<IProcessor, PopulateRouterIds>(nameof(PopulateRouterIds))
             .AddKeyedSingleton<IProcessor, PopulateVrfRdRt>(nameof(PopulateVrfRdRt))
             .AddKeyedSingleton<IProcessor, ToggleIbgp>(nameof(ToggleIbgp))
-            .AddKeyedSingleton<IProcessor, ToggleBgpPolicies>(nameof(ToggleBgpPolicies));
+            .AddKeyedSingleton<IProcessor, ToggleBgpPolicies>(nameof(ToggleBgpPolicies))
+            .AddKeyedSingleton<IProcessor, PopulateMtu>(nameof(PopulateMtu));
 
         builder.Services
             .AddKeyedSingleton<IConfigFileWriter, CiscoWriter>(RouterBrand.Cisco);

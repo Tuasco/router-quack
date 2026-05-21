@@ -10,6 +10,8 @@ public sealed class Interface
 
     public BgpRelationship Bgp { get; init; } = BgpRelationship.None;
 
+    public int? Mtu { get; init; }
+
     public ICollection<string>? Addresses { get; init; }
 
     public string? Vrf { get; init; }

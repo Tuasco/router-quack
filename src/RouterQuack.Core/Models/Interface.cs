@@ -16,6 +16,8 @@ public sealed class Interface
 
     public Address? Ipv6Address { get; set; }
 
+    public int? Mtu { get; set; }
+
     public required ICollection<Address> Addresses { get; init; }
 
     public required string? AdditionalConfig { get; init; }

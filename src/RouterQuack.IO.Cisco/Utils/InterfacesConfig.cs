@@ -53,6 +53,9 @@ internal static class InterfacesConfig
             builder.AppendLine($" vrf forwarding {@interface.Vrf}"); // ← must be before IP config
         builder.AppendLine(InterfaceConfigStart);
 
+        // MTU
+        builder.AppendLine($" mtu {@interface.Mtu}");
+
         // IPv4
         var ipv4Address = @interface.Ipv4Address;
 

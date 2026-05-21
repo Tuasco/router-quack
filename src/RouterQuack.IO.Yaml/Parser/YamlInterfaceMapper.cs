@@ -12,16 +12,15 @@ public class YamlInterfaceMapper(ILogger<YamlInterfaceMapper> logger)
     /// <summary>
     /// Convert <see cref="YamlInterface"/> definitions of a router into core interface models.
     /// </summary>
-    /// <param name="interfaceDict"><see cref="YamlInterface"/> definitions keyed by interface name.</param>
+    /// <param name="yamlRouter"><see cref="YamlRouter"/> containing default values.</param>
     /// <param name="parentRouter">Router that owns the mapped interfaces.</param>
     /// <param name="context">Using execution context.</param>
     /// <returns>The mapped interfaces.</returns>
-    public ICollection<Interface> Map(IDictionary<string, YamlInterface> interfaceDict, Router parentRouter,
-        Context context)
+    public ICollection<Interface> Map(YamlRouter yamlRouter, Router parentRouter, Context context)
     {
         ICollection<Interface> interfaces = [];
 
-        foreach (var (key, value) in interfaceDict)
+        foreach (var (key, value) in yamlRouter.Interfaces)
         {
             var name = ParseNeighbour(value.Neighbour, parentRouter.ParentAs.Number)?.ToString();
 
@@ -61,6 +60,7 @@ public class YamlInterfaceMapper(ILogger<YamlInterfaceMapper> logger)
                 Name = key,
                 Neighbour = dummyNeighbour, // Populate it now, will resolve it later in Step 1
                 Bgp = value.Bgp,
+                Mtu = value.Mtu ?? yamlRouter.Mtu,
                 ParentRouter = parentRouter,
                 AdditionalConfig = value.AdditionalConfig,
                 Addresses = addresses,

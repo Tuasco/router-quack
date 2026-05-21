@@ -18,6 +18,8 @@ public sealed class As
 
     public IPNetwork? NetworksSpaceV6 { get; init; }
 
+    public int? Mtu { get; init; }
+
     public IpVersion AddressFamily { get; init; } = IpVersion.Both;
 
     public RouterBrand Brand { get; init; } = RouterBrand.Cisco;

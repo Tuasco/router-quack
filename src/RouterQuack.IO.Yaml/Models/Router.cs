@@ -15,6 +15,8 @@ public sealed class Router
 
     public IPAddress? LoopbackV6 { get; init; }
 
+    public int? Mtu { get; set; }
+
     public BgpConfig Bgp { get; init; } = new();
 
     public bool? External { get; init; }
