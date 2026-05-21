@@ -14,7 +14,11 @@ public class ToggleIbgp(
     public void Process()
     {
         foreach (var router in Context.Asses.SelectMany(a => a.Routers))
-            if (router.ParentAs.Core.HasFlag(CoreType.iBGP) || router.BorderRouter)
-                router.Bgp.Ibgp = true;
+            // Only enable automatically if the router isn't a VPN client
+            if (router.ParentAs.Core.HasFlag(CoreType.iBGP) ||
+                router.BorderRouter && router.Interfaces.All(i => string.IsNullOrEmpty(i.Neighbour!.Vrf)))
+                router.Bgp.Ibgp ??= true;
+            else
+                router.Bgp.Ibgp ??= false;
     }
 }

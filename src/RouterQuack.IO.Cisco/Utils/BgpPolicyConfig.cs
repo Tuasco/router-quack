@@ -10,18 +10,24 @@ internal static class BgpPolicyConfig
     private const string InternalScrubListName = "CL-INTERNAL-SCRUB";
     private const string InternalStripListName = "CL-INTERNAL-STRIP";
 
-    internal static void ApplyPolicyConfig(StringBuilder builder, int asNumber, IEnumerable<Interface> ebgpInterfaces)
+    internal static void ApplyPolicyConfig(StringBuilder builder, Router router, IEnumerable<Interface> ebgpInterfaces)
     {
+        if (router.Bgp.Policies == false)
+            return;
+
         builder.AppendLine(PolicyHeader);
-        AppendCommunityLists(builder, asNumber);
-        AppendSetLocalRouteMap(builder, asNumber);
+        AppendCommunityLists(builder, router.ParentAs.Number);
+        AppendSetLocalRouteMap(builder, router.ParentAs.Number);
 
         foreach (var @interface in ebgpInterfaces)
         {
-            if (@interface.Bgp == BgpRelationship.None)
+            // Skip route maps if no eBGP or if this is a BGP VPN link
+            if (@interface.Bgp == BgpRelationship.None ||
+                !string.IsNullOrEmpty(@interface.Vrf) ||
+                !string.IsNullOrEmpty(@interface.Neighbour!.Vrf))
                 continue;
 
-            AppendRouteMaps(builder, asNumber, @interface.Neighbour!.ParentRouter, @interface.Bgp);
+            AppendRouteMaps(builder, router.ParentAs.Number, @interface.Neighbour!.ParentRouter, @interface.Bgp);
         }
 
         builder.AppendLine("!");

@@ -13,6 +13,7 @@ public class ExecuteProcessors(IServiceProvider di) : IPipeline
             .ExecuteStep(di.GetRequiredKeyedService<IProcessor>(nameof(GenerateLoopbackAddresses)))
             .ExecuteStep(di.GetRequiredKeyedService<IProcessor>(nameof(PopulateRouterIds)))
             .ExecuteStep(di.GetRequiredKeyedService<IProcessor>(nameof(PopulateVrfRdRt)))
-            .ExecuteStep(di.GetRequiredKeyedService<IProcessor>(nameof(ToggleIbgp)));
+            .ExecuteStep(di.GetRequiredKeyedService<IProcessor>(nameof(ToggleIbgp)))
+            .ExecuteStep(di.GetRequiredKeyedService<IProcessor>(nameof(ToggleBgpPolicies)));
     }
 }

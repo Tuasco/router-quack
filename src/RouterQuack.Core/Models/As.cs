@@ -40,7 +40,7 @@ public sealed class As
         if (Routers.Any(r => r.External))
             str.AppendLine($"(external):");
         else
-            str.AppendLine($"using {Igp.ToString()} ({AddressFamily}):");
+            str.AppendLine($"using {Core.ToString()} with {Igp.ToString()} ({AddressFamily}):");
 
         foreach (var router in Routers)
             str.AppendLine(router.ToString());

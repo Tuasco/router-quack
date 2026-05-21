@@ -156,6 +156,7 @@ public class CiscoWriterBgpPolicyTests
                 loopbackAddressV4: IPAddress.Parse("10.0.0.1"),
                 bgp: new()
                 {
+                    Policies = true,
                     Networks =
                     [
                         IPNetwork.Parse("203.0.113.0/24"),

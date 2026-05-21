@@ -8,7 +8,7 @@ public sealed class As
 {
     public IgpType Igp { get; init; } = IgpType.OSPF;
 
-    public CoreType Core { get; init; } = CoreType.iBGP;
+    public CoreType Core { get; init; } = CoreType.None;
 
     public IPNetwork? LoopbackSpaceV4 { get; init; }
 

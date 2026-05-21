@@ -19,7 +19,7 @@ internal static class BgpConfig
 
         // Routers with iBGP enabled (except self)
         var ibgpNeighbours = router.ParentAs.Routers
-            .Where(r => r.Bgp.Ibgp && !r.Equals(router))
+            .Where(r => r.Bgp.Ibgp == true && !r.Equals(router))
             .ToArray();
 
         // Split eBGP interfaces: plain inter-AS links vs CE-facing (VRF-bound)
@@ -68,6 +68,8 @@ internal static class BgpConfig
     {
         foreach (var neighbour in neighbours)
         {
+            var bgpPolicies = neighbour.Neighbour!.ParentRouter.Bgp.Policies == true;
+
             if (neighbour.Ipv4Address is not null)
             {
                 builder.AppendLine(
@@ -75,15 +77,19 @@ internal static class BgpConfig
                 builder.AppendLine($" neighbor {neighbour.Ipv4Address.IpAddress} send-community both");
                 ipv4AddressFamily.Add($"  neighbor {neighbour.Ipv4Address.IpAddress} activate");
 
-                ipv4AddressFamily.Add($"  neighbor {neighbour.Ipv4Address.IpAddress} " +
-                                      $"route-map {BgpPolicyConfig.GetInboundRouteMapName(neighbour.Neighbour!.Bgp,
-                                          neighbour.AsNumber,
-                                          neighbour.ParentRouter.Name)} in");
+                // Only set if eBGP policies are enabled
+                if (bgpPolicies)
+                {
+                    ipv4AddressFamily.Add($"  neighbor {neighbour.Ipv4Address.IpAddress} " +
+                                          $"route-map {BgpPolicyConfig.GetInboundRouteMapName(neighbour.Neighbour!.Bgp,
+                                              neighbour.AsNumber,
+                                              neighbour.ParentRouter.Name)} in");
 
-                ipv4AddressFamily.Add($"  neighbor {neighbour.Ipv4Address.IpAddress} " +
-                                      $"route-map {BgpPolicyConfig.GetOutboundRouteMapName(neighbour.Neighbour!.Bgp,
-                                          neighbour.AsNumber,
-                                          neighbour.ParentRouter.Name)} out");
+                    ipv4AddressFamily.Add($"  neighbor {neighbour.Ipv4Address.IpAddress} " +
+                                          $"route-map {BgpPolicyConfig.GetOutboundRouteMapName(neighbour.Neighbour!.Bgp,
+                                              neighbour.AsNumber,
+                                              neighbour.ParentRouter.Name)} out");
+                }
             }
 
             // ReSharper disable once InvertIf
@@ -93,15 +99,20 @@ internal static class BgpConfig
                 builder.AppendLine($" neighbor {neighbour.Ipv6Address.IpAddress} send-community both");
                 ipv6AddressFamily.Add($"  neighbor {neighbour.Ipv6Address.IpAddress} activate");
 
-                ipv6AddressFamily.Add($"  neighbor {neighbour.Ipv6Address.IpAddress} " +
-                                      $"route-map {BgpPolicyConfig.GetInboundRouteMapName(neighbour.Neighbour!.Bgp,
-                                          neighbour.AsNumber,
-                                          neighbour.ParentRouter.Name)} in");
+                // Only set if eBGP policies are enabled
+                // ReSharper disable once InvertIf
+                if (bgpPolicies)
+                {
+                    ipv6AddressFamily.Add($"  neighbor {neighbour.Ipv6Address.IpAddress} " +
+                                          $"route-map {BgpPolicyConfig.GetInboundRouteMapName(neighbour.Neighbour!.Bgp,
+                                              neighbour.AsNumber,
+                                              neighbour.ParentRouter.Name)} in");
 
-                ipv6AddressFamily.Add($"  neighbor {neighbour.Ipv6Address.IpAddress} " +
-                                      $"route-map {BgpPolicyConfig.GetOutboundRouteMapName(neighbour.Neighbour!.Bgp,
-                                          neighbour.AsNumber,
-                                          neighbour.ParentRouter.Name)} out");
+                    ipv6AddressFamily.Add($"  neighbor {neighbour.Ipv6Address.IpAddress} " +
+                                          $"route-map {BgpPolicyConfig.GetOutboundRouteMapName(neighbour.Neighbour!.Bgp,
+                                              neighbour.AsNumber,
+                                              neighbour.ParentRouter.Name)} out");
+                }
             }
         }
     }
@@ -152,13 +163,17 @@ internal static class BgpConfig
         List<string> ipv6AddressFamily)
     {
         foreach (var network in router.Bgp.Networks)
+        {
+            var routeMap = router.Bgp.Policies == true
+                ? $" route-map {BgpPolicyConfig.SetLocalRouteMapName}"
+                : string.Empty;
+
             if (network.BaseAddress.AddressFamily == AddressFamily.InterNetwork)
                 ipv4AddressFamily.Add($"  network {network.BaseAddress} " +
-                                      $"mask {Ipv4AddressUtils.GetV4Mask(network.PrefixLength)} " +
-                                      $"route-map {BgpPolicyConfig.SetLocalRouteMapName}");
+                                      $"mask {Ipv4AddressUtils.GetV4Mask(network.PrefixLength)}" + routeMap);
             else
-                ipv6AddressFamily.Add($"  network {network.BaseAddress}/{network.PrefixLength} " +
-                                      $"route-map {BgpPolicyConfig.SetLocalRouteMapName}");
+                ipv6AddressFamily.Add($"  network {network.BaseAddress}/{network.PrefixLength}" + routeMap);
+        }
     }
 
     private static void WriteAddressFamilies(StringBuilder builder,
@@ -263,17 +278,6 @@ internal static class BgpConfig
                 builder.AppendLine($"  neighbor {addressV4} remote-as {neighbour.AsNumber}");
                 builder.AppendLine($"  neighbor {addressV4} activate");
 
-                // Add Community Lists
-                builder.AppendLine($"  neighbor {addressV4} " +
-                                   $"route-map {BgpPolicyConfig.GetInboundRouteMapName(neighbour.Neighbour!.Bgp,
-                                       neighbour.AsNumber,
-                                       neighbour.ParentRouter.Name)} in");
-
-                builder.AppendLine($"  neighbor {addressV4} " +
-                                   $"route-map {BgpPolicyConfig.GetOutboundRouteMapName(neighbour.Neighbour!.Bgp,
-                                       neighbour.AsNumber,
-                                       neighbour.ParentRouter.Name)} out");
-
                 if (vrf.OverrideAs)
                     builder.AppendLine($"  neighbor {addressV4} as-override"); // needed for CE-to-CE same-AS scenarios
             }
@@ -311,17 +315,6 @@ internal static class BgpConfig
 
                 builder.AppendLine($"  neighbor {addressV6} remote-as {neighbour.AsNumber}");
                 builder.AppendLine($"  neighbor {addressV6} activate");
-
-                // Add Community Lists
-                builder.AppendLine($"  neighbor {addressV6} " +
-                                   $"route-map {BgpPolicyConfig.GetInboundRouteMapName(neighbour.Neighbour!.Bgp,
-                                       neighbour.AsNumber,
-                                       neighbour.ParentRouter.Name)} in");
-
-                builder.AppendLine($"  neighbor {addressV6} " +
-                                   $"route-map {BgpPolicyConfig.GetOutboundRouteMapName(neighbour.Neighbour!.Bgp,
-                                       neighbour.AsNumber,
-                                       neighbour.ParentRouter.Name)} out");
 
                 if (vrf.OverrideAs)
                     builder.AppendLine($"  neighbor {addressV6} as-override"); // needed for CE-to-CE same-AS scenarios

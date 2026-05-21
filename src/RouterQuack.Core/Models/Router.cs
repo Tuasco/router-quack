@@ -48,7 +48,9 @@ public sealed class Router
 
 public sealed class BgpConfig
 {
-    public bool Ibgp { get; set; } = false;
+    public bool? Ibgp { get; set; }
+
+    public bool? Policies { get; set; }
 
     public IPNetwork[] Networks { get; init; } = [];
 }

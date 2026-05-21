@@ -84,14 +84,11 @@ public class CiscoWriterBgpVrfTests
     }
 
     [Test]
-    public async Task WriteFiles_VrfEbgp_EmitsRouteMapsForVrfNeighbors()
+    public async Task WriteFiles_VrfEbgp_DoesNotEmitRouteMapsForVrfNeighbors()
     {
         var config = GenerateVrfBgpConfig();
 
-        // Check that VRF address-family includes route-maps
-        await Assert.That(config).Contains(" neighbor 192.168.1.2 route-map");
-        await Assert.That(config).Contains(" in");
-        await Assert.That(config).Contains(" out");
+        await Assert.That(config).DoesNotContain(" neighbor 192.168.1.2 route-map");
     }
 
     [Test]

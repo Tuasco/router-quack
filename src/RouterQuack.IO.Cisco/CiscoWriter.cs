@@ -43,7 +43,7 @@ public class CiscoWriter(ILogger<CiscoWriter> logger, Context context) : IConfig
                 BgpConfig.ApplyBgpConfig(builder, router);
                 UnusedServicesConfig.ApplyUnusedServicesConfig(builder);
                 LoggingConfig.ApplyLoggingConfig(builder);
-                BgpPolicyConfig.ApplyPolicyConfig(builder, router.ParentAs.Number, router.Interfaces);
+                BgpPolicyConfig.ApplyPolicyConfig(builder, router, router.Interfaces);
                 AdditionalRouterConfig.ApplyAdditionalRouterConfig(builder, router);
                 builder.Append("end");
 

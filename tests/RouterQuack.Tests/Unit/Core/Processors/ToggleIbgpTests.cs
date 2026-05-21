@@ -62,9 +62,11 @@ public class ToggleIbgpTests
     [Test]
     public async Task Process_BorderRouterInOspfAs_EnablesIbgp()
     {
+        var remoteInterface = TestData.CreateInterface();
+        var localInterface = TestData.CreateInterface(bgp: BgpRelationship.Client, neighbour: remoteInterface);
         var interfaces = new List<Interface>
         {
-            TestData.CreateInterface(bgp: BgpRelationship.Client)
+            localInterface
         };
         var routers = new List<Router>
         {
@@ -120,9 +122,12 @@ public class ToggleIbgpTests
         {
             TestData.CreateInterface()
         };
+        var router3RemoteInterface = TestData.CreateInterface();
+        var router3LocalInterface =
+            TestData.CreateInterface(bgp: BgpRelationship.Peer, neighbour: router3RemoteInterface);
         var router3Interfaces = new List<Interface>
         {
-            TestData.CreateInterface(bgp: BgpRelationship.Peer)
+            router3LocalInterface
         };
 
         var routersAs1 = new List<Router>
