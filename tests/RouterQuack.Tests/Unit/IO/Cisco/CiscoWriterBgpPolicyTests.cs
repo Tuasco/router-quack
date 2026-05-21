@@ -122,9 +122,9 @@ public class CiscoWriterBgpPolicyTests
             BgpRelationship.Peer,
             includeIbgpNeighbour: true);
 
-        await Assert.That(config).Contains("neighbor 198.51.100.2 send-community both");
-        await Assert.That(config).Contains("neighbor 2001:db8::2 send-community both");
-        await Assert.That(config).Contains("neighbor 10.0.0.2 send-community both");
+        await Assert.That(config).Contains(" neighbor 198.51.100.2 send-community standard");
+        await Assert.That(config).Contains(" neighbor 2001:db8::2 send-community standard");
+        await Assert.That(config).Contains(" neighbor 10.0.0.2 send-community both");
     }
 
     private string GenerateConfig(BgpRelationship relationship, bool includeIbgpNeighbour = false)

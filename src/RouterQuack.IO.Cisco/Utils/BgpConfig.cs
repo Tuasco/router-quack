@@ -72,10 +72,9 @@ internal static class BgpConfig
 
             if (neighbour.Ipv4Address is not null)
             {
-                builder.AppendLine(
-                    $" neighbor {neighbour.Ipv4Address.IpAddress} " + $"remote-as {neighbour.AsNumber}");
-                builder.AppendLine($" neighbor {neighbour.Ipv4Address.IpAddress} send-community both");
+                builder.AppendLine($" neighbor {neighbour.Ipv4Address.IpAddress} remote-as {neighbour.AsNumber}");
                 ipv4AddressFamily.Add($"  neighbor {neighbour.Ipv4Address.IpAddress} activate");
+                ipv4AddressFamily.Add($"  neighbor {neighbour.Ipv4Address.IpAddress} send-community standard");
 
                 // Only set if eBGP policies are enabled
                 if (bgpPolicies)
@@ -96,8 +95,8 @@ internal static class BgpConfig
             if (neighbour.Ipv6Address is not null)
             {
                 builder.AppendLine($" neighbor {neighbour.Ipv6Address.IpAddress} remote-as {neighbour.AsNumber}");
-                builder.AppendLine($" neighbor {neighbour.Ipv6Address.IpAddress} send-community both");
                 ipv6AddressFamily.Add($"  neighbor {neighbour.Ipv6Address.IpAddress} activate");
+                ipv6AddressFamily.Add($"  neighbor {neighbour.Ipv6Address.IpAddress} send-community standard");
 
                 // Only set if eBGP policies are enabled
                 // ReSharper disable once InvertIf
@@ -131,16 +130,18 @@ internal static class BgpConfig
             {
                 builder.AppendLine($" neighbor {addressV4} remote-as {neighbour.ParentAs.Number}");
                 builder.AppendLine($" neighbor {addressV4} update-source Loopback0");
-                builder.AppendLine($" neighbor {addressV4} send-community both");
                 ipv4AddressFamily.Add($"  neighbor {addressV4} activate");
                 ipv4AddressFamily.Add($"  neighbor {addressV4} next-hop-self");
+                ipv4AddressFamily.Add($"  neighbor {addressV4} send-community both");
 
                 // 6PE for the win
                 if (router.ParentAs.Core == CoreType.LDP && router.ParentAs.AddressFamily.HasFlag(IpVersion.IPv6))
                 {
                     ipv6AddressFamily.Add($"  neighbor {addressV4} activate");
                     ipv6AddressFamily.Add($"  neighbor {addressV4} next-hop-self");
+                    ipv6AddressFamily.Add($"  neighbor {addressV4} send-community both");
                     ipv6AddressFamily.Add($"  neighbor {addressV4} send-label");
+                    return;
                 }
             }
 
@@ -151,9 +152,9 @@ internal static class BgpConfig
             {
                 builder.AppendLine($" neighbor {addressV6} remote-as {neighbour.ParentAs.Number}");
                 builder.AppendLine($" neighbor {addressV6} update-source Loopback0");
-                builder.AppendLine($" neighbor {addressV6} send-community both");
                 ipv6AddressFamily.Add($"  neighbor {addressV6} activate");
                 ipv6AddressFamily.Add($"  neighbor {addressV6} next-hop-self");
+                ipv6AddressFamily.Add($"  neighbor {addressV6} send-community both");
             }
         }
     }
