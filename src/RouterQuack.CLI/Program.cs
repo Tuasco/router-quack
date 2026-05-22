@@ -35,6 +35,13 @@ try
     // Write configs
     new WriteConfigs(di).Next();
 
+    // Stop here if no deploy
+    if (!context.Deploy)
+    {
+        Log.Information("Skipping config deployment...");
+        return;
+    }
+
     // Deploy configs
     new DeployConfigs(di).Next();
 

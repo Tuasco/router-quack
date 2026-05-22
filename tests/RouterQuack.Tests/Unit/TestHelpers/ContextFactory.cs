@@ -16,6 +16,7 @@ internal static class ContextFactory
             Verbosity = verbosity,
             DebugGraph = false,
             DryRun = false,
+            Deploy = false,
             Strict = strict
         };
 

@@ -26,7 +26,7 @@ We follow the **Fork and Pull** model:
 1. **Create a branch** for your fix/feature (e.g., `git switch -c feature/new-vendor-support`).
 1. **Commit** your changes with clear, descriptive messages.
 1. **Push** to your fork and submit a **Pull Request** against our `main` branch.
-  
+
 > [!IMPORTANT]
 > Please enable the **“Allow edits from maintainers”** option when creating the PR, so maintainers can push small fixes (style, CI, rebase) directly to your branch. If you must disable this, let us know in the PR description.
 
@@ -71,9 +71,10 @@ All pipeline steps implement `IStep`, which provides:
 router-quack/
 ├── src/
 │   ├── RouterQuack.CLI/          # Command-line interface
-│   ├── RouterQuack.Core/         # Core business logic
-│   └── RouterQuack.IO.Yaml/      # YAML parsing
-│   └── RouterQuack.IO.Cisco/     # Cisco config generation
+│   │── RouterQuack.Core/         # Core business logic
+│   │── RouterQuack.IO.Yaml/      # YAML parsing
+│   │── RouterQuack.IO.Cisco/     # Cisco config generation
+│   └── RouterQuack.IO.Gns3/      # Deploy to GNS3
 └── tests/
     └── RouterQuack.Tests/        # Unit tests
 ```

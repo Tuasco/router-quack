@@ -25,6 +25,8 @@ public class Context
 
     public required bool DryRun { get; init; }
 
+    public required bool Deploy { get; init; }
+
     public required bool Strict { get; init; }
 
     /// <summary>

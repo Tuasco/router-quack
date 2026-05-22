@@ -44,11 +44,11 @@ dotnet build
 ./routerquack -f examples/ManyFiles/as_15627.yaml examples/ManyFiles/as_67523.yaml
 ./routerquack -f examples/ManyFiles/* # You can use bash filename expansion too
 
-# Write output to a specific directory
-./routerquack -f examples/default.yaml -o ./my-output
+# Write output to a specific directory and deploy
+./routerquack -f examples/default.yaml -o ./my-output -d
 
 # Dry run in strict mode with verbose logging
-./routerquack -n -s -v
+./routerquack -svn
 ```
 
 ### CLI flags
@@ -60,12 +60,13 @@ dotnet build
 | `--verbose` | `-v`       | Enable debug-level logging             | `false`                 |
 | `--quiet`   | `-q`       | Only show warnings and errors          | `false`                 |
 | `--dry-run` | `-n`       | Run without writing anything to disk   | `false`                 |
+| `--deploy`  | `-d`       | Deploy configurations                  | `false`                 |
 | `--strict`  | `-s`       | Treat warnings as errors               | `false`                 |
 | `--version` | None       | Print ASCII art and version and exit   | `false`                 |
 | `--help`    | `-h`, `-?` | Print help section and exit            | `false`                 |
-| `--debug`   | `-d`       | Print debug graph                      | `false`                 |
+| `--tree`    | `-t`       | Print debug tree                       | `false`                 |
 
-## Intent file format
+### Intent file format
 
 Intent files describe your network as a hierarchy of **autonomous systems**, **routers**, and **interfaces**.
 Currently, only **YAML** is supporter.
@@ -105,8 +106,7 @@ Here is a minimal example with two ASes peering over BGP:
 See the [wiki](https://github.com/Tuasco/router-quack/wiki/Documentation_YAML_TOC) for a comprehensive documentation
 of the YAML intent file syntax.
 
-Also see the [`examples/`](examples) directory for more, including a
-[multi-file setup](examples/ManyFiles) that splits each AS into its own file.
+Also see the [`examples/`](examples) directory for more configuration examples.
 
 ## Contributing
 
@@ -115,5 +115,3 @@ Contributions are welcome! Please read the [contributing guide](CONTRIBUTING.md)
 ## Licence
 
 This project is licensed under the [GPL-3.0 Licence](LICENCE).
-
-##

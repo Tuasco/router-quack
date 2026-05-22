@@ -53,15 +53,19 @@ public static class ArgumentsParser
         {
             Description = "Set verbosity to detailed"
         };
-        Option<bool> debugGraphOption = new("--debug", "-d")
+        Option<bool> debugTreeOption = new("--tree", "-t")
         {
-            Description = "Also print a graph of objects"
+            Description = "Also print a tree of objects"
         };
 
         // Add dry run option
         Option<bool> dryRunOption = new("--dry-run", "-n")
         {
             Description = "Dry run. When set, nothing will be written to the routers or the filesystem"
+        };
+        Option<bool> deployOption = new("--deploy", "-d")
+        {
+            Description = "Deploy to the routers. When not set, only write to the filesystem"
         };
 
         // Add strict option
@@ -74,9 +78,10 @@ public static class ArgumentsParser
         rootCommand.Options.Add(fileOption);
         rootCommand.Options.Add(outputOption);
         rootCommand.Options.Add(verboseOption);
-        rootCommand.Options.Add(debugGraphOption);
+        rootCommand.Options.Add(debugTreeOption);
         rootCommand.Options.Add(quietOption);
         rootCommand.Options.Add(dryRunOption);
+        rootCommand.Options.Add(deployOption);
         rootCommand.Options.Add(strictOption);
 
         Context? result = null;
@@ -95,11 +100,12 @@ public static class ArgumentsParser
                     ? VerbosityLevel.Quiet
                     : VerbosityLevel.Normal;
 
-            // Whether to print debug graph
-            var debugGraph = parseResult.GetValue(debugGraphOption);
+            // Whether to print debug tree
+            var debugGraph = parseResult.GetValue(debugTreeOption);
 
-            // Dry run
+            // Run options
             var dryRun = parseResult.GetValue(dryRunOption);
+            var deploy = parseResult.GetValue(deployOption);
 
             // Dry run
             var strict = parseResult.GetValue(strictOption);
@@ -111,6 +117,7 @@ public static class ArgumentsParser
                 Verbosity = verbosityLevel,
                 DebugGraph = debugGraph,
                 DryRun = dryRun,
+                Deploy = deploy,
                 Strict = strict
             };
         });
