@@ -61,13 +61,15 @@ internal static class InterfacesConfig
 
         if (ipv4Address is not null)
         {
-            builder.AppendLine(
-                $" ip address {ipv4Address.IpAddress} " +
-                $"{Ipv4AddressUtils.GetV4Mask(ipv4Address.NetworkAddress.PrefixLength)}");
+            builder.AppendLine($" ip address {ipv4Address.IpAddress} " +
+                               $"{Ipv4AddressUtils.GetV4Mask(ipv4Address.NetworkAddress.PrefixLength)}");
 
             if (@interface.Neighbour!.ParentRouter.ParentAs == @interface.ParentRouter.ParentAs
                 && @interface.Neighbour!.ParentRouter.ParentAs.Igp.HasFlag(IgpType.OSPF))
+            {
                 builder.AppendLine(" ip ospf 1 area 0");
+                builder.AppendLine(" ip ospf network point-to-point");
+            }
         }
         else
             builder.AppendLine(" no ip address");
@@ -89,7 +91,10 @@ internal static class InterfacesConfig
 
             if (@interface.Neighbour!.ParentRouter.ParentAs == @interface.ParentRouter.ParentAs
                 && @interface.Neighbour!.ParentRouter.ParentAs.Igp.HasFlag(IgpType.OSPF))
+            {
                 builder.AppendLine(" ipv6 ospf 1 area 0");
+                builder.AppendLine(" ipv6 ospf network point-to-point");
+            }
         }
 
         // Write MPLS config
