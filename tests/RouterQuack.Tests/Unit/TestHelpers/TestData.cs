@@ -62,7 +62,7 @@ internal static class TestData
             Brand = brand,
             LoopbackAddressV4 = loopbackAddressV4,
             LoopbackAddressV6 = loopbackAddressV6,
-            Vrfs = vrfs?.ToArray() ?? [],
+            Vrfs = vrfs?.ToList() ?? [],
             Bgp = bgp ?? new(),
             External = external,
             Interfaces = interfaceList,
@@ -81,7 +81,6 @@ internal static class TestData
 
     internal static Interface CreateInterface(
         string name = "GigabitEthernet0/0",
-        Interface? neighbour = null,
         BgpRelationship bgp = BgpRelationship.None,
         ICollection<Address>? addresses = null,
         Router? parentRouter = null,
@@ -91,7 +90,7 @@ internal static class TestData
         return new()
         {
             Name = name,
-            Neighbour = neighbour,
+            Neighbour = null,
             Bgp = bgp,
             Addresses = addresses?.ToList() ?? [],
             ParentRouter = parentRouter!,
@@ -104,6 +103,26 @@ internal static class TestData
     {
         var ipAddress = IPAddress.Parse(ip);
         return new(new(ipAddress, prefixLength), ipAddress);
+    }
+
+    internal static void LinkInterfaces(
+        Interface a,
+        Interface b,
+        bool withValidLinkAddresses = false)
+    {
+        a.Neighbour = b;
+        b.Neighbour = a;
+
+        if (withValidLinkAddresses)
+        {
+            var networkV4 = IPNetwork.Parse("192.168.1.0/31");
+            a.Addresses.Add(new(networkV4, IPAddress.Parse("192.168.1.0")));
+            b.Addresses.Add(new(networkV4, IPAddress.Parse("192.168.1.1")));
+
+            var networkV6 = IPNetwork.Parse("2001:db8::/127");
+            a.Addresses.Add(new(networkV6, IPAddress.Parse("2001:db8::")));
+            b.Addresses.Add(new(networkV6, IPAddress.Parse("2001:db8::1")));
+        }
     }
 
     private static void SetParentAs(Router router, As parentAs)

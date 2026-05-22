@@ -21,28 +21,32 @@ public class PopulateVrfRdRt(ILogger<PopulateVrfRdRt> logger, Context context) :
                 .Distinct()
                 .OrderBy(n => n) // deterministic ordering
                 .ToList();
+
             var vrfIndexByName = vrfNames
                 .Select((name, i) => (name, index: i + 1))
                 .ToDictionary(x => x.name, x => x.index);
 
             // One counter per CE ASN, each starting at 1
-            var rdCounterByCeAsn = new Dictionary<long, int>();
+            var rdCounterByCeAsn = new Dictionary<int, int>();
 
             foreach (var router in @as.Routers)
             {
-                foreach (var vrf in router.Vrfs)
+                foreach (var vrf in router.Vrfs.ToList())
                 {
-                    var ceAsNumber = router.Interfaces
-                                         .FirstOrDefault(i => i.Vrf == vrf.Name && i.Neighbour != null)
-                                         ?.Neighbour?.ParentRouter.ParentAs.Number
-                                     ?? @as.Number;
+                    var @interface = router.Interfaces.FirstOrDefault(i => i.Vrf == vrf.Name);
 
+                    if (@interface is null)
+                    {
+                        router.Vrfs.Remove(vrf);
+                        continue;
+                    }
+
+                    var ceAsNumber = @interface.Neighbour!.AsNumber;
                     var rtIndex = vrfIndexByName[vrf.Name];
 
                     if (string.IsNullOrEmpty(vrf.RouteDistinguisher))
                     {
-                        if (!rdCounterByCeAsn.TryGetValue(ceAsNumber, out var counter))
-                            counter = 0;
+                        var counter = rdCounterByCeAsn.GetValueOrDefault(ceAsNumber, 0);
                         rdCounterByCeAsn[ceAsNumber] = ++counter;
 
                         vrf.RouteDistinguisher = $"{ceAsNumber}:{counter}";

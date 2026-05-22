@@ -45,10 +45,9 @@ public class YamlRouterMapper(ILogger<YamlRouterMapper> logger, YamlInterfaceMap
                 Interfaces = [],
                 ParentAs = parentAs,
                 External = value.External ?? yamlAs.External,
-                Vrfs = yamlAs.Vrfs
-                    .ToEnumerable()
-                    .Concat(value.Vrfs.ToEnumerable()).DistinctBy(v => v.Name)
-                    .ToArray()
+                Vrfs = new(value.Vrfs.ToEnumerable()
+                    .Concat(yamlAs.Vrfs.ToEnumerable().Select(CloneVrf))
+                    .DistinctBy(v => v.Name))
             };
 
             value.Mtu ??= yamlAs.Mtu;
@@ -59,6 +58,15 @@ public class YamlRouterMapper(ILogger<YamlRouterMapper> logger, YamlInterfaceMap
 
         return routers;
     }
+
+    private static Vrf CloneVrf(Vrf source) => new()
+    {
+        Name = source.Name,
+        RouteDistinguisher = source.RouteDistinguisher,
+        OverrideAs = source.OverrideAs,
+        ImportTargets = source.ImportTargets?.ToList(),
+        ExportTargets = source.ExportTargets?.ToList()
+    };
 
     private void LogError(Context context, [StructuredMessageTemplate] string message, params object?[] args)
     {

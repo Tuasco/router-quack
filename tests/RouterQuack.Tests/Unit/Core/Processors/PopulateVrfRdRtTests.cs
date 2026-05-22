@@ -23,7 +23,10 @@ public class PopulateVrfRdRtTests
     public async Task Process_VrfWithoutRdRt_GeneratesFromAsnAndIndex()
     {
         var vrf = CreateVrf("CUSTOMER_A");
-        var router = TestData.CreateRouter(vrfs: [vrf]);
+        var int1 = TestData.CreateInterface(vrf: "CUSTOMER_A");
+        var int2 = TestData.CreateInterface();
+        TestData.LinkInterfaces(int1, int2);
+        var router = TestData.CreateRouter(vrfs: [vrf], interfaces: [int1, int2]);
         var asses = new List<As> { TestData.CreateAs(number: 111, routers: [router]) };
 
         var context = ContextFactory.Create(asses: asses);
@@ -68,7 +71,10 @@ public class PopulateVrfRdRtTests
     {
         var vrfA = CreateVrf("CUSTOMER_A");
         var vrfB = CreateVrf("CUSTOMER_B");
-        var router = TestData.CreateRouter(vrfs: [vrfA, vrfB]);
+        var int1 = TestData.CreateInterface(vrf: "CUSTOMER_A");
+        var int2 = TestData.CreateInterface(vrf: "CUSTOMER_B");
+        TestData.LinkInterfaces(int1, int2);
+        var router = TestData.CreateRouter(vrfs: [vrfA, vrfB], interfaces: [int1, int2]);
         var asses = new List<As> { TestData.CreateAs(number: 111, routers: [router]) };
 
         var context = ContextFactory.Create(asses: asses);
@@ -85,8 +91,11 @@ public class PopulateVrfRdRtTests
     {
         var vrf1 = CreateVrf("CUSTOMER_A");
         var vrf2 = CreateVrf("CUSTOMER_A");
-        var r1 = TestData.CreateRouter(name: "R1", vrfs: [vrf1]);
-        var r2 = TestData.CreateRouter(name: "R2", vrfs: [vrf2]);
+        var int1 = TestData.CreateInterface(vrf: "CUSTOMER_A");
+        var int2 = TestData.CreateInterface(vrf: "CUSTOMER_A");
+        TestData.LinkInterfaces(int1, int2);
+        var r1 = TestData.CreateRouter(name: "R1", vrfs: [vrf1], interfaces: [int1]);
+        var r2 = TestData.CreateRouter(name: "R2", vrfs: [vrf2], interfaces: [int2]);
         var asses = new List<As> { TestData.CreateAs(number: 111, routers: [r1, r2]) };
 
         var context = ContextFactory.Create(asses: asses);
@@ -102,8 +111,11 @@ public class PopulateVrfRdRtTests
     {
         var vrf1 = CreateVrf("CUSTOMER_A");
         var vrf2 = CreateVrf("CUSTOMER_A");
-        var r1 = TestData.CreateRouter(name: "R1", vrfs: [vrf1]);
-        var r2 = TestData.CreateRouter(name: "R2", vrfs: [vrf2]);
+        var int1 = TestData.CreateInterface(vrf: "CUSTOMER_A");
+        var int2 = TestData.CreateInterface(vrf: "CUSTOMER_A");
+        TestData.LinkInterfaces(int1, int2);
+        var r1 = TestData.CreateRouter(name: "R1", vrfs: [vrf1], interfaces: [int1]);
+        var r2 = TestData.CreateRouter(name: "R2", vrfs: [vrf2], interfaces: [int2]);
         var asses = new List<As> { TestData.CreateAs(number: 111, routers: [r1, r2]) };
 
         var context = ContextFactory.Create(asses: asses);
@@ -121,8 +133,10 @@ public class PopulateVrfRdRtTests
         var asses = new List<As> { TestData.CreateAs(routers: [router]) };
 
         var context = ContextFactory.Create(asses: asses);
-        var act = () => new PopulateVrfRdRt(_logger, context).Process();
 
-        await Assert.That(act).ThrowsNothing();
+        await Assert.That(Act).ThrowsNothing();
+        return;
+
+        void Act() => new PopulateVrfRdRt(_logger, context).Process();
     }
 }

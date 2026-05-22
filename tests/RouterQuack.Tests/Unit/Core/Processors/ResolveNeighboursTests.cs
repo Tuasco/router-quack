@@ -134,8 +134,10 @@ public class ResolveNeighboursTests
 
     private static Interface CreatePendingInterface(string name, string neighbourName)
     {
-        var dummyNeighbour = TestData.CreateInterface(name: neighbourName, neighbour: null);
+        var dummyNeighbour = TestData.CreateInterface(name: neighbourName);
 
-        return TestData.CreateInterface(name: name, neighbour: dummyNeighbour);
+        var result = TestData.CreateInterface(name: name);
+        result.Neighbour = dummyNeighbour;
+        return result;
     }
 }

@@ -16,9 +16,14 @@ public class ValidBgpRelationshipsTests
     [Arguments(BgpRelationship.Client, BgpRelationship.Provider)]
     public async Task Validate_MatchedRelationships_NoErrors(BgpRelationship bgp1, BgpRelationship bgp2)
     {
-        var (intf1, intf2) = CreateLinkedInterfaces(bgp1, bgp2);
+        var intf1 = TestData.CreateInterface(bgp: bgp1);
+        var intf2 = TestData.CreateInterface(bgp: bgp2);
+        TestData.LinkInterfaces(intf1, intf2);
 
-        var context = ContextFactory.Create(asses: [intf1.ParentRouter.ParentAs, intf2.ParentRouter.ParentAs]);
+        var as1 = TestData.CreateAs(number: 1, routers: [TestData.CreateRouter(name: "R1", interfaces: [intf1])]);
+        var as2 = TestData.CreateAs(number: 1, routers: [TestData.CreateRouter(name: "R2", interfaces: [intf2])]);
+
+        var context = ContextFactory.Create(asses: [as1, as2]);
         var validator = new ValidBgpRelationships(_logger, context);
         validator.Validate();
 
@@ -33,12 +38,16 @@ public class ValidBgpRelationshipsTests
     [Arguments(BgpRelationship.Provider, BgpRelationship.Provider)]
     public async Task Validate_MismatchedRelationships_SetsErrorsOccurred(BgpRelationship bgp1, BgpRelationship bgp2)
     {
-        var (intf1, intf2) = CreateLinkedInterfaces(bgp1, bgp2);
+        var intf1 = TestData.CreateInterface(bgp: bgp1);
+        var intf2 = TestData.CreateInterface(bgp: bgp2);
+        TestData.LinkInterfaces(intf1, intf2);
 
-        var context = ContextFactory.Create(asses: [intf1.ParentRouter.ParentAs, intf2.ParentRouter.ParentAs]);
+        var as1 = TestData.CreateAs(number: 1, routers: [TestData.CreateRouter(name: "R1", interfaces: [intf1])]);
+        var as2 = TestData.CreateAs(number: 1, routers: [TestData.CreateRouter(name: "R2", interfaces: [intf2])]);
+
+        var context = ContextFactory.Create(asses: [as1, as2]);
         var validator = new ValidBgpRelationships(_logger, context);
         validator.Validate();
-
 
         await Assert.That(validator.Context.ErrorsOccurred).IsTrue();
     }
@@ -46,30 +55,17 @@ public class ValidBgpRelationshipsTests
     [Test]
     public async Task Validate_NoneAndPeer_SetsErrorsOccurred()
     {
-        var (intf1, intf2) = CreateLinkedInterfaces(BgpRelationship.None, BgpRelationship.Peer);
+        var intf1 = TestData.CreateInterface(bgp: BgpRelationship.None);
+        var intf2 = TestData.CreateInterface(bgp: BgpRelationship.Peer);
+        TestData.LinkInterfaces(intf1, intf2);
 
-        var context = ContextFactory.Create(asses: [intf1.ParentRouter.ParentAs, intf2.ParentRouter.ParentAs]);
+        var as1 = TestData.CreateAs(number: 1, routers: [TestData.CreateRouter(name: "R1", interfaces: [intf1])]);
+        var as2 = TestData.CreateAs(number: 1, routers: [TestData.CreateRouter(name: "R2", interfaces: [intf2])]);
+
+        var context = ContextFactory.Create(asses: [as1, as2]);
         var validator = new ValidBgpRelationships(_logger, context);
         validator.Validate();
 
         await Assert.That(validator.Context.ErrorsOccurred).IsTrue();
-    }
-
-    private static (Interface, Interface) CreateLinkedInterfaces(
-        BgpRelationship bgp1 = BgpRelationship.None,
-        BgpRelationship bgp2 = BgpRelationship.None,
-        int as1 = 1,
-        int as2 = 1)
-    {
-        var interface1 = TestData.CreateInterface(bgp: bgp1);
-        var interface2 = TestData.CreateInterface(bgp: bgp2);
-
-        interface1.Neighbour = interface2;
-        interface2.Neighbour = interface1;
-
-        TestData.CreateAs(number: as1, routers: [TestData.CreateRouter(name: "R1", interfaces: [interface1])]);
-        TestData.CreateAs(number: as2, routers: [TestData.CreateRouter(name: "R2", interfaces: [interface2])]);
-
-        return (interface1, interface2);
     }
 }

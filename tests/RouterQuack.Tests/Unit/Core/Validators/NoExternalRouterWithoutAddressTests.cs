@@ -19,9 +19,8 @@ public class NoExternalRouterWithoutAddressTests
         var neighbour = TestData.CreateInterface(
             addresses: [TestData.CreateAddress(ip1, prefixLength)]);
         var intf = TestData.CreateInterface(
-            neighbour: neighbour,
             addresses: [TestData.CreateAddress(ip2, prefixLength)]);
-        neighbour.Neighbour = intf;
+        TestData.LinkInterfaces(intf, neighbour);
 
         var asses = new List<As>
         {
@@ -39,8 +38,8 @@ public class NoExternalRouterWithoutAddressTests
     public async Task Validate_ExternalWithoutAddresses_SetsErrorsOccurred()
     {
         var neighbour = TestData.CreateInterface();
-        var intf = TestData.CreateInterface(neighbour: neighbour);
-        neighbour.Neighbour = intf;
+        var intf = TestData.CreateInterface();
+        TestData.LinkInterfaces(intf, neighbour);
 
         var asses = new List<As>
         {
@@ -58,8 +57,8 @@ public class NoExternalRouterWithoutAddressTests
     public async Task Validate_NonExternalWithoutAddresses_NoErrors()
     {
         var neighbour = TestData.CreateInterface();
-        var intf = TestData.CreateInterface(neighbour: neighbour);
-        neighbour.Neighbour = intf;
+        var intf = TestData.CreateInterface();
+        TestData.LinkInterfaces(intf, neighbour);
 
         var asses = new List<As>
         {

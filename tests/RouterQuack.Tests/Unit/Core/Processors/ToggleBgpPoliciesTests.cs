@@ -13,7 +13,9 @@ public class ToggleBgpPoliciesTests
     public async Task Process_PlainBorderRouter_EnablesPolicies()
     {
         var remoteInterface = TestData.CreateInterface();
-        var localInterface = TestData.CreateInterface(bgp: BgpRelationship.Peer, neighbour: remoteInterface);
+        var localInterface = TestData.CreateInterface(bgp: BgpRelationship.Peer);
+        TestData.LinkInterfaces(localInterface, remoteInterface);
+
         var router = TestData.CreateRouter(interfaces: [localInterface]);
         var ass = TestData.CreateAs(routers: [router]);
 
@@ -28,7 +30,9 @@ public class ToggleBgpPoliciesTests
     public async Task Process_VpnClient_DisablesPolicies()
     {
         var peInterface = TestData.CreateInterface(vrf: "CUSTOMER_A");
-        var ceInterface = TestData.CreateInterface(bgp: BgpRelationship.Provider, neighbour: peInterface);
+        var ceInterface = TestData.CreateInterface(bgp: BgpRelationship.Provider);
+        TestData.LinkInterfaces(ceInterface, peInterface);
+
         var router = TestData.CreateRouter(interfaces: [ceInterface]);
         var ass = TestData.CreateAs(routers: [router]);
 
@@ -56,7 +60,9 @@ public class ToggleBgpPoliciesTests
     public async Task Process_AlreadyExplicitlyTrue_LeavesUnchanged()
     {
         var remoteInterface = TestData.CreateInterface();
-        var localInterface = TestData.CreateInterface(bgp: BgpRelationship.Peer, neighbour: remoteInterface);
+        var localInterface = TestData.CreateInterface(bgp: BgpRelationship.Peer);
+        TestData.LinkInterfaces(localInterface, remoteInterface);
+
         var router = TestData.CreateRouter(
             interfaces: [localInterface],
             bgp: new() { Policies = true });
@@ -73,7 +79,9 @@ public class ToggleBgpPoliciesTests
     public async Task Process_AlreadyExplicitlyFalse_LeavesUnchanged()
     {
         var remoteInterface = TestData.CreateInterface();
-        var localInterface = TestData.CreateInterface(bgp: BgpRelationship.Peer, neighbour: remoteInterface);
+        var localInterface = TestData.CreateInterface(bgp: BgpRelationship.Peer);
+        TestData.LinkInterfaces(localInterface, remoteInterface);
+
         var router = TestData.CreateRouter(
             interfaces: [localInterface],
             bgp: new() { Policies = false });

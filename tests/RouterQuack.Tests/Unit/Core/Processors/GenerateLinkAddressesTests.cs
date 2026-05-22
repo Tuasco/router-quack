@@ -15,7 +15,10 @@ public class GenerateLinkAddressesTests
     [Test]
     public async Task Process_LinkWithoutAddress_GeneratesV4AddressOnly()
     {
-        var (intf1, intf2) = CreateLinkedInterfaces();
+        var intf1 = TestData.CreateInterface();
+        var intf2 = TestData.CreateInterface();
+        TestData.LinkInterfaces(intf1, intf2);
+
         var asses = new List<As>
         {
             TestData.CreateAs(
@@ -47,7 +50,10 @@ public class GenerateLinkAddressesTests
     [Test]
     public async Task Process_LinkWithoutAddress_GeneratesV6AddressOnly()
     {
-        var (intf1, intf2) = CreateLinkedInterfaces();
+        var intf1 = TestData.CreateInterface();
+        var intf2 = TestData.CreateInterface();
+        TestData.LinkInterfaces(intf1, intf2);
+
         var asses = new List<As>
         {
             TestData.CreateAs(
@@ -79,7 +85,9 @@ public class GenerateLinkAddressesTests
     [Test]
     public async Task Process_ExternalRouterWithValidIps_SkipsGeneration()
     {
-        var (intf1, intf2) = CreateLinkedInterfaces(withValidLinkAddresses: true);
+        var intf1 = TestData.CreateInterface();
+        var intf2 = TestData.CreateInterface();
+        TestData.LinkInterfaces(intf1, intf2, withValidLinkAddresses: true);
 
         var asses = new List<As>
         {
@@ -106,7 +114,9 @@ public class GenerateLinkAddressesTests
     [Test]
     public async Task Process_ExternalRouterWithoutIps_SetsErrorsOccurred()
     {
-        var (intf1, intf2) = CreateLinkedInterfaces();
+        var intf1 = TestData.CreateInterface();
+        var intf2 = TestData.CreateInterface();
+        TestData.LinkInterfaces(intf1, intf2);
 
         var asses = new List<As>
         {
@@ -145,7 +155,9 @@ public class GenerateLinkAddressesTests
         string address1,
         string address2)
     {
-        var (intf1, intf2) = CreateLinkedInterfaces();
+        var intf1 = TestData.CreateInterface();
+        var intf2 = TestData.CreateInterface();
+        TestData.LinkInterfaces(intf1, intf2);
 
         intf1.Addresses.Add(new(address1));
         intf2.Addresses.Add(new(address2));
@@ -180,7 +192,10 @@ public class GenerateLinkAddressesTests
     [Arguments(IpVersion.IPv4 | IpVersion.IPv6)]
     public async Task Process_NoNetworkSpace_SetsErrorsOccurred(IpVersion addressFamilies)
     {
-        var (intf1, intf2) = CreateLinkedInterfaces();
+        var intf1 = TestData.CreateInterface();
+        var intf2 = TestData.CreateInterface();
+        TestData.LinkInterfaces(intf1, intf2);
+
         var asses = new List<As>
         {
             TestData.CreateAs(
@@ -206,7 +221,10 @@ public class GenerateLinkAddressesTests
     [Arguments(IpVersion.IPv4 | IpVersion.IPv6)]
     public async Task Process_NoNetworkSpace_AcrossASes_SetsErrorsOccurred(IpVersion addressFamilies)
     {
-        var (intf1, intf2) = CreateLinkedInterfaces();
+        var intf1 = TestData.CreateInterface();
+        var intf2 = TestData.CreateInterface();
+        TestData.LinkInterfaces(intf1, intf2);
+
         var asses = new List<As>
         {
             TestData.CreateAs(
@@ -230,28 +248,5 @@ public class GenerateLinkAddressesTests
         processor.Process();
 
         await Assert.That(processor.Context.ErrorsOccurred).IsTrue();
-    }
-
-    private static (Interface, Interface) CreateLinkedInterfaces(
-        bool withValidLinkAddresses = false)
-    {
-        var interface1 = TestData.CreateInterface();
-        var interface2 = TestData.CreateInterface();
-
-        interface1.Neighbour = interface2;
-        interface2.Neighbour = interface1;
-
-        if (withValidLinkAddresses)
-        {
-            var networkV4 = IPNetwork.Parse("192.168.1.0/31");
-            interface1.Addresses.Add(new(networkV4, IPAddress.Parse("192.168.1.0")));
-            interface2.Addresses.Add(new(networkV4, IPAddress.Parse("192.168.1.1")));
-
-            var networkV6 = IPNetwork.Parse("2001:db8::/127");
-            interface1.Addresses.Add(new(networkV6, IPAddress.Parse("2001:db8::")));
-            interface2.Addresses.Add(new(networkV6, IPAddress.Parse("2001:db8::1")));
-        }
-
-        return (interface1, interface2);
     }
 }
