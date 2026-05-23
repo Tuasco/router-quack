@@ -1,0 +1,22 @@
+600:
+  deploy:
+    gns3:
+      server: "http://localhost:3080"
+      project: "mixed-vrfs"
+
+  routers:
+    CE-C:
+      loopback_v4: "12.0.0.1"
+      loopback_v6: "1002:0:0:0::1"
+      bgp:
+        networks:
+          # Loopbacks
+          - "12.0.0.1/32"
+          - "1002:0:0:0::1/128"
+      interfaces:
+        GigabitEthernet1/0:
+          neighbour: "111:PE4"
+          bgp: "provider"
+          addresses:
+            - "10.10.5.2/24"
+            - "2001:10:10:5::2/64"

@@ -1,0 +1,108 @@
+111:
+  core: "LDP"
+  igp: "OSPF"
+  networks_space_v4: "10.1.1.0/24"
+  networks_space_v6: "2001:1:1:1::/64"
+  loopback_space_v4: "10.1.2.0/24"
+  loopback_space_v6: "2001:1:1:2::/64"
+
+  deploy:
+    gns3:
+      server: "http://localhost:3080"
+      project: "mixed-vrfs"
+  vrfs:
+    CUSTOMER_A:
+      import_targets: [ "200:100", "600:100" ]
+      export_targets: [ "200:100" ]
+    CUSTOMER_B:
+      import_targets: [ "500:100", "600:100" ]
+      export_targets: [ "500:100" ]
+    CUSTOMER_C:
+      import_targets: [ "600:100", "200:100", "500:100" ]
+      export_targets: [ "600:100" ]
+
+  routers:
+    PE1:
+      interfaces:
+        GigabitEthernet1/0:
+          neighbour: "P1"
+        GigabitEthernet2/0:
+          neighbour: "500:CE-B1"
+          bgp: "client"
+          vrf: "CUSTOMER_B"
+          addresses:
+            - "10.10.1.1/24"
+            - "2001:10:10:1::1/64"
+        GigabitEthernet3/0:
+          neighbour: "200:CE-A1"
+          bgp: "client"
+          vrf: "CUSTOMER_A"
+          addresses:
+            - "10.10.1.1/24"
+            - "2001:10:10:1::1/64"
+
+    P1:
+      interfaces:
+        GigabitEthernet1/0:
+          neighbour: "PE1"
+        GigabitEthernet2/0:
+          neighbour: "P2"
+        GigabitEthernet3/0:
+          neighbour: "PE3"
+
+    P2:
+      interfaces:
+        GigabitEthernet1/0:
+          neighbour: "P1"
+        GigabitEthernet2/0:
+          neighbour: "PE2"
+        GigabitEthernet3/0:
+          neighbour: "PE4"
+
+    PE2:
+      interfaces:
+        GigabitEthernet1/0:
+          neighbour: "P2"
+        GigabitEthernet2/0:
+          neighbour: "500:CE-B2"
+          bgp: "client"
+          vrf: "CUSTOMER_B"
+          addresses:
+            - "10.10.2.1/24"
+            - "2001:10:10:2::1/64"
+        GigabitEthernet3/0:
+          neighbour: "200:CE-A2"
+          bgp: "client"
+          vrf: "CUSTOMER_A"
+          addresses:
+            - "10.10.2.1/24"
+            - "2001:10:10:2::1/64"
+
+    PE3:
+      interfaces:
+        GigabitEthernet1/0:
+          neighbour: "300:C1"
+          bgp: "provider"
+          addresses:
+            - "10.10.3.1/24"
+            - "2001:10:10:3::1/64"
+        GigabitEthernet2/0:
+          neighbour: "400:C2"
+          bgp: "client"
+          addresses:
+            - "10.10.4.1/24"
+            - "2001:10:10:4::1/64"
+        GigabitEthernet3/0:
+          neighbour: "P1"
+
+    PE4:
+      interfaces:
+        GigabitEthernet1/0:
+          neighbour: "P2"
+        GigabitEthernet2/0:
+          neighbour: "600:CE-C"
+          vrf: "CUSTOMER_C"
+          bgp: "client"
+          addresses:
+            - "10.10.5.1/24"
+            - "2001:10:10:5::1/64"
