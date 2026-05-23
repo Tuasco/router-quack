@@ -7,6 +7,9 @@ internal static class OspfConfig
 {
     internal static void ApplyOspfConfig(StringBuilder builder, Router router)
     {
+        if (!router.ParentAs.Igp.HasFlag(IgpType.OSPF))
+            return;
+
         // To make sure header is inserted without being duplicated
         var headerSet = false;
 
@@ -29,6 +32,11 @@ internal static class OspfConfig
 
             builder.AppendLine(ConfigV4);
             builder.AppendLine($" router-id {router.Id!}");
+
+            // Sync OSPF with LDP
+            if (router.ParentAs.Core.HasFlag(CoreType.LDP))
+                builder.AppendLine(" mpls ldp sync");
+
             builder.AppendLine("!\n!");
         }
     }

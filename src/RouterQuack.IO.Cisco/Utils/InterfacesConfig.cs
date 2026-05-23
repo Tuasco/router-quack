@@ -1,4 +1,3 @@
-using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using RouterQuack.Core.Models;
@@ -9,7 +8,7 @@ internal static class InterfacesConfig
 {
     internal static void ApplyInterfacesConfig(StringBuilder builder, Router router)
     {
-        ApplyLoopbackConfig(builder, router.LoopbackAddressV4, router.LoopbackAddressV6);
+        ApplyLoopbackConfig(builder, router);
 
         builder.AppendLine(InterfacesConfigHeader);
         foreach (var @interface in router.Interfaces)
@@ -18,23 +17,28 @@ internal static class InterfacesConfig
 
     private const string InterfacesConfigHeader = "! ================= INTERFACES =================";
 
-    private static void ApplyLoopbackConfig(StringBuilder builder, IPAddress? loopbackV4, IPAddress? loopbackV6)
+    private static void ApplyLoopbackConfig(StringBuilder builder, Router router)
     {
-        if (loopbackV4 is null && loopbackV6 is null)
+        if (router.LoopbackAddressV4 is null && router.LoopbackAddressV6 is null)
             return;
 
         builder.AppendLine(LoopbackConfigStart);
+        var ospf = router.ParentAs.Igp.HasFlag(IgpType.OSPF);
 
-        if (loopbackV4 is not null)
+        if (router.LoopbackAddressV4 is not null)
         {
-            builder.AppendLine($" ip address {loopbackV4} 255.255.255.255");
-            builder.AppendLine(" ip ospf 1 area 0");
+            builder.AppendLine($" ip address {router.LoopbackAddressV4} 255.255.255.255");
+
+            if (ospf)
+                builder.AppendLine(" ip ospf 1 area 0");
         }
 
-        if (loopbackV6 is not null)
+        if (router.LoopbackAddressV6 is not null)
         {
-            builder.AppendLine($" ipv6 address {loopbackV6}/128");
-            builder.AppendLine(" ipv6 ospf 1 area 0");
+            builder.AppendLine($" ipv6 address {router.LoopbackAddressV6}/128");
+
+            if (ospf)
+                builder.AppendLine(" ipv6 ospf 1 area 0");
         }
 
         builder.AppendLine("!\n!");
@@ -65,7 +69,7 @@ internal static class InterfacesConfig
                                $"{Ipv4AddressUtils.GetV4Mask(ipv4Address.NetworkAddress.PrefixLength)}");
 
             if (@interface.Neighbour!.ParentRouter.ParentAs == @interface.ParentRouter.ParentAs
-                && @interface.Neighbour!.ParentRouter.ParentAs.Igp.HasFlag(IgpType.OSPF))
+                && @interface.ParentRouter.ParentAs.Igp.HasFlag(IgpType.OSPF))
             {
                 builder.AppendLine(" ip ospf 1 area 0");
                 builder.AppendLine(" ip ospf network point-to-point");
@@ -90,7 +94,7 @@ internal static class InterfacesConfig
                 builder.AppendLine($" ipv6 address {address.IpAddress}/{address.NetworkAddress.PrefixLength}");
 
             if (@interface.Neighbour!.ParentRouter.ParentAs == @interface.ParentRouter.ParentAs
-                && @interface.Neighbour!.ParentRouter.ParentAs.Igp.HasFlag(IgpType.OSPF))
+                && @interface.ParentRouter.ParentAs.Igp.HasFlag(IgpType.OSPF))
             {
                 builder.AppendLine(" ipv6 ospf 1 area 0");
                 builder.AppendLine(" ipv6 ospf network point-to-point");

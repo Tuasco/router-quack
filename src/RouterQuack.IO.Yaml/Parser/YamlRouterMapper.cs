@@ -62,7 +62,7 @@ public class YamlRouterMapper(ILogger<YamlRouterMapper> logger, YamlInterfaceMap
     private static Vrf CloneVrf(Vrf source) => new()
     {
         Name = source.Name,
-        RouteDistinguisher = source.RouteDistinguisher,
+        RouteDistinguisher = null,
         OverrideAs = source.OverrideAs,
         ImportTargets = source.ImportTargets?.ToList(),
         ExportTargets = source.ExportTargets?.ToList()

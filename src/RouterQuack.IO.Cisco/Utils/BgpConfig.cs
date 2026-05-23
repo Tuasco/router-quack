@@ -19,7 +19,7 @@ internal static class BgpConfig
 
         // Routers with iBGP enabled (except self)
         var ibgpNeighbours = router.ParentAs.Routers
-            .Where(r => r.Bgp.Ibgp == true && !r.Equals(router))
+            .Where(r => r.Bgp.Ibgp == true && r != router)
             .ToArray();
 
         // Split eBGP interfaces: plain inter-AS links vs CE-facing (VRF-bound)
@@ -141,7 +141,7 @@ internal static class BgpConfig
                     ipv6AddressFamily.Add($"  neighbor {addressV4} next-hop-self");
                     ipv6AddressFamily.Add($"  neighbor {addressV4} send-community both");
                     ipv6AddressFamily.Add($"  neighbor {addressV4} send-label");
-                    return;
+                    continue;
                 }
             }
 
@@ -209,6 +209,10 @@ internal static class BgpConfig
 
         foreach (var neighbour in ibgpNeighbours)
         {
+            // Neighbour has no VRFs, doesn't use VPN address families
+            if (!neighbour.Vrfs.Any())
+                continue;
+
             var addressV4 = neighbour.LoopbackAddressV4;
             if (addressV4 is null)
                 continue;
@@ -239,6 +243,10 @@ internal static class BgpConfig
 
         foreach (var neighbour in ibgpNeighbours)
         {
+            // Neighbour has no VRFs, doesn't use VPN address families
+            if (!neighbour.Vrfs.Any())
+                continue;
+
             var addressV4 = neighbour.LoopbackAddressV4;
             if (addressV4 is null)
                 continue;

@@ -6,7 +6,7 @@ namespace RouterQuack.IO.Yaml.Models;
 // ReSharper disable all UnusedAutoPropertyAccessor
 public sealed class As
 {
-    public IgpType Igp { get; init; } = IgpType.OSPF;
+    public IgpType Igp { get; init; } = IgpType.None;
 
     public CoreType Core { get; init; } = CoreType.None;
 

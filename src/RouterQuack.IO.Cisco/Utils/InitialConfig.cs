@@ -32,6 +32,7 @@ internal static class InitialConfig
     private const string PostBootConfig =
         """
         no ip domain lookup
+        ip bgp-community new-format
         !
         !
         """;
